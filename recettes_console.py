@@ -1,11 +1,14 @@
 """
 MISE EN PLACE v2 — console de recettes techno-futuriste
 ────────────────────────────────────────────────────────
-• Onglet CUISINE : ajuste les portions, coche les ingrédients.
-• Onglet ÉDITION : modifie les quantités, ajoute / retire des
-  ingrédients, crée ou supprime des recettes.
-• Les recettes sont sauvegardées dans recettes.json (créé
-  automatiquement à côté de ce script).
+• Onglet CUISINE : ajuste les portions, coche les ingrédients ET les
+  étapes de préparation ; les quantités (y compris dans les étapes)
+  s'ajustent automatiquement.
+• Onglet ÉDITION : sommaire (temps de préparation, cuisson, portions),
+  édition des ingrédients et des étapes, création / suppression de recettes.
+• Dans une étape, écris [nom d'ingrédient] entre crochets pour insérer
+  sa quantité mise à l'échelle.
+• Sauvegarde vers GitHub (si secrets configurés) ou en local.
 
 Lancer avec :  streamlit run recettes_console.py
 """
@@ -13,6 +16,7 @@ Lancer avec :  streamlit run recettes_console.py
 import base64
 import json
 import os
+import re
 
 import requests
 import streamlit as st
@@ -27,6 +31,8 @@ RECETTES_DEFAUT = [
     {
         "titre": "Marinade grecque pour poulet",
         "sous_titre": "Style Casa Grecque",
+        "temps_prep": 10,
+        "temps_cuisson": 0,
         "base": {"label": "Poids de poulet", "unite": "g", "valeur": 750,
                  "min": 100, "max": 3000, "pas": 50},
         "ingredients": [
@@ -40,10 +46,18 @@ RECETTES_DEFAUT = [
             {"nom": "Base de bouillon de poulet",  "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Sel et poivre",               "qte": None, "unite": "au goût",    "palier": None},
         ],
+        "preparation": [
+            "Dans un bol, fouetter [Mayonnaise (comble)], [Origan], [Huile légère] et [Jus de citron].",
+            "Ajouter [Poudre d'oignon], [Ail haché], [Moutarde de Dijon] et [Base de bouillon de poulet]. Bien mélanger.",
+            "Enrober le poulet de marinade, couvrir et réfrigérer au moins 2 heures.",
+            "Saler et poivrer au goût juste avant la cuisson.",
+        ],
     },
     {
         "titre": "Vinaigrette balsamique",
         "sous_titre": "Classique 3 pour 1 — à éditer selon ton goût",
+        "temps_prep": 5,
+        "temps_cuisson": 0,
         "base": {"label": "Volume", "unite": "ml", "valeur": 250,
                  "min": 60, "max": 1000, "pas": 10},
         "ingredients": [
@@ -54,10 +68,17 @@ RECETTES_DEFAUT = [
             {"nom": "Ail haché",            "qte": 0.5,  "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Sel et poivre",        "qte": None, "unite": "au goût",    "palier": None},
         ],
+        "preparation": [
+            "Fouetter [Moutarde de Dijon] et [Miel] avec [Vinaigre balsamique].",
+            "Ajouter [Ail haché], puis verser [Huile d'olive] en filet en fouettant sans arrêt.",
+            "Saler et poivrer au goût. Bien secouer avant chaque service.",
+        ],
     },
     {
         "titre": "Marinade BBQ maison",
         "sous_titre": "Exemple modifiable",
+        "temps_prep": 10,
+        "temps_cuisson": 20,
         "base": {"label": "Poids de viande", "unite": "g", "valeur": 1000,
                  "min": 200, "max": 4000, "pas": 100},
         "ingredients": [
@@ -68,6 +89,12 @@ RECETTES_DEFAUT = [
             {"nom": "Paprika fumé",         "qte": 2,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Poudre d'ail",         "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Sel et poivre",        "qte": None, "unite": "au goût",    "palier": None},
+        ],
+        "preparation": [
+            "Dans une casserole, mélanger [Ketchup], [Cassonade] et [Sauce Worcestershire].",
+            "Ajouter [Vinaigre de cidre], [Paprika fumé] et [Poudre d'ail].",
+            "Porter à faible ébullition, puis laisser mijoter 15 à 20 minutes en remuant.",
+            "Saler et poivrer au goût. Badigeonner sur la viande en fin de cuisson.",
         ],
     },
 ]
@@ -208,11 +235,45 @@ def html_escape(s):
             .replace(">", "&gt;").replace('"', "&quot;"))
 
 
+def normaliser_recette(r):
+    """Garantit que chaque recette possède tous les champs attendus
+    (migration des anciennes recettes sans temps ni préparation)."""
+    r.setdefault("titre", "Sans titre")
+    r.setdefault("sous_titre", "")
+    r.setdefault("temps_prep", 0)
+    r.setdefault("temps_cuisson", 0)
+    r.setdefault("preparation", [])
+    r.setdefault("ingredients", [])
+    r.setdefault("base", {"label": "Portions", "unite": "u", "valeur": 4,
+                          "min": 1, "max": 20, "pas": 1})
+    return r
+
+
+def injecter_quantites(texte, index_ing, facteur):
+    """Remplace les [nom d'ingrédient] d'une étape par la quantité mise à
+    l'échelle. Le texte est déjà échappé HTML ; les crochets survivent."""
+    def repl(m):
+        cle = m.group(1).strip().lower()
+        ing = index_ing.get(cle)
+        if not ing:
+            return m.group(1)                      # nom seul si non trouvé
+        q = echelle(ing, facteur)
+        if q is None:
+            val = "au goût"
+        else:
+            unite = html_escape(ing.get("unite") or "")
+            val = f"{jolie_qte(q)} {unite}".strip()
+        return f'<span class="inq">{val}</span>'
+    return re.sub(r"\[([^\[\]]+)\]", repl, texte)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  ÉTAT
 # ─────────────────────────────────────────────────────────────────────────────
 if "recettes" not in st.session_state:
     recettes, mode, erreur = charger_recettes()
+    for r in recettes:
+        normaliser_recette(r)
     st.session_state.recettes = recettes
     st.session_state.stockage = mode          # "github" ou "local"
     st.session_state.erreur_chargement = erreur
@@ -236,10 +297,13 @@ def recette_vierge(n_total):
     return {
         "titre": f"Nouvelle recette {n_total}" if n_total > 1 else "Nouvelle recette",
         "sous_titre": "À personnaliser",
-        "base": {"label": "Portions", "unite": "u", "valeur": 4,
+        "temps_prep": 0,
+        "temps_cuisson": 0,
+        "base": {"label": "Portions", "unite": "portions", "valeur": 4,
                  "min": 1, "max": 20, "pas": 1},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5}],
+        "preparation": ["Première étape — écris [Premier ingrédient] pour insérer sa quantité."],
     }
 
 
@@ -448,22 +512,58 @@ with onglet_cuisine:
     ref = float(base["valeur"]) or b_val
     facteur = cible / ref if ref else 1.0
 
-    lignes = ""
+    # Index des ingrédients pour l'auto-ajustement dans les étapes
+    index_ing = {ing["nom"].strip().lower(): ing
+                 for ing in recette["ingredients"] if ing.get("nom")}
+
+    # Section INGRÉDIENTS
+    lignes_ing = ""
     for ing in recette["ingredients"]:
         q = jolie_qte(echelle(ing, facteur))
         au_gout = ing.get("qte") is None
         unite = "" if au_gout else html_escape(ing.get("unite") or "")
         cls_qte = "qte gout" if au_gout else "qte"
-        lignes += f"""
+        lignes_ing += f"""
         <div class="ing" onclick="toggle(this)">
           <span class="box"></span>
           <span class="nom">{html_escape(ing['nom'])}</span>
           <span class="{cls_qte}"><b>{q}</b> {unite}</span>
         </div>"""
 
-    n = len(recette["ingredients"])
-    calib = f"Calibré · {base['valeur']:g} {base['unite']}"
-    cible_txt = f"{cible:g} {base['unite']}"
+    # Section PRÉPARATION (étapes numérotées, quantités auto-ajustées)
+    lignes_prep = ""
+    for i, etape in enumerate(recette.get("preparation", []), start=1):
+        texte = injecter_quantites(html_escape(etape), index_ing, facteur)
+        lignes_prep += f"""
+        <div class="ing step" onclick="toggle(this)">
+          <span class="box"></span>
+          <span class="num">{i}.</span>
+          <span class="nom">{texte}</span>
+        </div>"""
+
+    rows = ""
+    if lignes_ing:
+        rows += '<div class="section">Ingrédients</div>' + lignes_ing
+    if lignes_prep:
+        rows += '<div class="section">Préparation</div>' + lignes_prep
+
+    n_ing = len(recette["ingredients"])
+    n_prep = len(recette.get("preparation", []))
+    n = n_ing + n_prep
+
+    # Sommaire : portions/référence + temps + facteur
+    tp = int(recette.get("temps_prep", 0) or 0)
+    tc = int(recette.get("temps_cuisson", 0) or 0)
+    chips = [f'<span class="chip">{html_escape(base["label"])} · '
+             f'<b>{cible:g} {html_escape(base["unite"])}</b></span>']
+    if tp:
+        chips.append(f'<span class="chip">Prép · <b>{tp} min</b></span>')
+    if tc:
+        chips.append(f'<span class="chip">Cuisson · <b>{tc} min</b></span>')
+    if tp and tc:
+        chips.append(f'<span class="chip">Total · <b>{tp + tc} min</b></span>')
+    chips.append(f'<span class="chip">Facteur · <b>×{facteur:.2f}</b></span>')
+    meta_html = "".join(chips)
 
     TEMPLATE = """
 <!doctype html><html><head><meta charset="utf-8">
@@ -522,6 +622,22 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .hint{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#5a688f;
   letter-spacing:.22em;text-align:center;padding:8px 0 14px;text-transform:uppercase}
 
+/* Sections + étapes de préparation */
+.section{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.26em;
+  text-transform:uppercase;color:#4df3e3;padding:16px 14px 6px;display:flex;
+  align-items:center;gap:10px}
+.section::after{content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,#1e2a45,transparent)}
+.ing.step{align-items:flex-start}
+.ing.step .box{margin-top:2px}
+.step .num{font-family:'JetBrains Mono',monospace;font-weight:700;color:#ffb454;
+  flex:0 0 auto;font-size:.95rem;line-height:1.5}
+.step .nom{font-weight:400;line-height:1.5}
+.inq{font-family:'JetBrains Mono',monospace;color:#ffb454;font-weight:700;
+  background:rgba(255,180,84,.1);padding:1px 6px;border-radius:5px;white-space:nowrap;
+  text-shadow:0 0 10px rgba(255,180,84,.35)}
+.ing.done .inq{opacity:.4;text-shadow:none}
+
 /* Overlay de victoire — apparaît quand tout est coché */
 .victoire{
   position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
@@ -560,16 +676,12 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
     <div class="scan"></div>
     <div class="rtitle">__TITRE__</div>
     <div class="rsub">__SOUS__</div>
-    <div class="meta">
-      <span class="chip">__CALIB__</span>
-      <span class="chip">Cible · <b>__CIBLE__</b></span>
-      <span class="chip">Facteur · <b>×__FACT__</b></span>
-    </div>
+    <div class="meta">__META__</div>
     <div class="prog"><div class="progfill" id="fill"></div></div>
-    <div class="count" id="cnt">0 / __N__ ingrédients cochés</div>
+    <div class="count" id="cnt">0 / __N__ éléments cochés</div>
   </div>
   <div class="list">__ROWS__</div>
-  <div class="hint">Touche un ingrédient pour le cocher</div>
+  <div class="hint">Touche un ingrédient ou une étape pour le cocher</div>
   <div class="victoire" id="victoire" onclick="fermerVictoire()">
     <div class="v-cadre">
       <img src="https://i.pinimg.com/originals/fc/6e/a2/fc6ea2c2a09d097a22efca53e3780843.gif" alt="Mise en place complète !">
@@ -584,7 +696,7 @@ function toggle(el){el.classList.toggle('done');maj();}
 function maj(){
   var items=Array.prototype.slice.call(document.querySelectorAll('.ing'));
   var d=items.filter(function(i){return i.classList.contains('done')}).length;
-  document.getElementById('cnt').textContent=d+' / '+items.length+' ingr\\u00e9dients coch\\u00e9s';
+  document.getElementById('cnt').textContent=d+' / '+items.length+' \\u00e9l\\u00e9ments coch\\u00e9s';
   document.getElementById('fill').style.width=(items.length?d/items.length*100:0)+'%';
   var complet=items.length>0 && d===items.length;
   if(!complet){victoireFermee=false;}
@@ -600,13 +712,12 @@ function fermerVictoire(){
     html = (TEMPLATE
             .replace("__TITRE__", html_escape(recette["titre"]))
             .replace("__SOUS__", html_escape(recette.get("sous_titre", "")))
-            .replace("__CALIB__", html_escape(calib))
-            .replace("__CIBLE__", html_escape(cible_txt))
-            .replace("__FACT__", f"{facteur:.2f}")
+            .replace("__META__", meta_html)
             .replace("__N__", str(n))
-            .replace("__ROWS__", lignes))
+            .replace("__ROWS__", rows))
 
-    components.html(html, height=320 + max(n, 1) * 62, scrolling=True)
+    hauteur = 300 + n_ing * 60 + n_prep * 92 + (60 if n_prep else 0)
+    components.html(html, height=hauteur, scrolling=True)
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET ÉDITION — modifier / ajouter / retirer / supprimer
@@ -621,10 +732,24 @@ with onglet_edition:
         sous_titre = st.text_input("Sous-titre", value=recette.get("sous_titre", ""),
                                    key=f"s_{k}")
 
-    with st.expander("Référence de base (mise à l'échelle)"):
+    with st.expander("Sommaire — portions, temps & mise à l'échelle"):
+        st.caption("La « Valeur de référence » correspond au nombre de portions "
+                   "(ou à la quantité de base). Tout — ingrédients et quantités "
+                   "dans les étapes — s'ajuste par rapport à elle.")
+        s1, s2 = st.columns(2)
+        with s1:
+            temps_prep = st.number_input("Temps de préparation (min)", min_value=0,
+                                         value=int(recette.get("temps_prep", 0) or 0),
+                                         step=5, key=f"tp_{k}")
+        with s2:
+            temps_cuisson = st.number_input("Temps de cuisson (min)", min_value=0,
+                                            value=int(recette.get("temps_cuisson", 0) or 0),
+                                            step=5, key=f"tc_{k}")
+        st.markdown("<div style='height:.3rem'></div>", unsafe_allow_html=True)
         b1, b2, b3 = st.columns(3)
         with b1:
-            b_label = st.text_input("Étiquette", value=base["label"], key=f"bl_{k}")
+            b_label = st.text_input("Étiquette (ex. Portions)", value=base["label"],
+                                    key=f"bl_{k}")
             b_val = st.number_input("Valeur de référence", min_value=0.01,
                                     value=float(base["valeur"]), key=f"bv_{k}")
         with b2:
@@ -669,6 +794,23 @@ with onglet_edition:
         },
     )
 
+    st.caption("PRÉPARATION — une étape par ligne (dans l'ordre) · écris "
+               "[nom d'ingrédient] entre crochets pour insérer sa quantité, qui "
+               "s'ajustera automatiquement en cuisine.")
+
+    lignes_prep_edit = [{"Étape": e} for e in recette.get("preparation", [])]
+    edite_prep = st.data_editor(
+        lignes_prep_edit,
+        num_rows="dynamic",
+        use_container_width=True,
+        key=f"prep_editeur_{k}",
+        column_config={
+            "Étape": st.column_config.TextColumn(
+                "Étape", required=True, width="large",
+                help="Ex. : Fouetter [Huile d'olive] avec [Miel]."),
+        },
+    )
+
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
         nouveaux = []
@@ -685,6 +827,8 @@ with onglet_edition:
                          ("au goût" if au_gout else ""),
                 "palier": float(ligne["Palier"]) if ligne.get("Palier") else None,
             })
+        etapes = [(l.get("Étape") or "").strip() for l in edite_prep]
+        etapes = [e for e in etapes if e]
         if not nouveaux:
             st.error("Il faut au moins un ingrédient avec un nom.")
         elif b_min >= b_max:
@@ -692,11 +836,14 @@ with onglet_edition:
         else:
             recette["titre"] = titre.strip() or "Sans titre"
             recette["sous_titre"] = sous_titre.strip()
+            recette["temps_prep"] = int(temps_prep)
+            recette["temps_cuisson"] = int(temps_cuisson)
             recette["base"] = {"label": b_label.strip() or "Base",
                                "unite": b_unite.strip() or "u",
                                "valeur": b_val, "min": b_min,
                                "max": b_max, "pas": b_pas}
             recette["ingredients"] = nouveaux
+            recette["preparation"] = etapes
             if persister(RECETTES):
                 st.success("Recette enregistrée ✓")
                 st.rerun()
