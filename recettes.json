@@ -178,8 +178,8 @@
     "sous_titre": "À personnaliser",
     "base": {
       "label": "Portions",
-      "unite": "u",
-      "valeur": 4.0,
+      "unite": "g",
+      "valeur": 150.0,
       "min": 1.0,
       "max": 20.0,
       "pas": 1.0
