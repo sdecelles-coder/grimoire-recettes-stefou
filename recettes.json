@@ -3,59 +3,59 @@
     "titre": "Marinade grecque pour poulet",
     "sous_titre": "Style Casa Grecque",
     "base": {
-      "label": "Poids de poulet",
+      "label": "Poids poitrine de poulet",
       "unite": "g",
-      "valeur": 750,
-      "min": 100,
-      "max": 3000,
-      "pas": 50
+      "valeur": 700.0,
+      "min": 150.0,
+      "max": 3000.0,
+      "pas": 50.0
     },
     "ingredients": [
       {
         "nom": "Mayonnaise (comble)",
-        "qte": 3,
+        "qte": 3.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Origan",
-        "qte": 2,
+        "qte": 2.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Huile légère",
-        "qte": 4,
+        "qte": 4.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Jus de citron",
-        "qte": 3,
+        "qte": 3.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Poudre d'oignon",
-        "qte": 1,
+        "qte": 1.0,
         "unite": "c. à thé",
         "palier": 0.25
       },
       {
         "nom": "Ail haché",
-        "qte": 1,
+        "qte": 1.0,
         "unite": "c. à thé",
         "palier": 0.25
       },
       {
         "nom": "Moutarde de Dijon",
-        "qte": 1,
+        "qte": 1.0,
         "unite": "c. à thé",
         "palier": 0.25
       },
       {
         "nom": "Base de bouillon de poulet",
-        "qte": 1,
+        "qte": 1.0,
         "unite": "c. à thé",
         "palier": 0.25
       },
@@ -65,7 +65,10 @@
         "unite": "au goût",
         "palier": null
       }
-    ]
+    ],
+    "temps_prep": 0,
+    "temps_cuisson": 0,
+    "preparation": []
   },
   {
     "titre": "Vinaigrette balsamique",
@@ -115,7 +118,10 @@
         "unite": "au goût",
         "palier": null
       }
-    ]
+    ],
+    "temps_prep": 0,
+    "temps_cuisson": 0,
+    "preparation": []
   },
   {
     "titre": "Marinade BBQ maison",
@@ -171,6 +177,9 @@
         "unite": "au goût",
         "palier": null
       }
-    ]
+    ],
+    "temps_prep": 0,
+    "temps_cuisson": 0,
+    "preparation": []
   }
 ]
