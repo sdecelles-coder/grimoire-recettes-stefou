@@ -18,6 +18,7 @@ import json
 import os
 import re
 
+import pandas as pd
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
@@ -541,26 +542,30 @@ with onglet_cuisine:
           <span class="nom">{texte}</span>
         </div>"""
 
-    rows = ""
-    if lignes_ing:
-        rows += '<div class="section">Ingrédients</div>' + lignes_ing
-    if lignes_prep:
-        rows += '<div class="section">Préparation</div>' + lignes_prep
-
     n_ing = len(recette["ingredients"])
     n_prep = len(recette.get("preparation", []))
+
+    rows = ""
+    if lignes_ing:
+        rows += (f'<div class="section sec-ing"><span class="sec-ico">🧺</span>'
+                 f'<span class="sec-txt">Ingrédients</span>'
+                 f'<span class="sec-count">{n_ing}</span></div>') + lignes_ing
+    if lignes_prep:
+        rows += (f'<div class="section sec-prep"><span class="sec-ico">🍳</span>'
+                 f'<span class="sec-txt">Préparation</span>'
+                 f'<span class="sec-count">{n_prep} étape'
+                 f'{"s" if n_prep > 1 else ""}</span></div>') + lignes_prep
+
     n = n_ing + n_prep
 
-    # Sommaire : portions/référence + temps + facteur
+    # Sommaire : portions/référence + temps + facteur (toujours affiché)
     tp = int(recette.get("temps_prep", 0) or 0)
     tc = int(recette.get("temps_cuisson", 0) or 0)
-    chips = [f'<span class="chip">{html_escape(base["label"])} · '
-             f'<b>{cible:g} {html_escape(base["unite"])}</b></span>']
-    if tp:
-        chips.append(f'<span class="chip">Prép · <b>{tp} min</b></span>')
-    if tc:
-        chips.append(f'<span class="chip">Cuisson · <b>{tc} min</b></span>')
-    if tp and tc:
+    chips = [f'<span class="chip chip-ref">{html_escape(base["label"])} · '
+             f'<b>{cible:g} {html_escape(base["unite"])}</b></span>',
+             f'<span class="chip">Prép · <b>{tp} min</b></span>',
+             f'<span class="chip">Cuisson · <b>{tc} min</b></span>']
+    if tp or tc:
         chips.append(f'<span class="chip">Total · <b>{tp + tc} min</b></span>')
     chips.append(f'<span class="chip">Facteur · <b>×{facteur:.2f}</b></span>')
     meta_html = "".join(chips)
@@ -592,10 +597,16 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 @media (prefers-reduced-motion: reduce){.scan{animation:none;display:none}}
 .rtitle{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.32rem;letter-spacing:.03em}
 .rsub{color:#7d8cb5;font-size:.9rem;margin-top:3px}
-.meta{display:flex;gap:10px;margin-top:13px;flex-wrap:wrap}
+.sommaire-label{font-family:'JetBrains Mono',monospace;font-size:.64rem;
+  letter-spacing:.28em;text-transform:uppercase;color:#4df3e3;margin-top:14px;
+  text-shadow:0 0 12px rgba(77,243,227,.5)}
+.meta{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
 .chip{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#9fb0d8;
   border:1px solid #1e2a45;border-radius:999px;padding:5px 12px;background:rgba(77,243,227,.05)}
 .chip b{color:#ffb454}
+.chip-ref{border-color:#4df3e3;background:rgba(77,243,227,.12);color:#cfe9ff;
+  box-shadow:0 0 14px rgba(77,243,227,.25)}
+.chip-ref b{color:#4df3e3;text-shadow:0 0 12px rgba(77,243,227,.6)}
 .prog{height:4px;background:#141d34;border-radius:999px;margin-top:15px;overflow:hidden}
 .progfill{height:100%;width:0;background:linear-gradient(90deg,#4df3e3,#ffb454);
   box-shadow:0 0 14px rgba(77,243,227,.6);transition:width .35s ease}
@@ -623,11 +634,21 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   letter-spacing:.22em;text-align:center;padding:8px 0 14px;text-transform:uppercase}
 
 /* Sections + étapes de préparation */
-.section{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.26em;
-  text-transform:uppercase;color:#4df3e3;padding:16px 14px 6px;display:flex;
-  align-items:center;gap:10px}
-.section::after{content:"";flex:1;height:1px;
-  background:linear-gradient(90deg,#1e2a45,transparent)}
+.section{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.98rem;
+  letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;
+  gap:12px;margin:18px 8px 10px;padding:12px 16px;border-radius:12px;
+  border:1px solid #26355c;background:linear-gradient(90deg,rgba(77,243,227,.14),rgba(77,243,227,.02));
+  border-left:4px solid #4df3e3;box-shadow:0 4px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}
+.section .sec-ico{font-size:1.15rem;line-height:1;filter:drop-shadow(0 0 8px rgba(77,243,227,.5))}
+.section .sec-txt{color:#e9efff;text-shadow:0 0 16px rgba(77,243,227,.4)}
+.section .sec-count{margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-weight:700;font-size:.66rem;letter-spacing:.08em;color:#04060d;background:#4df3e3;
+  padding:4px 10px;border-radius:999px;box-shadow:0 0 12px rgba(77,243,227,.5)}
+.sec-prep{border-left-color:#ffb454;
+  background:linear-gradient(90deg,rgba(255,180,84,.14),rgba(255,180,84,.02))}
+.sec-prep .sec-ico{filter:drop-shadow(0 0 8px rgba(255,180,84,.5))}
+.sec-prep .sec-txt{text-shadow:0 0 16px rgba(255,180,84,.4)}
+.sec-prep .sec-count{background:#ffb454;box-shadow:0 0 12px rgba(255,180,84,.5)}
 .ing.step{align-items:flex-start}
 .ing.step .box{margin-top:2px}
 .step .num{font-family:'JetBrains Mono',monospace;font-weight:700;color:#ffb454;
@@ -667,6 +688,8 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   .nom{font-size:.92rem}
   .qte{font-size:.88rem;padding:3px 8px}
   .box{width:18px;height:18px;flex:0 0 18px}
+  .section{font-size:.82rem;padding:10px 12px;margin:14px 5px 8px}
+  .section .sec-ico{font-size:1rem}
 }
 </style></head><body>
 <div class="card">
@@ -676,6 +699,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
     <div class="scan"></div>
     <div class="rtitle">__TITRE__</div>
     <div class="rsub">__SOUS__</div>
+    <div class="sommaire-label">◈ Sommaire</div>
     <div class="meta">__META__</div>
     <div class="prog"><div class="progfill" id="fill"></div></div>
     <div class="count" id="cnt">0 / __N__ éléments cochés</div>
@@ -716,7 +740,8 @@ function fermerVictoire(){
             .replace("__N__", str(n))
             .replace("__ROWS__", rows))
 
-    hauteur = 300 + n_ing * 60 + n_prep * 92 + (60 if n_prep else 0)
+    hauteur = (330 + n_ing * 60 + n_prep * 92
+               + (72 if n_ing else 0) + (72 if n_prep else 0))
     components.html(html, height=hauteur, scrolling=True)
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -762,73 +787,88 @@ with onglet_edition:
             b_max = st.number_input("Maximum", min_value=0.01,
                                     value=float(base["max"]), key=f"bx_{k}")
 
-    st.caption("INGRÉDIENTS — modifie les cellules · la ligne vide du bas ajoute un "
-               "ingrédient · coche une ligne puis 🗑 pour la retirer · "
-               "quantité vide = « au goût »")
+    with st.expander(f"🧺  Ingrédients ({len(recette['ingredients'])})",
+                     expanded=True):
+        st.caption("Modifie les cellules · la ligne vide du bas ajoute un "
+                   "ingrédient · coche une ligne puis 🗑 pour la retirer · "
+                   "quantité vide = « au goût »")
 
-    lignes_edit = [
-        {
-            "Ingrédient": ing.get("nom", ""),
-            "Quantité": ing.get("qte"),
-            "Unité": ing.get("unite", ""),
-            "Palier": ing.get("palier"),
-        }
-        for ing in recette["ingredients"]
-    ]
+        df_ing = pd.DataFrame(
+            [
+                {
+                    "Ingrédient": ing.get("nom", ""),
+                    "Quantité": ing.get("qte"),
+                    "Unité": ing.get("unite", ""),
+                    "Palier": ing.get("palier"),
+                }
+                for ing in recette["ingredients"]
+            ],
+            columns=["Ingrédient", "Quantité", "Unité", "Palier"],
+        )
 
-    edite = st.data_editor(
-        lignes_edit,
-        num_rows="dynamic",
-        use_container_width=True,
-        key=f"editeur_{k}",
-        column_config={
-            "Ingrédient": st.column_config.TextColumn("Ingrédient", required=True,
-                                                      width="large"),
-            "Quantité": st.column_config.NumberColumn(
-                "Quantité", min_value=0.0, step=0.25,
-                help="Laisser vide pour « au goût »"),
-            "Unité": st.column_config.TextColumn("Unité", width="medium"),
-            "Palier": st.column_config.SelectboxColumn(
-                "Palier", options=[0.25, 0.5, 1.0],
-                help="Arrondi lors de la mise à l'échelle"),
-        },
-    )
+        edite = st.data_editor(
+            df_ing,
+            num_rows="dynamic",
+            use_container_width=True,
+            hide_index=True,
+            key=f"editeur_{k}",
+            column_config={
+                "Ingrédient": st.column_config.TextColumn("Ingrédient", required=True,
+                                                          width="large"),
+                "Quantité": st.column_config.NumberColumn(
+                    "Quantité", min_value=0.0, step=0.25,
+                    help="Laisser vide pour « au goût »"),
+                "Unité": st.column_config.TextColumn("Unité", width="medium"),
+                "Palier": st.column_config.SelectboxColumn(
+                    "Palier", options=[0.25, 0.5, 1.0],
+                    help="Arrondi lors de la mise à l'échelle"),
+            },
+        )
 
-    st.caption("PRÉPARATION — une étape par ligne (dans l'ordre) · écris "
-               "[nom d'ingrédient] entre crochets pour insérer sa quantité, qui "
-               "s'ajustera automatiquement en cuisine.")
+    with st.expander(f"🍳  Préparation ({len(recette.get('preparation', []))} étape"
+                     f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
+                     expanded=True):
+        st.caption("Une étape par ligne (dans l'ordre) · clique la ligne vide du bas "
+                   "pour ajouter une étape · écris [nom d'ingrédient] entre crochets "
+                   "pour insérer sa quantité, qui s'ajustera automatiquement en cuisine.")
 
-    lignes_prep_edit = [{"Étape": e} for e in recette.get("preparation", [])]
-    edite_prep = st.data_editor(
-        lignes_prep_edit,
-        num_rows="dynamic",
-        use_container_width=True,
-        key=f"prep_editeur_{k}",
-        column_config={
-            "Étape": st.column_config.TextColumn(
-                "Étape", required=True, width="large",
-                help="Ex. : Fouetter [Huile d'olive] avec [Miel]."),
-        },
-    )
+        df_prep = pd.DataFrame(
+            {"Étape": list(recette.get("preparation", []))},
+            columns=["Étape"],
+        ).astype({"Étape": "string"})
+        edite_prep = st.data_editor(
+            df_prep,
+            num_rows="dynamic",
+            use_container_width=True,
+            hide_index=True,
+            key=f"prep_editeur_{k}",
+            column_config={
+                "Étape": st.column_config.TextColumn(
+                    "Étape", required=True, width="large",
+                    help="Ex. : Fouetter [Huile d'olive] avec [Miel]."),
+            },
+        )
 
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
         nouveaux = []
-        for ligne in edite:
-            nom = (ligne.get("Ingrédient") or "").strip()
-            if not nom:
+        for ligne in edite.to_dict("records"):
+            nom = str(ligne.get("Ingrédient") or "").strip()
+            if not nom or nom.lower() == "nan":
                 continue
             qte = ligne.get("Quantité")
-            au_gout = qte in (None, "")
+            au_gout = qte is None or qte == "" or pd.isna(qte)
+            palier = ligne.get("Palier")
+            unite_raw = ligne.get("Unité")
+            unite = "" if (unite_raw is None or pd.isna(unite_raw)) else str(unite_raw).strip()
             nouveaux.append({
                 "nom": nom,
                 "qte": None if au_gout else float(qte),
-                "unite": (ligne.get("Unité") or "").strip() or
-                         ("au goût" if au_gout else ""),
-                "palier": float(ligne["Palier"]) if ligne.get("Palier") else None,
+                "unite": unite or ("au goût" if au_gout else ""),
+                "palier": None if (palier is None or pd.isna(palier)) else float(palier),
             })
-        etapes = [(l.get("Étape") or "").strip() for l in edite_prep]
-        etapes = [e for e in etapes if e]
+        etapes = [str(v).strip() for v in edite_prep["Étape"].tolist()
+                  if pd.notna(v) and str(v).strip()]
         if not nouveaux:
             st.error("Il faut au moins un ingrédient avec un nom.")
         elif b_min >= b_max:
