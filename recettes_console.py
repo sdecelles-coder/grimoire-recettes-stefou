@@ -405,6 +405,26 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .ing.done .qte{opacity:.35}
 .hint{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#5a688f;
   letter-spacing:.22em;text-align:center;padding:8px 0 14px;text-transform:uppercase}
+
+/* Overlay de victoire — apparaît quand tout est coché */
+.victoire{
+  position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,6,13,.86);backdrop-filter:blur(3px);border-radius:16px;
+  opacity:0;visibility:hidden;transition:opacity .35s ease, visibility .35s;cursor:pointer;
+}
+.victoire.visible{opacity:1;visibility:visible;}
+.v-cadre{text-align:center;padding:18px;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion: reduce){.v-cadre{animation:none}}
+.v-cadre img{
+  max-width:min(280px,70vw);max-height:44vh;border-radius:14px;
+  border:2px solid #4df3e3;box-shadow:0 0 34px rgba(77,243,227,.55);
+}
+.v-titre{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.05rem;
+  color:#4df3e3;letter-spacing:.16em;margin-top:14px;
+  text-shadow:0 0 18px rgba(77,243,227,.7)}
+.v-sous{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#7d8cb5;
+  letter-spacing:.22em;margin-top:6px;text-transform:uppercase}
 @media (max-width:640px){
   .head{padding:16px 14px 13px}
   .rtitle{font-size:1.08rem}
@@ -434,14 +454,29 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   </div>
   <div class="list">__ROWS__</div>
   <div class="hint">Touche un ingrédient pour le cocher</div>
+  <div class="victoire" id="victoire" onclick="fermerVictoire()">
+    <div class="v-cadre">
+      <img src="https://i.pinimg.com/originals/fc/6e/a2/fc6ea2c2a09d097a22efca53e3780843.gif" alt="Mise en place complète !">
+      <div class="v-titre">MISE EN PLACE COMPLÈTE</div>
+      <div class="v-sous">Touche pour fermer</div>
+    </div>
+  </div>
 </div>
 <script>
+var victoireFermee=false;
 function toggle(el){el.classList.toggle('done');maj();}
 function maj(){
   var items=Array.prototype.slice.call(document.querySelectorAll('.ing'));
   var d=items.filter(function(i){return i.classList.contains('done')}).length;
   document.getElementById('cnt').textContent=d+' / '+items.length+' ingr\\u00e9dients coch\\u00e9s';
   document.getElementById('fill').style.width=(items.length?d/items.length*100:0)+'%';
+  var complet=items.length>0 && d===items.length;
+  if(!complet){victoireFermee=false;}
+  document.getElementById('victoire').classList.toggle('visible', complet && !victoireFermee);
+}
+function fermerVictoire(){
+  victoireFermee=true;
+  document.getElementById('victoire').classList.remove('visible');
 }
 </script></body></html>
 """
