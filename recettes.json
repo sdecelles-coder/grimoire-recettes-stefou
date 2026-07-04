@@ -172,25 +172,5 @@
         "palier": null
       }
     ]
-  },
-  {
-    "titre": "Raviolit",
-    "sous_titre": "À personnaliser",
-    "base": {
-      "label": "Portions",
-      "unite": "g",
-      "valeur": 150.0,
-      "min": 150.0,
-      "max": 3000.0,
-      "pas": 1.0
-    },
-    "ingredients": [
-      {
-        "nom": "Caca",
-        "qte": 1.0,
-        "unite": "étron",
-        "palier": 0.5
-      }
-    ]
   }
 ]
