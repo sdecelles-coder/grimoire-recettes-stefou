@@ -1,0 +1,196 @@
+[
+  {
+    "titre": "Marinade grecque pour poulet",
+    "sous_titre": "Style Casa Grecque",
+    "base": {
+      "label": "Poids de poulet",
+      "unite": "g",
+      "valeur": 750,
+      "min": 100,
+      "max": 3000,
+      "pas": 50
+    },
+    "ingredients": [
+      {
+        "nom": "Mayonnaise (comble)",
+        "qte": 3,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Origan",
+        "qte": 2,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Huile légère",
+        "qte": 4,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Jus de citron",
+        "qte": 3,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Poudre d'oignon",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Ail haché",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Moutarde de Dijon",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Base de bouillon de poulet",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Sel et poivre",
+        "qte": null,
+        "unite": "au goût",
+        "palier": null
+      }
+    ]
+  },
+  {
+    "titre": "Vinaigrette balsamique",
+    "sous_titre": "Classique 3 pour 1 — à éditer selon ton goût",
+    "base": {
+      "label": "Volume",
+      "unite": "ml",
+      "valeur": 250,
+      "min": 60,
+      "max": 1000,
+      "pas": 10
+    },
+    "ingredients": [
+      {
+        "nom": "Huile d'olive",
+        "qte": 6,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Vinaigre balsamique",
+        "qte": 2,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Moutarde de Dijon",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Miel",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Ail haché",
+        "qte": 0.5,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Sel et poivre",
+        "qte": null,
+        "unite": "au goût",
+        "palier": null
+      }
+    ]
+  },
+  {
+    "titre": "Marinade BBQ maison",
+    "sous_titre": "Exemple modifiable",
+    "base": {
+      "label": "Poids de viande",
+      "unite": "g",
+      "valeur": 1000,
+      "min": 200,
+      "max": 4000,
+      "pas": 100
+    },
+    "ingredients": [
+      {
+        "nom": "Ketchup",
+        "qte": 4,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Cassonade",
+        "qte": 2,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Sauce Worcestershire",
+        "qte": 2,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Vinaigre de cidre",
+        "qte": 1,
+        "unite": "c. à table",
+        "palier": 0.5
+      },
+      {
+        "nom": "Paprika fumé",
+        "qte": 2,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Poudre d'ail",
+        "qte": 1,
+        "unite": "c. à thé",
+        "palier": 0.25
+      },
+      {
+        "nom": "Sel et poivre",
+        "qte": null,
+        "unite": "au goût",
+        "palier": null
+      }
+    ]
+  },
+  {
+    "titre": "Nouvelle recette 4",
+    "sous_titre": "À personnaliser",
+    "base": {
+      "label": "Portions",
+      "unite": "u",
+      "valeur": 4,
+      "min": 1,
+      "max": 20,
+      "pas": 1
+    },
+    "ingredients": [
+      {
+        "nom": "Premier ingrédient",
+        "qte": 1,
+        "unite": "c. à table",
+        "palier": 0.5
+      }
+    ]
+  }
+]
