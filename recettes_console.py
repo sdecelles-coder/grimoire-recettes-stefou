@@ -427,13 +427,26 @@ onglet_cuisine, onglet_edition = st.tabs(["◈  CUISINE", "⚙  ÉDITION"])
 #  ONGLET CUISINE — mise à l'échelle + checklist
 # ═════════════════════════════════════════════════════════════════════════════
 with onglet_cuisine:
+    # Assainissement des bornes : une recette mal formée (ex. valeur > max
+    # après édition) ne doit jamais faire planter la page.
+    b_min = float(base["min"])
+    b_max = float(base["max"])
+    if b_max <= b_min:
+        b_max = b_min + 1.0
+    b_val = float(base["valeur"])
+    b_val = min(max(b_val, b_min), b_max)           # ramené dans [min, max]
+    b_pas = float(base["pas"]) if base.get("pas") else 1.0
+    if b_pas <= 0 or b_pas > (b_max - b_min):
+        b_pas = 1.0
+
     cible = st.number_input(
         f"{base['label']} ({base['unite']})",
-        min_value=float(base["min"]), max_value=float(base["max"]),
-        value=float(base["valeur"]), step=float(base["pas"]),
+        min_value=b_min, max_value=b_max,
+        value=b_val, step=b_pas,
         key=f"cible_{st.session_state.sel}",
     )
-    facteur = cible / base["valeur"] if base["valeur"] else 1.0
+    ref = float(base["valeur"]) or b_val
+    facteur = cible / ref if ref else 1.0
 
     lignes = ""
     for ing in recette["ingredients"]:
