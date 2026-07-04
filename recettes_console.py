@@ -10,9 +10,11 @@ MISE EN PLACE v2 — console de recettes techno-futuriste
 Lancer avec :  streamlit run recettes_console.py
 """
 
+import base64
 import json
 import os
 
+import requests
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -71,22 +73,103 @@ RECETTES_DEFAUT = [
 ]
 
 
+def _github_cfg():
+    """Retourne la config GitHub depuis st.secrets, ou None si absente (mode local)."""
+    try:
+        gh = st.secrets["github"]
+        return {
+            "token":  gh["token"],
+            "repo":   gh["repo"],                       # ex: "sdecelles-coder/grimoire-recettes-stefou"
+            "branch": gh.get("branch", "main"),
+            "chemin": gh.get("chemin", "recettes.json"),
+        }
+    except (KeyError, FileNotFoundError):
+        return None
+
+
+def _gh_url(cfg):
+    return f"https://api.github.com/repos/{cfg['repo']}/contents/{cfg['chemin']}"
+
+
+def _gh_headers(cfg):
+    return {
+        "Authorization": f"Bearer {cfg['token']}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+
 def charger_recettes():
-    """Charge recettes.json ; sinon retourne une copie des recettes par défaut."""
+    """Charge les recettes depuis GitHub si configuré, sinon depuis le fichier
+    local ; retourne (recettes, mode, erreur)."""
+    cfg = _github_cfg()
+    if cfg:
+        try:
+            r = requests.get(_gh_url(cfg), headers=_gh_headers(cfg),
+                             params={"ref": cfg["branch"]}, timeout=10)
+            if r.status_code == 200:
+                data = json.loads(base64.b64decode(r.json()["content"]))
+                if isinstance(data, list):
+                    return data, "github", None
+            if r.status_code == 404:   # pas encore de fichier dans le repo
+                return json.loads(json.dumps(RECETTES_DEFAUT)), "github", None
+            return (json.loads(json.dumps(RECETTES_DEFAUT)), "github",
+                    f"Lecture GitHub impossible (code {r.status_code}) — "
+                    "vérifie le token et le nom du repo dans les secrets.")
+        except requests.RequestException as e:
+            return (json.loads(json.dumps(RECETTES_DEFAUT)), "github",
+                    f"Connexion à GitHub impossible : {e}")
+    # Mode local
     if os.path.exists(FICHIER):
         try:
             with open(FICHIER, encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, list):
-                return data
+                return data, "local", None
         except (json.JSONDecodeError, OSError):
             pass
-    return json.loads(json.dumps(RECETTES_DEFAUT))
+    return json.loads(json.dumps(RECETTES_DEFAUT)), "local", None
 
 
 def sauvegarder_recettes(recettes):
-    with open(FICHIER, "w", encoding="utf-8") as f:
-        json.dump(recettes, f, ensure_ascii=False, indent=2)
+    """Écrit les recettes (GitHub si configuré, sinon local).
+    Retourne (ok, message_erreur)."""
+    cfg = _github_cfg()
+    contenu = json.dumps(recettes, ensure_ascii=False, indent=2)
+    if cfg:
+        try:
+            # SHA actuel du fichier (obligatoire pour mettre à jour un fichier existant)
+            sha = None
+            r = requests.get(_gh_url(cfg), headers=_gh_headers(cfg),
+                             params={"ref": cfg["branch"]}, timeout=10)
+            if r.status_code == 200:
+                sha = r.json().get("sha")
+            payload = {
+                "message": "Mise à jour des recettes via la console",
+                "content": base64.b64encode(contenu.encode("utf-8")).decode("ascii"),
+                "branch": cfg["branch"],
+            }
+            if sha:
+                payload["sha"] = sha
+            r2 = requests.put(_gh_url(cfg), headers=_gh_headers(cfg),
+                              json=payload, timeout=15)
+            if r2.status_code in (200, 201):
+                return True, None
+            detail = ""
+            try:
+                detail = r2.json().get("message", "")
+            except ValueError:
+                pass
+            return False, f"GitHub a refusé l'écriture (code {r2.status_code}) : {detail}"
+        except requests.RequestException as e:
+            return False, f"Connexion à GitHub impossible : {e}"
+    # Mode local
+    try:
+        with open(FICHIER, "w", encoding="utf-8") as f:
+            f.write(contenu)
+        return True, None
+    except OSError as e:
+        return False, f"Écriture locale impossible : {e}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -129,13 +212,24 @@ def html_escape(s):
 #  ÉTAT
 # ─────────────────────────────────────────────────────────────────────────────
 if "recettes" not in st.session_state:
-    st.session_state.recettes = charger_recettes()
+    recettes, mode, erreur = charger_recettes()
+    st.session_state.recettes = recettes
+    st.session_state.stockage = mode          # "github" ou "local"
+    st.session_state.erreur_chargement = erreur
 if "sel" not in st.session_state:
     st.session_state.sel = 0
 if "confirmer_suppr" not in st.session_state:
     st.session_state.confirmer_suppr = False
 
 RECETTES = st.session_state.recettes
+
+
+def persister(recettes):
+    """Sauvegarde et affiche l'erreur au besoin. Retourne True si OK."""
+    ok, err = sauvegarder_recettes(recettes)
+    if not ok:
+        st.error(f"⚠ Sauvegarde échouée — {err}")
+    return ok
 
 
 def recette_vierge(n_total):
@@ -273,13 +367,22 @@ div[data-testid="stAlert"]{
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
+badge = ("☁ Sauvegarde · GitHub" if st.session_state.stockage == "github"
+         else "💾 Sauvegarde · locale")
+st.markdown(f"""
 <div class="hero">
-  <div class="eyebrow">Mise en place · v2.0</div>
+  <div class="eyebrow">Mise en place · v2.1</div>
   <h1>CONSOLE DE RECETTES</h1>
-  <p>Ajuste les portions en cuisine, ou passe en mode édition pour modifier tes recettes.</p>
+  <p>Ajuste les portions en cuisine, ou passe en mode édition pour modifier tes recettes.
+     <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#4df3e3;
+     letter-spacing:.1em;white-space:nowrap;">{badge}</span></p>
 </div>
 """, unsafe_allow_html=True)
+
+if st.session_state.erreur_chargement:
+    st.error(f"⚠ {st.session_state.erreur_chargement} Les recettes affichées sont "
+             "les valeurs par défaut ; les sauvegardes échoueront tant que le "
+             "problème n'est pas réglé.")
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  SÉLECTION DE RECETTE + NOUVELLE RECETTE
@@ -289,8 +392,8 @@ if not RECETTES:
     if st.button("＋ Nouvelle recette", type="primary", use_container_width=True):
         RECETTES.append(recette_vierge(1))
         st.session_state.sel = 0
-        sauvegarder_recettes(RECETTES)
-        st.rerun()
+        if persister(RECETTES):
+            st.rerun()
     st.stop()
 
 st.session_state.sel = min(st.session_state.sel, len(RECETTES) - 1)
@@ -312,8 +415,8 @@ with c_new:
         RECETTES.append(recette_vierge(len(RECETTES) + 1))
         st.session_state.sel = len(RECETTES) - 1
         st.session_state.confirmer_suppr = False
-        sauvegarder_recettes(RECETTES)
-        st.rerun()
+        if persister(RECETTES):
+            st.rerun()
 
 recette = RECETTES[st.session_state.sel]
 base = recette["base"]
@@ -581,9 +684,9 @@ with onglet_edition:
                                "valeur": b_val, "min": b_min,
                                "max": b_max, "pas": b_pas}
             recette["ingredients"] = nouveaux
-            sauvegarder_recettes(RECETTES)
-            st.success("Recette enregistrée ✓")
-            st.rerun()
+            if persister(RECETTES):
+                st.success("Recette enregistrée ✓")
+                st.rerun()
 
     st.divider()
 
@@ -602,7 +705,7 @@ with onglet_edition:
                 RECETTES.pop(st.session_state.sel)
                 st.session_state.sel = max(0, st.session_state.sel - 1)
                 st.session_state.confirmer_suppr = False
-                sauvegarder_recettes(RECETTES)
+                persister(RECETTES)
                 st.rerun()
         with d2:
             if st.button("Annuler", use_container_width=True, key=f"delno_{k}"):
