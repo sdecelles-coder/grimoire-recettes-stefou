@@ -68,7 +68,9 @@
     ],
     "temps_prep": 0,
     "temps_cuisson": 0,
-    "preparation": []
+    "preparation": [
+      "bien mélanger le tout"
+    ]
   },
   {
     "titre": "Vinaigrette balsamique",
