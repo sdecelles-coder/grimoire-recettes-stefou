@@ -280,10 +280,7 @@
     "base": {
       "label": "Rendement",
       "unite": "biscuits",
-      "valeur": 16,
-      "min": 8,
-      "max": 48,
-      "pas": 4,
+      "valeur": 32.0,
       "personnes": 16,
       "max_personnes": 48
     },
