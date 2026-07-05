@@ -63,15 +63,9 @@
         "qte": null,
         "unite": "au goût",
         "palier": null
-      },
-      {
-        "nom": "Sauce piquante (tabasco ou autre)",
-        "qte": 1.0,
-        "unite": "c. à thé",
-        "palier": 0.25
       }
     ],
-    "temps_prep": 20,
+    "temps_prep": 0,
     "temps_cuisson": 0,
     "preparation": [
       "bien mélanger le tout"
@@ -278,6 +272,86 @@
       "Dans la même cocotte, saupoudrer la farine sur le gras de cuisson chaud et poursuivre la cuisson 1 minute en remuant au fouet. Déglacer avec le vin. Ajouter le bouillon, la moutarde et les gousses d'ail en remuant au fouet jusqu'à ce que la sauce soit homogène. Remettre les cuisses de poulet et les oignons dans la cocotte. Ajouter les branches de romarin. Porter à ébullition. Couvrir et cuire au four 1 heure.",
       "Retirer le couvercle de la cocotte. Poursuivre la cuisson au four, sans couvrir, 30 minutes ou jusqu'à ce que les cuisses de poulet soient cuites et bien dorées.",
       "Retirer les branches de romarin et les gousses d'ail de la cocotte, puis les composter. Accompagner les cuisses de poulet et les oignons d'un gratin de pommes de terre aux poireaux et au thym, si désiré."
+    ]
+  },
+  {
+    "titre": "Biscuits moelleux aux brisures de chocolat (les meilleurs)",
+    "sous_titre": "Style RICARDO — Magazine RICARDO Volume 8 Numéro 8",
+    "base": {
+      "label": "Rendement",
+      "unite": "biscuits",
+      "valeur": 16,
+      "min": 8,
+      "max": 48,
+      "pas": 4,
+      "personnes": 16,
+      "max_personnes": 48
+    },
+    "ingredients": [
+      {
+        "nom": "Farine tout usage non blanchie",
+        "qte": 225.0,
+        "unite": "g",
+        "palier": 25.0
+      },
+      {
+        "nom": "Bicarbonate de soude",
+        "qte": 2.5,
+        "unite": "ml",
+        "palier": 0.5
+      },
+      {
+        "nom": "Sel",
+        "qte": null,
+        "unite": "une pincée",
+        "palier": null
+      },
+      {
+        "nom": "Beurre non salé (fondu)",
+        "qte": 170.0,
+        "unite": "g",
+        "palier": 10.0
+      },
+      {
+        "nom": "Cassonade tassée",
+        "qte": 210.0,
+        "unite": "g",
+        "palier": 10.0
+      },
+      {
+        "nom": "Sucre",
+        "qte": 30.0,
+        "unite": "ml",
+        "palier": 5.0
+      },
+      {
+        "nom": "Oeuf",
+        "qte": 1.0,
+        "unite": "unité(s)",
+        "palier": 1.0
+      },
+      {
+        "nom": "Jaune d'oeuf",
+        "qte": 1.0,
+        "unite": "unité(s)",
+        "palier": 1.0
+      },
+      {
+        "nom": "Chocolat au lait ou noir (haché grossièrement)",
+        "qte": 195.0,
+        "unite": "g",
+        "palier": 10.0
+      }
+    ],
+    "temps_prep": 15,
+    "temps_cuisson": 24,
+    "preparation": [
+      "Dans un bol, mélanger la farine, le bicarbonate et le sel.",
+      "Dans un autre bol, mélanger le beurre avec la cassonade et le sucre à la cuillère de bois. Ajouter l'oeuf et le jaune d'oeuf. Mélanger jusqu'à ce que la préparation soit homogène. Incorporer les ingrédients secs et le chocolat. Couvrir et réfrigérer 1 heure ou toute une nuit.",
+      "Placer la grille au centre du four. Préchauffer le four à 190 °C (375 °F). Tapisser deux plaques de cuisson de papier parchemin.",
+      "À l'aide d'une cuillère à crème glacée d'environ 45 ml (3 c. à soupe), former des boules de pâte. Déposer 5 à 6 boules de pâte par plaque en les espaçant.",
+      "Cuire au four, une plaque à la fois, de 8 à 9 minutes ou jusqu'à ce que les biscuits soient légèrement dorés tout autour, mais encore très moelleux au centre. Laisser refroidir sur la plaque.",
+      "Attention : ne pas cuire plus d'une plaque à la fois, même en les inversant à la mi-cuisson."
     ]
   }
 ]
