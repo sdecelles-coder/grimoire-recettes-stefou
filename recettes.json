@@ -132,47 +132,44 @@
     "base": {
       "label": "Poids de viande",
       "unite": "g",
-      "valeur": 1000,
-      "min": 200,
-      "max": 4000,
-      "pas": 100,
+      "valeur": 750.0,
       "personnes": 4,
       "max_personnes": 20
     },
     "ingredients": [
       {
         "nom": "Ketchup",
-        "qte": 4,
+        "qte": 4.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Cassonade",
-        "qte": 2,
+        "qte": 2.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Sauce Worcestershire",
-        "qte": 2,
+        "qte": 2.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Vinaigre de cidre",
-        "qte": 1,
+        "qte": 1.0,
         "unite": "c. à table",
         "palier": 0.5
       },
       {
         "nom": "Paprika fumé",
-        "qte": 2,
+        "qte": 2.0,
         "unite": "c. à thé",
         "palier": 0.25
       },
       {
         "nom": "Poudre d'ail",
-        "qte": 1,
+        "qte": 1.0,
         "unite": "c. à thé",
         "palier": 0.25
       },
