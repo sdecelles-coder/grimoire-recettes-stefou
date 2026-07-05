@@ -281,7 +281,7 @@
       "label": "Rendement",
       "unite": "biscuits",
       "valeur": 16.0,
-      "personnes": 8,
+      "personnes": 4,
       "max_personnes": 48
     },
     "ingredients": [
