@@ -252,6 +252,7 @@ def normaliser_recette(r):
     b.setdefault("valeur", 0)
     b.setdefault("personnes", 4)          # personnes servies par la valeur de réf.
     b.setdefault("max_personnes", 20)     # borne haute du curseur en cuisine
+    b.setdefault("multiples", False)      # ajuster seulement par multiples entiers
     return r
 
 
@@ -310,7 +311,7 @@ def recette_vierge(n_total):
         "temps_prep": 0,
         "temps_cuisson": 0,
         "base": {"label": "Portions", "unite": "portions", "valeur": 4,
-                 "personnes": 4, "max_personnes": 20},
+                 "personnes": 4, "max_personnes": 20, "multiples": False},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5}],
         "preparation": ["Première étape — écris [Premier ingrédient] pour insérer sa quantité."],
@@ -495,17 +496,19 @@ div[data-testid="stAlert"]{
   border-radius:12px!important; color:var(--text)!important;
 }
 
-/* Sommaire (onglet cuisine) — pastilles rendues dans un expander natif */
-.somm-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:.4rem;}
-.somm-chip{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#9fb0d8;
-  border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:rgba(77,243,227,.05);}
-.somm-chip b{color:var(--amber);}
-.somm-chip.ref{border-color:var(--cyan);background:rgba(77,243,227,.12);color:#cfe9ff;
-  box-shadow:0 0 14px rgba(77,243,227,.25);}
-.somm-chip.ref b{color:var(--cyan);text-shadow:0 0 12px rgba(77,243,227,.6);}
-.somm-rel{font-family:'Inter',sans-serif;font-size:.82rem;color:#9fb0d8;margin-top:.7rem;
-  padding:9px 12px;border-radius:10px;border:1px dashed #26355c;background:rgba(77,243,227,.04);}
-.somm-rel b{color:var(--amber);font-weight:700;}
+/* Case à cocher (ex. « ajuster par multiples ») — libellé bien lisible :
+   plus grand, plus clair, et case cyan un peu plus visible. */
+[data-testid="stCheckbox"] label{
+  font-size:1rem!important; color:var(--text)!important; font-weight:600!important;
+}
+[data-testid="stCheckbox"] label p,
+[data-testid="stCheckbox"] label div{
+  font-size:1rem!important; color:var(--text)!important; font-weight:600!important;
+}
+[data-testid="stCheckbox"] [data-baseweb="checkbox"] > span:first-child,
+[data-testid="stCheckbox"] [role="checkbox"]{
+  border-color:var(--cyan)!important;
+}
 
 /* Message « choisis ta recette » lorsqu'aucune recette n'est sélectionnée */
 .choix{text-align:center;padding:2.8rem 1rem;border:1px dashed #26355c;border-radius:16px;
@@ -701,7 +704,7 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
                 and st.session_state.recette_select not in indices):
             st.session_state.recette_select = None
         idx = st.selectbox(
-            "Recette", options=indices,
+            "Recettes disponibles", options=indices,
             format_func=lambda i: RECETTES[i]["titre"],
             placeholder="Choisis ta recette…",
             key="recette_select",
@@ -739,6 +742,7 @@ with onglet_cuisine:
     max_pers = int(base.get("max_personnes", 20) or 20)
     if max_pers < personnes_ref:
         max_pers = max(personnes_ref, 20)
+    par_multiples = bool(base.get("multiples", False))
 
     rendement_ref = float(base.get("valeur") or 0)      # pour personnes_ref pers.
     tp = int(recette.get("temps_prep", 0) or 0)
@@ -746,50 +750,88 @@ with onglet_cuisine:
     unite = html_escape(base.get("unite") or "")
     label = html_escape(base.get("label") or "Rendement")
 
-    # ── Sommaire (repliable, fermé par défaut) : le champ « Nombre de
-    #    personnes » y vit, suivi du récapitulatif rendement / temps / facteur.
-    with st.expander("◈  Sommaire", expanded=False):
-        cible_pers = st.number_input(
-            "Nombre de personnes",
-            min_value=1, max_value=max_pers,
-            value=min(personnes_ref, max_pers), step=1,
-            key=f"cible_{st.session_state.sel}",
-            help=f"Recette de référence pour {personnes_ref} personne"
-                 f"{'s' if personnes_ref > 1 else ''}.")
-        facteur = cible_pers / personnes_ref if personnes_ref else 1.0
-        rendement = rendement_ref * facteur             # pour cible_pers pers.
-        portion = rendement_ref / personnes_ref if personnes_ref else 0
+    # ── Réglage du nombre de personnes : widget Streamlit interactif, placé
+    #    juste au-dessus de la carte. Le récapitulatif (« sommaire »), lui, est
+    #    intégré DANS la carte comme première section (voir plus bas).
+    c_pers, _ = st.columns([1, 1.3])
+    with c_pers:
+        if par_multiples:
+            # Ajustement par multiples entiers : le champ ne saute que par
+            # paliers de personnes_ref (ex. 4 → 8 → 12), jamais 5 ou 6.
+            max_mult_pers = (max_pers // personnes_ref) * personnes_ref
+            if max_mult_pers < personnes_ref:
+                max_mult_pers = personnes_ref
+            cible_pers = st.number_input(
+                "🍽️  Nombre de personnes",
+                min_value=personnes_ref, max_value=max_mult_pers,
+                value=personnes_ref, step=personnes_ref,
+                key=f"cible_{st.session_state.sel}",
+                help=f"Recette ajustée par multiples : par paliers de "
+                     f"{personnes_ref} personne{'s' if personnes_ref > 1 else ''} "
+                     f"(×1, ×2, ×3…).")
+            # On garantit un multiple exact même si une valeur est saisie à la main.
+            cible_pers = int(round(cible_pers / personnes_ref)) * personnes_ref
+            cible_pers = max(personnes_ref, min(cible_pers, max_mult_pers))
+            # Note plus grande (.8rem = .7rem globale + .1rem) et bien claire.
+            st.markdown(
+                f"<div style=\"font-family:'JetBrains Mono',monospace;"
+                f"font-size:.8rem;font-weight:600;color:var(--text);"
+                f"letter-spacing:.06em;margin-top:-.35rem;\">"
+                f"⏫ Ajusté par paliers de {personnes_ref} "
+                f"personne{'s' if personnes_ref > 1 else ''} "
+                f"(×{cible_pers // personnes_ref}).</div>",
+                unsafe_allow_html=True)
+        else:
+            cible_pers = st.number_input(
+                "🍽️  Nombre de personnes",
+                min_value=1, max_value=max_pers,
+                value=min(personnes_ref, max_pers), step=1,
+                key=f"cible_{st.session_state.sel}",
+                help=f"Recette de référence pour {personnes_ref} personne"
+                     f"{'s' if personnes_ref > 1 else ''}.")
 
-        chips = [f'<span class="somm-chip ref">Personnes · '
-                 f'<b>{cible_pers:g}</b></span>']
-        if rendement_ref > 0:
-            chips.append(f'<span class="somm-chip">{label} · '
-                         f'<b>{rendement:g} {unite}</b></span>')
-            chips.append(f'<span class="somm-chip">Portion/pers · '
-                         f'<b>{portion:g} {unite}</b></span>')
-        if tp:
-            chips.append(f'<span class="somm-chip">Prép · <b>{tp} min</b></span>')
-        if tc:
-            chips.append(f'<span class="somm-chip">Cuisson · <b>{tc} min</b></span>')
-        if tp or tc:
-            chips.append(f'<span class="somm-chip">Temps total · '
-                         f'<b>{tp + tc} min</b></span>')
-        chips.append(f'<span class="somm-chip">Facteur · <b>×{facteur:.2f}</b></span>')
-        somm_html = f'<div class="somm-meta">{"".join(chips)}</div>'
-        if rendement_ref > 0:
-            somm_html += (
-                f'<div class="somm-rel">Référence : '
-                f'<b>{rendement_ref:g} {unite}</b> pour '
-                f'<b>{personnes_ref} personne{"s" if personnes_ref > 1 else ""}</b>'
-                f' · soit <b>{portion:g} {unite}</b> par personne</div>')
-        st.markdown(somm_html, unsafe_allow_html=True)
+    facteur = cible_pers / personnes_ref if personnes_ref else 1.0
+    rendement = rendement_ref * facteur                 # pour cible_pers pers.
+    portion = rendement_ref / personnes_ref if personnes_ref else 0
+
+    # Récapitulatif « sommaire » — rendu DANS la carte (classes .meta / .chip).
+    chips = [f'<span class="chip chip-ref">Personnes · <b>{cible_pers:g}</b></span>']
+    if par_multiples:
+        chips.append(f'<span class="chip">Multiple · '
+                     f'<b>×{cible_pers // personnes_ref}</b></span>')
+    if rendement_ref > 0:
+        chips.append(f'<span class="chip">{label} · <b>{rendement:g} {unite}</b></span>')
+        chips.append(f'<span class="chip">Portion/pers · <b>{portion:g} {unite}</b></span>')
+    if tp:
+        chips.append(f'<span class="chip">Prép · <b>{tp} min</b></span>')
+    if tc:
+        chips.append(f'<span class="chip">Cuisson · <b>{tc} min</b></span>')
+    if tp or tc:
+        chips.append(f'<span class="chip">Temps total · <b>{tp + tc} min</b></span>')
+    chips.append(f'<span class="chip">Facteur · <b>×{facteur:.2f}</b></span>')
+    somm_body = f'<div class="meta">{"".join(chips)}</div>'
+    if rendement_ref > 0:
+        somm_body += (
+            f'<div class="sommaire-rel">Référence : '
+            f'<b>{rendement_ref:g} {unite}</b> pour '
+            f'<b>{personnes_ref} personne{"s" if personnes_ref > 1 else ""}</b>'
+            f' · soit <b>{portion:g} {unite}</b> par personne</div>')
 
     # Index des ingrédients pour l'auto-ajustement dans les étapes
     index_ing = {ing["nom"].strip().lower(): ing
                  for ing in recette["ingredients"] if ing.get("nom")}
 
-    # Section INGRÉDIENTS
+    # Section INGRÉDIENTS — on ouvre par une ligne « rendement » : l'étiquette
+    # de base et sa valeur de référence, mise à l'échelle comme les ingrédients
+    # (générée automatiquement, non cochable).
     lignes_ing = ""
+    if rendement_ref > 0:
+        lignes_ing += f"""
+        <div class="rendement">
+          <span class="r-ico">◈</span>
+          <span class="nom">{label}</span>
+          <span class="qte"><b>{rendement:g}</b> {unite}</span>
+        </div>"""
     for ing in recette["ingredients"]:
         q = jolie_qte(echelle(ing, facteur))
         au_gout = ing.get("qte") is None
@@ -817,16 +859,23 @@ with onglet_cuisine:
     n_prep = len(recette.get("preparation", []))
     n = n_ing + n_prep
 
-    # ── Sections repliables du bloc interactif (fermées par défaut) ──────
-    def section_block(cls, ico, titre, count_txt, body):
-        return (f'<div class="section {cls} collapsed" onclick="toggleSec(this)">'
+    # ── Sections repliables du bloc interactif. Le Sommaire est ouvert par
+    #    défaut (collapsed=False) pour être immédiatement visible ; les autres
+    #    sont fermées.
+    def section_block(cls, ico, titre, count_txt, body, collapsed=True):
+        etat = " collapsed" if collapsed else ""
+        cache = " hidden" if collapsed else ""
+        return (f'<div class="section {cls}{etat}" onclick="toggleSec(this)">'
                 f'<span class="sec-ico">{ico}</span>'
                 f'<span class="sec-txt">{titre}</span>'
                 f'<span class="sec-count">{count_txt}</span>'
                 f'<span class="sec-chevron">▾</span></div>'
-                f'<div class="sec-body hidden">{body}</div>')
+                f'<div class="sec-body{cache}">{body}</div>')
 
-    rows = ""
+    somm_count = (f'×{cible_pers // personnes_ref}' if par_multiples
+                  else f'{cible_pers:g} pers.')
+    rows = section_block("sec-som", "◈", "Sommaire et configuration de la recette",
+                         somm_count, somm_body, collapsed=False)
     if lignes_ing:
         rows += section_block("sec-ing", "🧺", "Ingrédients",
                               str(n_ing), lignes_ing)
@@ -896,6 +945,17 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .qte.gout{color:#7d8cb5;background:transparent;border-color:transparent}
 .qte.gout b{color:#7d8cb5;text-shadow:none;font-weight:500}
 .ing.done .qte{opacity:.35}
+/* Ligne « aliment principal » (étiquette de base + valeur de référence mise à
+   l'échelle, non cochable). Rendu à plat, exactement comme un ingrédient — pas
+   d'encadré ni de fond — mais en doré. */
+.rendement{display:flex;align-items:center;gap:12px;padding:13px 12px;
+  border-radius:11px;border:1px solid transparent}
+.rendement .r-ico{width:20px;flex:0 0 20px;text-align:center;color:#ffb454;
+  font-size:1.05rem;line-height:1}
+/* Font strictement identique aux ingrédients de base (.nom), seule la couleur
+   change : doré. */
+.rendement .nom{flex:1;font-family:'Inter',sans-serif;font-size:1rem;font-weight:500;
+  color:#ffb454;transition:all .18s;min-width:0;overflow-wrap:break-word}
 .hint{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#5a688f;
   letter-spacing:.22em;text-align:center;padding:8px 0 14px;text-transform:uppercase}
 
@@ -918,6 +978,8 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .sec-body{overflow:hidden;padding:4px 6px 6px}
 .sec-body.hidden{display:none}
 .sec-som .sec-count{background:#9fb0d8;box-shadow:0 0 12px rgba(159,176,216,.5)}
+.sec-som .sec-txt{letter-spacing:.05em}   /* titre long : moins d'interlettrage */
+.sec-som .meta{padding-top:2px}
 .sec-prep{border-left-color:#ffb454;
   background:linear-gradient(90deg,rgba(255,180,84,.14),rgba(255,180,84,.02))}
 .sec-prep:hover{box-shadow:0 4px 22px rgba(255,180,84,.28),inset 0 1px 0 rgba(255,255,255,.05)}
@@ -1001,10 +1063,39 @@ function resizeFrame(){
   }catch(e){}
 }
 function toggle(el){el.classList.toggle('done');maj();}
+// Clé stable par section (sec-som / sec-ing / sec-prep) pour mémoriser son état.
+function cleSection(el){
+  var m=(el.className||'').match(/sec-[a-z]+/);
+  return m ? 'grimoire_sec_'+m[0] : null;
+}
+function memoriser(el){
+  var cle=cleSection(el);
+  if(!cle) return;
+  try{ sessionStorage.setItem(cle, el.classList.contains('collapsed')?'0':'1'); }catch(e){}
+}
 function toggleSec(el){
   el.classList.toggle('collapsed');
   var body=el.nextElementSibling;
   if(body && body.classList.contains('sec-body')){body.classList.toggle('hidden');}
+  memoriser(el);
+  resizeFrame();
+}
+// Restaure l'état déplié/replié mémorisé : l'iframe étant régénérée à chaque
+// rerun Streamlit (ex. clic sur +/- du « nombre de personnes »), sans cela les
+// sections ingrédients / préparation se refermeraient à chaque ajustement.
+function restaurerSections(){
+  var secs=document.querySelectorAll('.section');
+  for(var i=0;i<secs.length;i++){
+    var cle=cleSection(secs[i]);
+    if(!cle) continue;
+    var v=null;
+    try{ v=sessionStorage.getItem(cle); }catch(e){}
+    if(v===null) continue;                       // pas d'état mémorisé -> défaut
+    var ouvrir=(v==='1');
+    var body=secs[i].nextElementSibling;
+    secs[i].classList.toggle('collapsed', !ouvrir);
+    if(body && body.classList.contains('sec-body')){ body.classList.toggle('hidden', !ouvrir); }
+  }
   resizeFrame();
 }
 function maj(){
@@ -1020,8 +1111,10 @@ function fermerVictoire(){
   victoireFermee=true;
   document.getElementById('victoire').classList.remove('visible');
 }
+window.addEventListener('load', restaurerSections);
 window.addEventListener('load', resizeFrame);
 window.addEventListener('resize', resizeFrame);
+restaurerSections();
 resizeFrame();
 </script></body></html>
 """
@@ -1036,6 +1129,8 @@ resizeFrame();
     # redimensionnement auto de l'iframe fonctionne, elle grandit à l'ouverture
     # d'une section ; sinon cette valeur (contenu déplié) évite toute coupure.
     hauteur = (290
+               + 210                                    # section Sommaire (dépliée)
+               + (60 if rendement_ref > 0 else 0)       # ligne « rendement »
                + (66 + n_ing * 60 if n_ing else 0)
                + (66 + n_prep * 92 if n_prep else 0))
     components.html(html, height=hauteur, scrolling=True)
@@ -1087,18 +1182,33 @@ with onglet_edition:
                 "Personnes maximum (curseur cuisine)", min_value=1, step=1,
                 value=int(base.get("max_personnes", 20) or 20), key=f"bmp_{k}",
                 help="Borne haute du curseur « Nombre de personnes » en cuisine.")
+        b_multiples = st.checkbox(
+            "Ajuster uniquement par multiples de la recette",
+            value=bool(base.get("multiples", False)), key=f"bmul_{k}",
+            help="Utile en pâtisserie : en cuisine, le nombre de personnes ne "
+                 "saute que par paliers de la valeur de référence (ex. 4 → 8 → 12), "
+                 "jamais 5 ou 6, pour garder des proportions exactes.")
+        st.caption("L'élément de base ci-dessous est obligatoire : chaque recette "
+                   "doit avoir une étiquette de rendement, une valeur de référence "
+                   "(> 0) et une unité — c'est ce qui s'ajuste avec le nombre de "
+                   "personnes en cuisine.")
         b1, b2, b3 = st.columns([1.4, 1, 0.9])
         with b1:
-            b_label = st.text_input("Étiquette du rendement (ex. Poids de poulet)",
-                                    value=base.get("label", ""), key=f"bl_{k}")
+            b_label = st.text_input("Étiquette du rendement * (ex. Poids de poulet)",
+                                    value=base.get("label", ""), key=f"bl_{k}",
+                                    help="Obligatoire. Ce que produit la recette "
+                                         "(ex. « Poids de viande », « Volume », "
+                                         "« Rendement »).")
         with b2:
             b_val = st.number_input(
-                "Valeur de référence", min_value=0.0, step=1.0,
+                "Valeur de référence *", min_value=0.0, step=1.0,
                 value=float(base.get("valeur") or 0), key=f"bv_{k}",
-                help="Rendement total pour le nombre de personnes de référence "
-                     "(mettre 0 si non pertinent).")
+                help="Obligatoire (> 0). Rendement total pour le nombre de "
+                     "personnes de référence ; s'ajuste avec le nombre de personnes.")
         with b3:
-            b_unite = st.text_input("Unité", value=base.get("unite", ""), key=f"bu_{k}")
+            b_unite = st.text_input("Unité *", value=base.get("unite", ""),
+                                    key=f"bu_{k}",
+                                    help="Obligatoire (ex. g, ml, biscuits, portions).")
         if b_personnes and b_val:
             st.caption(f"→ soit {b_val / b_personnes:g} {b_unite or ''}".rstrip()
                        + " par personne.")
@@ -1185,18 +1295,35 @@ with onglet_edition:
             })
         etapes = [str(v).strip() for v in edite_prep["Étape"].tolist()
                   if pd.notna(v) and str(v).strip()]
+
+        # L'élément de base (étiquette + valeur de référence + unité) est
+        # obligatoire pour chaque recette : c'est ce qui s'ajuste avec le nombre
+        # de personnes en cuisine.
+        erreurs = []
         if not nouveaux:
-            st.error("Il faut au moins un ingrédient avec un nom.")
+            erreurs.append("Il faut au moins un ingrédient avec un nom.")
+        if not b_label.strip():
+            erreurs.append("L'étiquette du rendement est obligatoire.")
+        if float(b_val) <= 0:
+            erreurs.append("La valeur de référence est obligatoire et doit être "
+                           "supérieure à 0.")
+        if not b_unite.strip():
+            erreurs.append("L'unité de la valeur de référence est obligatoire.")
+
+        if erreurs:
+            for msg in erreurs:
+                st.error(msg)
         else:
             recette["titre"] = titre.strip() or "Sans titre"
             recette["sous_titre"] = sous_titre.strip()
             recette["temps_prep"] = int(temps_prep)
             recette["temps_cuisson"] = int(temps_cuisson)
-            recette["base"] = {"label": b_label.strip() or "Rendement",
+            recette["base"] = {"label": b_label.strip(),
                                "unite": b_unite.strip(),
                                "valeur": float(b_val),
                                "personnes": int(b_personnes),
-                               "max_personnes": max(int(b_maxpers), int(b_personnes))}
+                               "max_personnes": max(int(b_maxpers), int(b_personnes)),
+                               "multiples": bool(b_multiples)}
             recette["ingredients"] = nouveaux
             recette["preparation"] = etapes
             if persister(RECETTES):
