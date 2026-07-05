@@ -7,7 +7,8 @@
       "unite": "g",
       "valeur": 700.0,
       "personnes": 4,
-      "max_personnes": 20
+      "max_personnes": 20,
+      "multiples": false
     },
     "ingredients": [
       {
@@ -82,7 +83,8 @@
       "max": 1000,
       "pas": 10,
       "personnes": 4,
-      "max_personnes": 20
+      "max_personnes": 20,
+      "multiples": false
     },
     "ingredients": [
       {
@@ -134,7 +136,8 @@
       "unite": "g",
       "valeur": 750.0,
       "personnes": 4,
-      "max_personnes": 20
+      "max_personnes": 20,
+      "multiples": false
     },
     "ingredients": [
       {
@@ -195,7 +198,8 @@
       "max": 12,
       "pas": 1,
       "personnes": 4,
-      "max_personnes": 20
+      "max_personnes": 20,
+      "multiples": false
     },
     "ingredients": [
       {
@@ -279,7 +283,8 @@
       "unite": "biscuits",
       "valeur": 16.0,
       "personnes": 4,
-      "max_personnes": 48
+      "max_personnes": 48,
+      "multiples": true
     },
     "ingredients": [
       {
