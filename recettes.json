@@ -296,7 +296,7 @@
       },
       {
         "nom": "Sel",
-        "qte": null,
+        "qte": 1.0,
         "unite": "une pincée",
         "palier": null
       },
