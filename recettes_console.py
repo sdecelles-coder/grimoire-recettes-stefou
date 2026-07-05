@@ -449,6 +449,101 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Toggle « écran toujours allumé » (Wake Lock API — mobile / tablette) ───────
+components.html(
+    """
+<div id="wl-wrap">
+  <button id="wl-btn" type="button" aria-pressed="false">
+    <span class="wl-dot"></span>
+    <span class="wl-label">Écran toujours allumé</span>
+    <span class="wl-state">OFF</span>
+  </button>
+  <p id="wl-note">Empêche la mise en veille de l'écran pendant que tu cuisines.</p>
+</div>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:transparent;font-family:'JetBrains Mono',ui-monospace,monospace;}
+  #wl-wrap{display:flex;flex-direction:column;gap:.35rem;align-items:flex-start;}
+  #wl-btn{
+    display:inline-flex;align-items:center;gap:.6rem;cursor:pointer;
+    padding:.5rem .9rem;border-radius:999px;
+    background:#12161c;border:1px solid #263038;color:#c9d4d6;
+    font-family:inherit;font-size:.74rem;letter-spacing:.08em;
+    transition:border-color .2s,color .2s,box-shadow .2s;
+  }
+  #wl-btn:hover{border-color:#4df3e3;}
+  #wl-btn .wl-dot{
+    width:9px;height:9px;border-radius:50%;background:#3a464e;
+    transition:background .2s,box-shadow .2s;flex:0 0 auto;
+  }
+  #wl-btn .wl-state{
+    font-size:.66rem;padding:.1rem .45rem;border-radius:999px;
+    background:#1c232a;color:#7c8b90;letter-spacing:.1em;
+  }
+  #wl-btn.on{border-color:#4df3e3;color:#e6fffb;box-shadow:0 0 0 1px rgba(77,243,227,.25);}
+  #wl-btn.on .wl-dot{background:#4df3e3;box-shadow:0 0 10px 2px rgba(77,243,227,.6);}
+  #wl-btn.on .wl-state{background:rgba(77,243,227,.15);color:#4df3e3;}
+  #wl-btn:disabled{opacity:.5;cursor:not-allowed;}
+  #wl-note{margin:0;font-size:.62rem;color:#6b7a80;letter-spacing:.04em;}
+</style>
+<script>
+  const btn   = document.getElementById('wl-btn');
+  const state = btn.querySelector('.wl-state');
+  const note  = document.getElementById('wl-note');
+  let sentinel = null;
+  let wanted   = false;
+
+  if (!('wakeLock' in navigator)) {
+    btn.disabled = true;
+    state.textContent = 'N/D';
+    note.textContent = "Fonction non supportée par ce navigateur (essaie Chrome/Safari sur mobile).";
+  }
+
+  async function acquire() {
+    try {
+      sentinel = await navigator.wakeLock.request('screen');
+      sentinel.addEventListener('release', () => {
+        // Relâché par le système (ex : onglet masqué) — on note l'état off visuel.
+        if (!document.hidden) return;
+      });
+      setUI(true);
+    } catch (err) {
+      wanted = false;
+      setUI(false);
+      note.textContent = "Impossible d'activer : " + err.message;
+    }
+  }
+
+  async function release() {
+    try { if (sentinel) { await sentinel.release(); } } catch (e) {}
+    sentinel = null;
+    setUI(false);
+  }
+
+  function setUI(on) {
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    state.textContent = on ? 'ON' : 'OFF';
+  }
+
+  btn.addEventListener('click', async () => {
+    if (btn.disabled) return;
+    wanted = !wanted;
+    if (wanted) { await acquire(); } else { await release(); }
+  });
+
+  // Réacquiert le verrou quand l'onglet redevient visible (le système le relâche
+  // automatiquement lorsqu'on quitte l'app puis qu'on y revient).
+  document.addEventListener('visibilitychange', async () => {
+    if (wanted && sentinel === null && document.visibilityState === 'visible') {
+      await acquire();
+    }
+  });
+</script>
+""",
+    height=78,
+)
+
 if st.session_state.erreur_chargement:
     st.error(f"⚠ {st.session_state.erreur_chargement} Les recettes affichées sont "
              "les valeurs par défaut ; les sauvegardes échoueront tant que le "
