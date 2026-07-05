@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Secrets Streamlit (ne jamais committer les tokens)
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
