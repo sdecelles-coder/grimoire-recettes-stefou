@@ -35,7 +35,7 @@ RECETTES_DEFAUT = [
         "temps_prep": 10,
         "temps_cuisson": 0,
         "base": {"label": "Poids de poulet", "unite": "g", "valeur": 750,
-                 "min": 100, "max": 3000, "pas": 50},
+                 "personnes": 4, "max_personnes": 20},
         "ingredients": [
             {"nom": "Mayonnaise (comble)",        "qte": 3,    "unite": "c. à table", "palier": 0.5},
             {"nom": "Origan",                      "qte": 2,    "unite": "c. à table", "palier": 0.5},
@@ -60,7 +60,7 @@ RECETTES_DEFAUT = [
         "temps_prep": 5,
         "temps_cuisson": 0,
         "base": {"label": "Volume", "unite": "ml", "valeur": 250,
-                 "min": 60, "max": 1000, "pas": 10},
+                 "personnes": 4, "max_personnes": 20},
         "ingredients": [
             {"nom": "Huile d'olive",        "qte": 6,    "unite": "c. à table", "palier": 0.5},
             {"nom": "Vinaigre balsamique",  "qte": 2,    "unite": "c. à table", "palier": 0.5},
@@ -81,7 +81,7 @@ RECETTES_DEFAUT = [
         "temps_prep": 10,
         "temps_cuisson": 20,
         "base": {"label": "Poids de viande", "unite": "g", "valeur": 1000,
-                 "min": 200, "max": 4000, "pas": 100},
+                 "personnes": 4, "max_personnes": 20},
         "ingredients": [
             {"nom": "Ketchup",              "qte": 4,    "unite": "c. à table", "palier": 0.5},
             {"nom": "Cassonade",            "qte": 2,    "unite": "c. à table", "palier": 0.5},
@@ -245,8 +245,13 @@ def normaliser_recette(r):
     r.setdefault("temps_cuisson", 0)
     r.setdefault("preparation", [])
     r.setdefault("ingredients", [])
-    r.setdefault("base", {"label": "Portions", "unite": "u", "valeur": 4,
-                          "min": 1, "max": 20, "pas": 1})
+    r.setdefault("base", {})
+    b = r["base"]
+    b.setdefault("label", "Rendement")
+    b.setdefault("unite", "")
+    b.setdefault("valeur", 0)
+    b.setdefault("personnes", 4)          # personnes servies par la valeur de réf.
+    b.setdefault("max_personnes", 20)     # borne haute du curseur en cuisine
     return r
 
 
@@ -301,7 +306,7 @@ def recette_vierge(n_total):
         "temps_prep": 0,
         "temps_cuisson": 0,
         "base": {"label": "Portions", "unite": "portions", "valeur": 4,
-                 "min": 1, "max": 20, "pas": 1},
+                 "personnes": 4, "max_personnes": 20},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5}],
         "preparation": ["Première étape — écris [Premier ingrédient] pour insérer sa quantité."],
@@ -492,26 +497,29 @@ onglet_cuisine, onglet_edition = st.tabs(["◈  CUISINE", "⚙  ÉDITION"])
 #  ONGLET CUISINE — mise à l'échelle + checklist
 # ═════════════════════════════════════════════════════════════════════════════
 with onglet_cuisine:
-    # Assainissement des bornes : une recette mal formée (ex. valeur > max
-    # après édition) ne doit jamais faire planter la page.
-    b_min = float(base["min"])
-    b_max = float(base["max"])
-    if b_max <= b_min:
-        b_max = b_min + 1.0
-    b_val = float(base["valeur"])
-    b_val = min(max(b_val, b_min), b_max)           # ramené dans [min, max]
-    b_pas = float(base["pas"]) if base.get("pas") else 1.0
-    if b_pas <= 0 or b_pas > (b_max - b_min):
-        b_pas = 1.0
+    # Le curseur = NOMBRE DE PERSONNES. La « valeur de référence » (rendement)
+    # correspond au nombre de personnes de référence ; tout est mis à l'échelle
+    # proportionnellement au nombre de personnes choisi.
+    personnes_ref = int(base.get("personnes", 4) or 4)
+    if personnes_ref < 1:
+        personnes_ref = 1
+    max_pers = int(base.get("max_personnes", 20) or 20)
+    if max_pers < personnes_ref:
+        max_pers = max(personnes_ref, 20)
 
-    cible = st.number_input(
-        f"{base['label']} ({base['unite']})",
-        min_value=b_min, max_value=b_max,
-        value=b_val, step=b_pas,
+    cible_pers = st.number_input(
+        "Nombre de personnes",
+        min_value=1, max_value=max_pers,
+        value=min(personnes_ref, max_pers), step=1,
         key=f"cible_{st.session_state.sel}",
+        help=f"Recette de référence pour {personnes_ref} personne"
+             f"{'s' if personnes_ref > 1 else ''}.",
     )
-    ref = float(base["valeur"]) or b_val
-    facteur = cible / ref if ref else 1.0
+    facteur = cible_pers / personnes_ref if personnes_ref else 1.0
+
+    rendement_ref = float(base.get("valeur") or 0)      # pour personnes_ref pers.
+    rendement = rendement_ref * facteur                 # pour cible_pers pers.
+    portion = rendement_ref / personnes_ref if personnes_ref else 0
 
     # Index des ingrédients pour l'auto-ajustement dans les étapes
     index_ing = {ing["nom"].strip().lower(): ing
@@ -544,31 +552,52 @@ with onglet_cuisine:
 
     n_ing = len(recette["ingredients"])
     n_prep = len(recette.get("preparation", []))
-
-    rows = ""
-    if lignes_ing:
-        rows += (f'<div class="section sec-ing"><span class="sec-ico">🧺</span>'
-                 f'<span class="sec-txt">Ingrédients</span>'
-                 f'<span class="sec-count">{n_ing}</span></div>') + lignes_ing
-    if lignes_prep:
-        rows += (f'<div class="section sec-prep"><span class="sec-ico">🍳</span>'
-                 f'<span class="sec-txt">Préparation</span>'
-                 f'<span class="sec-count">{n_prep} étape'
-                 f'{"s" if n_prep > 1 else ""}</span></div>') + lignes_prep
-
     n = n_ing + n_prep
 
-    # Sommaire : portions/référence + temps + facteur (toujours affiché)
+    # ── Sommaire : personnes ↔ rendement, temps, facteur ─────────────────
     tp = int(recette.get("temps_prep", 0) or 0)
     tc = int(recette.get("temps_cuisson", 0) or 0)
-    chips = [f'<span class="chip chip-ref">{html_escape(base["label"])} · '
-             f'<b>{cible:g} {html_escape(base["unite"])}</b></span>',
-             f'<span class="chip">Prép · <b>{tp} min</b></span>',
-             f'<span class="chip">Cuisson · <b>{tc} min</b></span>']
+    unite = html_escape(base.get("unite") or "")
+    label = html_escape(base.get("label") or "Rendement")
+    chips = [f'<span class="chip chip-ref">Personnes · <b>{cible_pers:g}</b></span>']
+    if rendement_ref > 0:
+        chips.append(f'<span class="chip">{label} · <b>{rendement:g} {unite}</b></span>')
+        chips.append(f'<span class="chip">Portion/pers · <b>{portion:g} {unite}</b></span>')
+    if tp:
+        chips.append(f'<span class="chip">Prép · <b>{tp} min</b></span>')
+    if tc:
+        chips.append(f'<span class="chip">Cuisson · <b>{tc} min</b></span>')
     if tp or tc:
-        chips.append(f'<span class="chip">Total · <b>{tp + tc} min</b></span>')
+        chips.append(f'<span class="chip">Temps total · <b>{tp + tc} min</b></span>')
     chips.append(f'<span class="chip">Facteur · <b>×{facteur:.2f}</b></span>')
     meta_html = "".join(chips)
+
+    sommaire_body = f'<div class="meta">{meta_html}</div>'
+    if rendement_ref > 0:
+        sommaire_body += (
+            f'<div class="sommaire-rel">Référence : '
+            f'<b>{rendement_ref:g} {unite}</b> pour '
+            f'<b>{personnes_ref} personne{"s" if personnes_ref > 1 else ""}</b>'
+            f' · soit <b>{portion:g} {unite}</b> par personne</div>')
+
+    # ── Sections repliables (Sommaire, Ingrédients, Préparation) ─────────
+    def section_block(cls, ico, titre, count_txt, body):
+        return (f'<div class="section {cls}" onclick="toggleSec(this)">'
+                f'<span class="sec-ico">{ico}</span>'
+                f'<span class="sec-txt">{titre}</span>'
+                f'<span class="sec-count">{count_txt}</span>'
+                f'<span class="sec-chevron">▾</span></div>'
+                f'<div class="sec-body">{body}</div>')
+
+    rows = section_block("sec-som", "◈", "Sommaire",
+                         f"{cible_pers:g} pers", sommaire_body)
+    if lignes_ing:
+        rows += section_block("sec-ing", "🧺", "Ingrédients",
+                              str(n_ing), lignes_ing)
+    if lignes_prep:
+        rows += section_block("sec-prep", "🍳", "Préparation",
+                              f'{n_prep} étape{"s" if n_prep > 1 else ""}',
+                              lignes_prep)
 
     TEMPLATE = """
 <!doctype html><html><head><meta charset="utf-8">
@@ -597,16 +626,17 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 @media (prefers-reduced-motion: reduce){.scan{animation:none;display:none}}
 .rtitle{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.32rem;letter-spacing:.03em}
 .rsub{color:#7d8cb5;font-size:.9rem;margin-top:3px}
-.sommaire-label{font-family:'JetBrains Mono',monospace;font-size:.64rem;
-  letter-spacing:.28em;text-transform:uppercase;color:#4df3e3;margin-top:14px;
-  text-shadow:0 0 12px rgba(77,243,227,.5)}
-.meta{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.meta{display:flex;gap:10px;flex-wrap:wrap}
 .chip{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#9fb0d8;
   border:1px solid #1e2a45;border-radius:999px;padding:5px 12px;background:rgba(77,243,227,.05)}
 .chip b{color:#ffb454}
 .chip-ref{border-color:#4df3e3;background:rgba(77,243,227,.12);color:#cfe9ff;
   box-shadow:0 0 14px rgba(77,243,227,.25)}
 .chip-ref b{color:#4df3e3;text-shadow:0 0 12px rgba(77,243,227,.6)}
+.sommaire-rel{font-family:'Inter',sans-serif;font-size:.82rem;color:#9fb0d8;
+  margin-top:11px;padding:9px 12px;border-radius:10px;border:1px dashed #26355c;
+  background:rgba(77,243,227,.04)}
+.sommaire-rel b{color:#ffb454;font-weight:700}
 .prog{height:4px;background:#141d34;border-radius:999px;margin-top:15px;overflow:hidden}
 .progfill{height:100%;width:0;background:linear-gradient(90deg,#4df3e3,#ffb454);
   box-shadow:0 0 14px rgba(77,243,227,.6);transition:width .35s ease}
@@ -633,22 +663,32 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .hint{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#5a688f;
   letter-spacing:.22em;text-align:center;padding:8px 0 14px;text-transform:uppercase}
 
-/* Sections + étapes de préparation */
+/* Sections repliables (Sommaire, Ingrédients, Préparation) */
 .section{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.98rem;
   letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;
-  gap:12px;margin:18px 8px 10px;padding:12px 16px;border-radius:12px;
+  gap:12px;margin:18px 8px 8px;padding:12px 16px;border-radius:12px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none;
   border:1px solid #26355c;background:linear-gradient(90deg,rgba(77,243,227,.14),rgba(77,243,227,.02));
-  border-left:4px solid #4df3e3;box-shadow:0 4px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}
+  border-left:4px solid #4df3e3;box-shadow:0 4px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);
+  transition:box-shadow .18s,border-color .18s}
+.section:hover{box-shadow:0 4px 22px rgba(77,243,227,.28),inset 0 1px 0 rgba(255,255,255,.05)}
 .section .sec-ico{font-size:1.15rem;line-height:1;filter:drop-shadow(0 0 8px rgba(77,243,227,.5))}
 .section .sec-txt{color:#e9efff;text-shadow:0 0 16px rgba(77,243,227,.4)}
 .section .sec-count{margin-left:auto;font-family:'JetBrains Mono',monospace;
   font-weight:700;font-size:.66rem;letter-spacing:.08em;color:#04060d;background:#4df3e3;
   padding:4px 10px;border-radius:999px;box-shadow:0 0 12px rgba(77,243,227,.5)}
+.section .sec-chevron{font-size:.9rem;color:#4df3e3;transition:transform .22s ease;line-height:1}
+.section.collapsed .sec-chevron{transform:rotate(-90deg)}
+.sec-body{overflow:hidden;padding:4px 6px 6px}
+.sec-body.hidden{display:none}
+.sec-som .sec-count{background:#9fb0d8;box-shadow:0 0 12px rgba(159,176,216,.5)}
 .sec-prep{border-left-color:#ffb454;
   background:linear-gradient(90deg,rgba(255,180,84,.14),rgba(255,180,84,.02))}
+.sec-prep:hover{box-shadow:0 4px 22px rgba(255,180,84,.28),inset 0 1px 0 rgba(255,255,255,.05)}
 .sec-prep .sec-ico{filter:drop-shadow(0 0 8px rgba(255,180,84,.5))}
 .sec-prep .sec-txt{text-shadow:0 0 16px rgba(255,180,84,.4)}
 .sec-prep .sec-count{background:#ffb454;box-shadow:0 0 12px rgba(255,180,84,.5)}
+.sec-prep .sec-chevron{color:#ffb454}
 .ing.step{align-items:flex-start}
 .ing.step .box{margin-top:2px}
 .step .num{font-family:'JetBrains Mono',monospace;font-weight:700;color:#ffb454;
@@ -699,8 +739,6 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
     <div class="scan"></div>
     <div class="rtitle">__TITRE__</div>
     <div class="rsub">__SOUS__</div>
-    <div class="sommaire-label">◈ Sommaire</div>
-    <div class="meta">__META__</div>
     <div class="prog"><div class="progfill" id="fill"></div></div>
     <div class="count" id="cnt">0 / __N__ éléments cochés</div>
   </div>
@@ -717,6 +755,11 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 <script>
 var victoireFermee=false;
 function toggle(el){el.classList.toggle('done');maj();}
+function toggleSec(el){
+  el.classList.toggle('collapsed');
+  var body=el.nextElementSibling;
+  if(body && body.classList.contains('sec-body')){body.classList.toggle('hidden');}
+}
 function maj(){
   var items=Array.prototype.slice.call(document.querySelectorAll('.ing'));
   var d=items.filter(function(i){return i.classList.contains('done')}).length;
@@ -736,12 +779,13 @@ function fermerVictoire(){
     html = (TEMPLATE
             .replace("__TITRE__", html_escape(recette["titre"]))
             .replace("__SOUS__", html_escape(recette.get("sous_titre", "")))
-            .replace("__META__", meta_html)
             .replace("__N__", str(n))
             .replace("__ROWS__", rows))
 
-    hauteur = (330 + n_ing * 60 + n_prep * 92
-               + (72 if n_ing else 0) + (72 if n_prep else 0))
+    # Hauteur : en-tête + section Sommaire + sections Ingrédients / Préparation
+    hauteur = (290 + 210
+               + (66 + n_ing * 60 if n_ing else 0)
+               + (66 + n_prep * 92 if n_prep else 0))
     components.html(html, height=hauteur, scrolling=True)
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -757,10 +801,11 @@ with onglet_edition:
         sous_titre = st.text_input("Sous-titre", value=recette.get("sous_titre", ""),
                                    key=f"s_{k}")
 
-    with st.expander("Sommaire — portions, temps & mise à l'échelle"):
-        st.caption("La « Valeur de référence » correspond au nombre de portions "
-                   "(ou à la quantité de base). Tout — ingrédients et quantités "
-                   "dans les étapes — s'ajuste par rapport à elle.")
+    with st.expander("Sommaire — personnes, temps & rendement", expanded=True):
+        st.caption("En cuisine, le curseur correspond au NOMBRE DE PERSONNES. "
+                   "La « valeur de référence » est le rendement obtenu pour le "
+                   "nombre de personnes de référence ; ingrédients et quantités "
+                   "s'ajustent proportionnellement.")
         s1, s2 = st.columns(2)
         with s1:
             temps_prep = st.number_input("Temps de préparation (min)", min_value=0,
@@ -771,21 +816,32 @@ with onglet_edition:
                                             value=int(recette.get("temps_cuisson", 0) or 0),
                                             step=5, key=f"tc_{k}")
         st.markdown("<div style='height:.3rem'></div>", unsafe_allow_html=True)
-        b1, b2, b3 = st.columns(3)
+        p1, p2 = st.columns(2)
+        with p1:
+            b_personnes = st.number_input(
+                "Nombre de personnes (référence)", min_value=1, step=1,
+                value=int(base.get("personnes", 4) or 4), key=f"bpe_{k}",
+                help="Nombre de personnes servi par la valeur de référence.")
+        with p2:
+            b_maxpers = st.number_input(
+                "Personnes maximum (curseur cuisine)", min_value=1, step=1,
+                value=int(base.get("max_personnes", 20) or 20), key=f"bmp_{k}",
+                help="Borne haute du curseur « Nombre de personnes » en cuisine.")
+        b1, b2, b3 = st.columns([1.4, 1, 0.9])
         with b1:
-            b_label = st.text_input("Étiquette (ex. Portions)", value=base["label"],
-                                    key=f"bl_{k}")
-            b_val = st.number_input("Valeur de référence", min_value=0.01,
-                                    value=float(base["valeur"]), key=f"bv_{k}")
+            b_label = st.text_input("Étiquette du rendement (ex. Poids de poulet)",
+                                    value=base.get("label", ""), key=f"bl_{k}")
         with b2:
-            b_unite = st.text_input("Unité", value=base["unite"], key=f"bu_{k}")
-            b_min = st.number_input("Minimum", min_value=0.0,
-                                    value=float(base["min"]), key=f"bm_{k}")
+            b_val = st.number_input(
+                "Valeur de référence", min_value=0.0, step=1.0,
+                value=float(base.get("valeur") or 0), key=f"bv_{k}",
+                help="Rendement total pour le nombre de personnes de référence "
+                     "(mettre 0 si non pertinent).")
         with b3:
-            b_pas = st.number_input("Pas", min_value=0.01,
-                                    value=float(base["pas"]), key=f"bp_{k}")
-            b_max = st.number_input("Maximum", min_value=0.01,
-                                    value=float(base["max"]), key=f"bx_{k}")
+            b_unite = st.text_input("Unité", value=base.get("unite", ""), key=f"bu_{k}")
+        if b_personnes and b_val:
+            st.caption(f"→ soit {b_val / b_personnes:g} {b_unite or ''}".rstrip()
+                       + " par personne.")
 
     with st.expander(f"🧺  Ingrédients ({len(recette['ingredients'])})",
                      expanded=True):
@@ -871,17 +927,16 @@ with onglet_edition:
                   if pd.notna(v) and str(v).strip()]
         if not nouveaux:
             st.error("Il faut au moins un ingrédient avec un nom.")
-        elif b_min >= b_max:
-            st.error("Le minimum de la référence doit être inférieur au maximum.")
         else:
             recette["titre"] = titre.strip() or "Sans titre"
             recette["sous_titre"] = sous_titre.strip()
             recette["temps_prep"] = int(temps_prep)
             recette["temps_cuisson"] = int(temps_cuisson)
-            recette["base"] = {"label": b_label.strip() or "Base",
-                               "unite": b_unite.strip() or "u",
-                               "valeur": b_val, "min": b_min,
-                               "max": b_max, "pas": b_pas}
+            recette["base"] = {"label": b_label.strip() or "Rendement",
+                               "unite": b_unite.strip(),
+                               "valeur": float(b_val),
+                               "personnes": int(b_personnes),
+                               "max_personnes": max(int(b_maxpers), int(b_personnes))}
             recette["ingredients"] = nouveaux
             recette["preparation"] = etapes
             if persister(RECETTES):
