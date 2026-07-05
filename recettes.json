@@ -6,14 +6,13 @@
       "label": "Poids poitrine de poulet",
       "unite": "g",
       "valeur": 700.0,
-      "min": 150.0,
-      "max": 3000.0,
-      "pas": 50.0
+      "personnes": 4,
+      "max_personnes": 20
     },
     "ingredients": [
       {
         "nom": "Mayonnaise (comble)",
-        "qte": 3.0,
+        "qte": 4.0,
         "unite": "c. à table",
         "palier": 0.5
       },
@@ -81,7 +80,9 @@
       "valeur": 250,
       "min": 60,
       "max": 1000,
-      "pas": 10
+      "pas": 10,
+      "personnes": 4,
+      "max_personnes": 20
     },
     "ingredients": [
       {
@@ -134,7 +135,9 @@
       "valeur": 1000,
       "min": 200,
       "max": 4000,
-      "pas": 100
+      "pas": 100,
+      "personnes": 4,
+      "max_personnes": 20
     },
     "ingredients": [
       {
