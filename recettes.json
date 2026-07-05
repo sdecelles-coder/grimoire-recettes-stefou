@@ -63,9 +63,15 @@
         "qte": null,
         "unite": "au goût",
         "palier": null
+      },
+      {
+        "nom": "Sauce piquante (tabasco ou autre)",
+        "qte": 1.0,
+        "unite": "c. à thé",
+        "palier": 0.25
       }
     ],
-    "temps_prep": 0,
+    "temps_prep": 20,
     "temps_cuisson": 0,
     "preparation": [
       "bien mélanger le tout"
