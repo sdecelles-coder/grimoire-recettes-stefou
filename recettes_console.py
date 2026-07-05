@@ -1,5 +1,5 @@
 """
-MISE EN PLACE v2 — console de recettes techno-futuriste
+MISE EN PLACE v2 — grimoire de recettes techno-futuriste
 ────────────────────────────────────────────────────────
 • Onglet CUISINE : ajuste les portions, coche les ingrédients ET les
   étapes de préparation ; les quantités (y compris dans les étapes)
@@ -442,7 +442,7 @@ badge = ("☁ Sauvegarde · GitHub" if st.session_state.stockage == "github"
 st.markdown(f"""
 <div class="hero">
   <div class="eyebrow">Mise en place · v2.1</div>
-  <h1>CONSOLE DE RECETTES</h1>
+  <h1>GRIMOIRE DE RECETTES</h1>
   <p>Ajuste les portions en cuisine, ou passe en mode édition pour modifier tes recettes.
      <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#4df3e3;
      letter-spacing:.1em;white-space:nowrap;">{badge}</span></p>
