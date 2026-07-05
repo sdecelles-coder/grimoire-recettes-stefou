@@ -1,5 +1,5 @@
 """
-MISE EN PLACE v2 — grimoire de recettes techno-futuriste
+Grimoire de recettes techno-futuriste
 ────────────────────────────────────────────────────────
 • Onglet CUISINE : ajuste les portions, coche les ingrédients ET les
   étapes de préparation ; les quantités (y compris dans les étapes)
@@ -284,7 +284,11 @@ if "recettes" not in st.session_state:
     st.session_state.stockage = mode          # "github" ou "local"
     st.session_state.erreur_chargement = erreur
 if "sel" not in st.session_state:
-    st.session_state.sel = 0
+    # Au démarrage, aucune recette n'est sélectionnée (« Choisis ta recette »).
+    st.session_state.sel = None
+if "recette_select" not in st.session_state:
+    # Valeur du sélecteur de recette (index dans RECETTES, ou None = aucune).
+    st.session_state.recette_select = None
 if "confirmer_suppr" not in st.session_state:
     st.session_state.confirmer_suppr = False
 
@@ -313,10 +317,41 @@ def recette_vierge(n_total):
     }
 
 
+CHOIX_RECETTE = (
+    '<div class="choix"><div class="t">CHOISIS TA RECETTE</div>'
+    '<div class="s">Utilise le sélecteur ci-dessus pour afficher une recette</div></div>'
+)
+
+
+def _creer_recette():
+    """Callback : ajoute une recette vierge, l'affiche et efface les filtres.
+    Exécuté avant l'instanciation des widgets, donc peut écrire leurs clés."""
+    recettes = st.session_state.recettes
+    recettes.append(recette_vierge(len(recettes) + 1))
+    st.session_state.recherche_titre = ""
+    st.session_state.recherche_ingredient = ""
+    st.session_state.recette_select = len(recettes) - 1
+    st.session_state.confirmer_suppr = False
+    ok, err = sauvegarder_recettes(recettes)
+    st.session_state.err_save = None if ok else err
+
+
+def _supprimer_recette():
+    """Callback : retire la recette sélectionnée ; plus rien n'est sélectionné."""
+    recettes = st.session_state.recettes
+    i = st.session_state.sel
+    if i is not None and 0 <= i < len(recettes):
+        recettes.pop(i)
+    st.session_state.recette_select = None
+    st.session_state.confirmer_suppr = False
+    ok, err = sauvegarder_recettes(recettes)
+    st.session_state.err_save = None if ok else err
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  PAGE + THÈME
 # ─────────────────────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Mise en place", page_icon="🛰️",
+st.set_page_config(page_title="grimoire de recettes", page_icon="🛰️",
                    layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -376,18 +411,52 @@ st.markdown("""
   border-color:var(--cyan)!important; box-shadow:0 0 0 2px rgba(77,243,227,.22)!important;
 }
 
-/* Onglets */
-.stTabs [data-baseweb="tab-list"]{gap:6px; border-bottom:1px solid var(--line);}
+/* Onglets — pilules futuristes, une couleur par mode */
+.stTabs [data-baseweb="tab-list"]{gap:14px; border-bottom:none; margin-bottom:.5rem;}
 .stTabs [data-baseweb="tab"]{
-  font-family:'Orbitron',sans-serif!important; font-size:.82rem!important;
-  letter-spacing:.14em!important; color:var(--muted)!important;
-  background:transparent!important; padding:10px 18px!important;
+  font-family:'Orbitron',sans-serif!important; font-size:1rem!important;
+  font-weight:700!important; letter-spacing:.16em!important;
+  border-radius:12px!important; padding:13px 28px!important;
+  border:1px solid var(--line)!important; background:var(--panel)!important;
+  transition:all .2s!important;
 }
-.stTabs [aria-selected="true"]{
-  color:var(--cyan)!important; text-shadow:0 0 14px rgba(77,243,227,.5);
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{
+  display:none!important;
 }
-.stTabs [data-baseweb="tab-highlight"]{background:var(--cyan)!important;
-  box-shadow:0 0 12px rgba(77,243,227,.8);}
+
+/* Onglet CUISINE — cyan */
+.stTabs button[id$="-tab-0"]{
+  color:var(--cyan)!important; border-color:rgba(77,243,227,.4)!important;
+}
+.stTabs button[id$="-tab-0"]:hover{
+  border-color:var(--cyan)!important; box-shadow:0 0 16px rgba(77,243,227,.35)!important;
+}
+.stTabs button[id$="-tab-0"][aria-selected="true"]{
+  color:#04060d!important; border-color:var(--cyan)!important;
+  background:linear-gradient(135deg,#4df3e3,#2bd3c4)!important;
+  box-shadow:0 0 24px rgba(77,243,227,.65)!important; text-shadow:none!important;
+}
+
+/* Onglet ÉDITION — ambre */
+.stTabs button[id$="-tab-1"]{
+  color:var(--amber)!important; border-color:rgba(255,180,84,.4)!important;
+}
+.stTabs button[id$="-tab-1"]:hover{
+  border-color:var(--amber)!important; box-shadow:0 0 16px rgba(255,180,84,.35)!important;
+}
+.stTabs button[id$="-tab-1"][aria-selected="true"]{
+  color:#04060d!important; border-color:var(--amber)!important;
+  background:linear-gradient(135deg,#ffb454,#ff9d2e)!important;
+  box-shadow:0 0 24px rgba(255,180,84,.6)!important; text-shadow:none!important;
+}
+
+/* Fond teinté selon le mode actif — renforce le repère cuisine / édition */
+.stApp:has(button[id$="-tab-0"][aria-selected="true"]){
+  --bg:#041210; box-shadow:inset 0 0 240px rgba(77,243,227,.12);
+}
+.stApp:has(button[id$="-tab-1"][aria-selected="true"]){
+  --bg:#120e05; box-shadow:inset 0 0 240px rgba(255,180,84,.11);
+}
 
 /* Boutons */
 .stButton button{
@@ -426,6 +495,26 @@ div[data-testid="stAlert"]{
   border-radius:12px!important; color:var(--text)!important;
 }
 
+/* Sommaire (onglet cuisine) — pastilles rendues dans un expander natif */
+.somm-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:.4rem;}
+.somm-chip{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#9fb0d8;
+  border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:rgba(77,243,227,.05);}
+.somm-chip b{color:var(--amber);}
+.somm-chip.ref{border-color:var(--cyan);background:rgba(77,243,227,.12);color:#cfe9ff;
+  box-shadow:0 0 14px rgba(77,243,227,.25);}
+.somm-chip.ref b{color:var(--cyan);text-shadow:0 0 12px rgba(77,243,227,.6);}
+.somm-rel{font-family:'Inter',sans-serif;font-size:.82rem;color:#9fb0d8;margin-top:.7rem;
+  padding:9px 12px;border-radius:10px;border:1px dashed #26355c;background:rgba(77,243,227,.04);}
+.somm-rel b{color:var(--amber);font-weight:700;}
+
+/* Message « choisis ta recette » lorsqu'aucune recette n'est sélectionnée */
+.choix{text-align:center;padding:2.8rem 1rem;border:1px dashed #26355c;border-radius:16px;
+  background:rgba(77,243,227,.03);margin-top:1rem;}
+.choix .t{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.4rem;color:var(--cyan);
+  letter-spacing:.12em;text-shadow:0 0 18px rgba(77,243,227,.5);}
+.choix .s{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);
+  letter-spacing:.16em;margin-top:.6rem;text-transform:uppercase;}
+
 /* ── Mobile ──────────────────────────────────────────── */
 @media (max-width:640px){
   .block-container{padding-top:1.3rem; padding-left:.85rem; padding-right:.85rem;}
@@ -441,7 +530,6 @@ badge = ("☁ Sauvegarde · GitHub" if st.session_state.stockage == "github"
          else "💾 Sauvegarde · locale")
 st.markdown(f"""
 <div class="hero">
-  <div class="eyebrow">Mise en place · v2.1</div>
   <h1>GRIMOIRE DE RECETTES</h1>
   <p>Ajuste les portions en cuisine, ou passe en mode édition pour modifier tes recettes.
      <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#4df3e3;
@@ -552,39 +640,86 @@ if st.session_state.erreur_chargement:
 # ─────────────────────────────────────────────────────────────────────────────
 #  SÉLECTION DE RECETTE + NOUVELLE RECETTE
 # ─────────────────────────────────────────────────────────────────────────────
+if st.session_state.get("err_save"):
+    st.error(f"⚠ Sauvegarde échouée — {st.session_state.err_save}")
+    st.session_state.err_save = None
+
 if not RECETTES:
     st.info("Aucune recette au menu. Crée ta première recette ci-dessous.")
-    if st.button("＋ Nouvelle recette", type="primary", use_container_width=True):
-        RECETTES.append(recette_vierge(1))
-        st.session_state.sel = 0
-        if persister(RECETTES):
-            st.rerun()
+    st.button("＋ Nouvelle recette", type="primary", use_container_width=True,
+              on_click=_creer_recette)
     st.stop()
 
-st.session_state.sel = min(st.session_state.sel, len(RECETTES) - 1)
+if st.session_state.sel is not None:
+    st.session_state.sel = min(st.session_state.sel, len(RECETTES) - 1)
 
-c_sel, c_new = st.columns([2.6, 1])
-with c_sel:
-    idx = st.selectbox(
-        "Recette", options=list(range(len(RECETTES))),
-        format_func=lambda i: RECETTES[i]["titre"],
-        index=st.session_state.sel,
-    )
-    if idx != st.session_state.sel:
-        st.session_state.sel = idx
-        st.session_state.confirmer_suppr = False
-with c_new:
-    st.markdown("<div style='height:1.72rem'></div>", unsafe_allow_html=True)
-    if st.button("＋ Nouvelle", use_container_width=True,
-                 help="Ajouter une recette vierge au menu"):
-        RECETTES.append(recette_vierge(len(RECETTES) + 1))
-        st.session_state.sel = len(RECETTES) - 1
-        st.session_state.confirmer_suppr = False
-        if persister(RECETTES):
-            st.rerun()
+def _reset_filtres():
+    st.session_state.recherche_titre = ""
+    st.session_state.recherche_ingredient = ""
+    st.session_state.recette_select = None      # aucune recette sélectionnée
+    st.session_state.confirmer_suppr = False
 
-recette = RECETTES[st.session_state.sel]
-base = recette["base"]
+
+with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édition)",
+                 expanded=True):
+    f1, f2 = st.columns(2)
+    with f1:
+        recherche = st.text_input(
+            "Rechercher une recette", key="recherche_titre",
+            placeholder="Nom ou sous-titre…",
+            help="Filtre les recettes dont le titre ou le sous-titre contient ce texte.")
+    with f2:
+        filtre_ing = st.text_input(
+            "Contient l'ingrédient", key="recherche_ingredient",
+            placeholder="ex. citron, ail…",
+            help="N'affiche que les recettes qui contiennent cet ingrédient.")
+
+    q_titre = recherche.strip().lower()
+    q_ing = filtre_ing.strip().lower()
+
+    st.button("↺ Réinitialiser les filtres", key="reset_filtres",
+              on_click=_reset_filtres, disabled=not (q_titre or q_ing),
+              help="Efface la recherche et le filtre par ingrédient.")
+
+    def _correspond(r):
+        if q_titre and (q_titre not in r.get("titre", "").lower()
+                        and q_titre not in r.get("sous_titre", "").lower()):
+            return False
+        if q_ing and not any(q_ing in (ing.get("nom") or "").lower()
+                             for ing in r.get("ingredients", [])):
+            return False
+        return True
+
+    indices = [i for i, r in enumerate(RECETTES) if _correspond(r)]
+
+    if not indices:
+        st.info("Aucune recette ne correspond à ta recherche.")
+        st.session_state.sel = None
+    else:
+        # Une sélection devenue hors résultats est effacée (placeholder).
+        if (st.session_state.recette_select is not None
+                and st.session_state.recette_select not in indices):
+            st.session_state.recette_select = None
+        idx = st.selectbox(
+            "Recette", options=indices,
+            format_func=lambda i: RECETTES[i]["titre"],
+            placeholder="Choisis ta recette…",
+            key="recette_select",
+        )
+        if idx != st.session_state.sel:
+            st.session_state.sel = idx
+            st.session_state.confirmer_suppr = False
+        if len(indices) < len(RECETTES):
+            st.markdown(
+                f"<p style=\"font-family:'JetBrains Mono',monospace;font-size:.8rem;"
+                f"color:#7d8cb5;letter-spacing:.06em;margin:.35rem 0 0;\">"
+                f"{len(indices)} recette{'s' if len(indices) > 1 else ''} "
+                f"sur {len(RECETTES)} affichée"
+                f"{'s' if len(indices) > 1 else ''}.</p>",
+                unsafe_allow_html=True)
+
+recette = RECETTES[st.session_state.sel] if st.session_state.sel is not None else None
+base = recette["base"] if recette else None
 
 onglet_cuisine, onglet_edition = st.tabs(["◈  CUISINE", "⚙  ÉDITION"])
 
@@ -592,6 +727,9 @@ onglet_cuisine, onglet_edition = st.tabs(["◈  CUISINE", "⚙  ÉDITION"])
 #  ONGLET CUISINE — mise à l'échelle + checklist
 # ═════════════════════════════════════════════════════════════════════════════
 with onglet_cuisine:
+  if recette is None:
+    st.markdown(CHOIX_RECETTE, unsafe_allow_html=True)
+  else:
     # Le curseur = NOMBRE DE PERSONNES. La « valeur de référence » (rendement)
     # correspond au nombre de personnes de référence ; tout est mis à l'échelle
     # proportionnellement au nombre de personnes choisi.
@@ -602,19 +740,49 @@ with onglet_cuisine:
     if max_pers < personnes_ref:
         max_pers = max(personnes_ref, 20)
 
-    cible_pers = st.number_input(
-        "Nombre de personnes",
-        min_value=1, max_value=max_pers,
-        value=min(personnes_ref, max_pers), step=1,
-        key=f"cible_{st.session_state.sel}",
-        help=f"Recette de référence pour {personnes_ref} personne"
-             f"{'s' if personnes_ref > 1 else ''}.",
-    )
-    facteur = cible_pers / personnes_ref if personnes_ref else 1.0
-
     rendement_ref = float(base.get("valeur") or 0)      # pour personnes_ref pers.
-    rendement = rendement_ref * facteur                 # pour cible_pers pers.
-    portion = rendement_ref / personnes_ref if personnes_ref else 0
+    tp = int(recette.get("temps_prep", 0) or 0)
+    tc = int(recette.get("temps_cuisson", 0) or 0)
+    unite = html_escape(base.get("unite") or "")
+    label = html_escape(base.get("label") or "Rendement")
+
+    # ── Sommaire (repliable, fermé par défaut) : le champ « Nombre de
+    #    personnes » y vit, suivi du récapitulatif rendement / temps / facteur.
+    with st.expander("◈  Sommaire", expanded=False):
+        cible_pers = st.number_input(
+            "Nombre de personnes",
+            min_value=1, max_value=max_pers,
+            value=min(personnes_ref, max_pers), step=1,
+            key=f"cible_{st.session_state.sel}",
+            help=f"Recette de référence pour {personnes_ref} personne"
+                 f"{'s' if personnes_ref > 1 else ''}.")
+        facteur = cible_pers / personnes_ref if personnes_ref else 1.0
+        rendement = rendement_ref * facteur             # pour cible_pers pers.
+        portion = rendement_ref / personnes_ref if personnes_ref else 0
+
+        chips = [f'<span class="somm-chip ref">Personnes · '
+                 f'<b>{cible_pers:g}</b></span>']
+        if rendement_ref > 0:
+            chips.append(f'<span class="somm-chip">{label} · '
+                         f'<b>{rendement:g} {unite}</b></span>')
+            chips.append(f'<span class="somm-chip">Portion/pers · '
+                         f'<b>{portion:g} {unite}</b></span>')
+        if tp:
+            chips.append(f'<span class="somm-chip">Prép · <b>{tp} min</b></span>')
+        if tc:
+            chips.append(f'<span class="somm-chip">Cuisson · <b>{tc} min</b></span>')
+        if tp or tc:
+            chips.append(f'<span class="somm-chip">Temps total · '
+                         f'<b>{tp + tc} min</b></span>')
+        chips.append(f'<span class="somm-chip">Facteur · <b>×{facteur:.2f}</b></span>')
+        somm_html = f'<div class="somm-meta">{"".join(chips)}</div>'
+        if rendement_ref > 0:
+            somm_html += (
+                f'<div class="somm-rel">Référence : '
+                f'<b>{rendement_ref:g} {unite}</b> pour '
+                f'<b>{personnes_ref} personne{"s" if personnes_ref > 1 else ""}</b>'
+                f' · soit <b>{portion:g} {unite}</b> par personne</div>')
+        st.markdown(somm_html, unsafe_allow_html=True)
 
     # Index des ingrédients pour l'auto-ajustement dans les étapes
     index_ing = {ing["nom"].strip().lower(): ing
@@ -625,13 +793,13 @@ with onglet_cuisine:
     for ing in recette["ingredients"]:
         q = jolie_qte(echelle(ing, facteur))
         au_gout = ing.get("qte") is None
-        unite = "" if au_gout else html_escape(ing.get("unite") or "")
+        unite_ing = "" if au_gout else html_escape(ing.get("unite") or "")
         cls_qte = "qte gout" if au_gout else "qte"
         lignes_ing += f"""
         <div class="ing" onclick="toggle(this)">
           <span class="box"></span>
           <span class="nom">{html_escape(ing['nom'])}</span>
-          <span class="{cls_qte}"><b>{q}</b> {unite}</span>
+          <span class="{cls_qte}"><b>{q}</b> {unite_ing}</span>
         </div>"""
 
     # Section PRÉPARATION (étapes numérotées, quantités auto-ajustées)
@@ -649,43 +817,16 @@ with onglet_cuisine:
     n_prep = len(recette.get("preparation", []))
     n = n_ing + n_prep
 
-    # ── Sommaire : personnes ↔ rendement, temps, facteur ─────────────────
-    tp = int(recette.get("temps_prep", 0) or 0)
-    tc = int(recette.get("temps_cuisson", 0) or 0)
-    unite = html_escape(base.get("unite") or "")
-    label = html_escape(base.get("label") or "Rendement")
-    chips = [f'<span class="chip chip-ref">Personnes · <b>{cible_pers:g}</b></span>']
-    if rendement_ref > 0:
-        chips.append(f'<span class="chip">{label} · <b>{rendement:g} {unite}</b></span>')
-        chips.append(f'<span class="chip">Portion/pers · <b>{portion:g} {unite}</b></span>')
-    if tp:
-        chips.append(f'<span class="chip">Prép · <b>{tp} min</b></span>')
-    if tc:
-        chips.append(f'<span class="chip">Cuisson · <b>{tc} min</b></span>')
-    if tp or tc:
-        chips.append(f'<span class="chip">Temps total · <b>{tp + tc} min</b></span>')
-    chips.append(f'<span class="chip">Facteur · <b>×{facteur:.2f}</b></span>')
-    meta_html = "".join(chips)
-
-    sommaire_body = f'<div class="meta">{meta_html}</div>'
-    if rendement_ref > 0:
-        sommaire_body += (
-            f'<div class="sommaire-rel">Référence : '
-            f'<b>{rendement_ref:g} {unite}</b> pour '
-            f'<b>{personnes_ref} personne{"s" if personnes_ref > 1 else ""}</b>'
-            f' · soit <b>{portion:g} {unite}</b> par personne</div>')
-
-    # ── Sections repliables (Sommaire, Ingrédients, Préparation) ─────────
+    # ── Sections repliables du bloc interactif (fermées par défaut) ──────
     def section_block(cls, ico, titre, count_txt, body):
-        return (f'<div class="section {cls}" onclick="toggleSec(this)">'
+        return (f'<div class="section {cls} collapsed" onclick="toggleSec(this)">'
                 f'<span class="sec-ico">{ico}</span>'
                 f'<span class="sec-txt">{titre}</span>'
                 f'<span class="sec-count">{count_txt}</span>'
                 f'<span class="sec-chevron">▾</span></div>'
-                f'<div class="sec-body">{body}</div>')
+                f'<div class="sec-body hidden">{body}</div>')
 
-    rows = section_block("sec-som", "◈", "Sommaire",
-                         f"{cible_pers:g} pers", sommaire_body)
+    rows = ""
     if lignes_ing:
         rows += section_block("sec-ing", "🧺", "Ingrédients",
                               str(n_ing), lignes_ing)
@@ -722,7 +863,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .rtitle{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.32rem;letter-spacing:.03em}
 .rsub{color:#7d8cb5;font-size:.9rem;margin-top:3px}
 .meta{display:flex;gap:10px;flex-wrap:wrap}
-.chip{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#9fb0d8;
+.chip{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#9fb0d8;
   border:1px solid #1e2a45;border-radius:999px;padding:5px 12px;background:rgba(77,243,227,.05)}
 .chip b{color:#ffb454}
 .chip-ref{border-color:#4df3e3;background:rgba(77,243,227,.12);color:#cfe9ff;
@@ -817,7 +958,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   .head{padding:16px 14px 13px}
   .rtitle{font-size:1.08rem}
   .rsub{font-size:.82rem}
-  .chip{font-size:.64rem;padding:4px 9px}
+  .chip{font-size:.74rem;padding:4px 9px}
   .list{padding:6px 5px 2px}
   .ing{gap:9px;padding:11px 8px}
   .nom{font-size:.92rem}
@@ -849,11 +990,22 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 </div>
 <script>
 var victoireFermee=false;
+// Ajuste la hauteur de l'iframe au contenu réellement visible (sections repliées
+// ou dépliées) pour éviter tout espace vide. Sans effet si l'accès à l'iframe
+// parente est refusé : la hauteur de repli sert alors de valeur fixe.
+function resizeFrame(){
+  try{
+    if(window.frameElement){
+      window.frameElement.style.height=document.documentElement.scrollHeight+'px';
+    }
+  }catch(e){}
+}
 function toggle(el){el.classList.toggle('done');maj();}
 function toggleSec(el){
   el.classList.toggle('collapsed');
   var body=el.nextElementSibling;
   if(body && body.classList.contains('sec-body')){body.classList.toggle('hidden');}
+  resizeFrame();
 }
 function maj(){
   var items=Array.prototype.slice.call(document.querySelectorAll('.ing'));
@@ -868,6 +1020,9 @@ function fermerVictoire(){
   victoireFermee=true;
   document.getElementById('victoire').classList.remove('visible');
 }
+window.addEventListener('load', resizeFrame);
+window.addEventListener('resize', resizeFrame);
+resizeFrame();
 </script></body></html>
 """
 
@@ -877,8 +1032,10 @@ function fermerVictoire(){
             .replace("__N__", str(n))
             .replace("__ROWS__", rows))
 
-    # Hauteur : en-tête + section Sommaire + sections Ingrédients / Préparation
-    hauteur = (290 + 210
+    # Hauteur de repli (les sections sont fermées par défaut). Si le
+    # redimensionnement auto de l'iframe fonctionne, elle grandit à l'ouverture
+    # d'une section ; sinon cette valeur (contenu déplié) évite toute coupure.
+    hauteur = (290
                + (66 + n_ing * 60 if n_ing else 0)
                + (66 + n_prep * 92 if n_prep else 0))
     components.html(html, height=hauteur, scrolling=True)
@@ -887,6 +1044,14 @@ function fermerVictoire(){
 #  ONGLET ÉDITION — modifier / ajouter / retirer / supprimer
 # ═════════════════════════════════════════════════════════════════════════════
 with onglet_edition:
+    st.button("＋ Nouvelle recette", use_container_width=True,
+              key="nouvelle_edition", on_click=_creer_recette,
+              help="Ajouter une recette vierge au menu")
+
+    if recette is None:
+        st.markdown(CHOIX_RECETTE, unsafe_allow_html=True)
+        st.stop()
+
     k = st.session_state.sel  # clés uniques par recette sélectionnée
 
     e1, e2 = st.columns(2)
@@ -1050,13 +1215,8 @@ with onglet_edition:
         st.warning(f"Retirer « {recette['titre']} » du menu ? Cette action est définitive.")
         d1, d2 = st.columns(2)
         with d1:
-            if st.button("Oui, retirer", type="primary", use_container_width=True,
-                         key=f"delok_{k}"):
-                RECETTES.pop(st.session_state.sel)
-                st.session_state.sel = max(0, st.session_state.sel - 1)
-                st.session_state.confirmer_suppr = False
-                persister(RECETTES)
-                st.rerun()
+            st.button("Oui, retirer", type="primary", use_container_width=True,
+                      key=f"delok_{k}", on_click=_supprimer_recette)
         with d2:
             if st.button("Annuler", use_container_width=True, key=f"delno_{k}"):
                 st.session_state.confirmer_suppr = False
