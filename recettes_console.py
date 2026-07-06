@@ -1778,15 +1778,16 @@ with onglet_edition:
         df_ing = pd.DataFrame(
             [
                 {
-                    "_rowid": str(i),
                     "Ingrédient": ing.get("nom", ""),
                     "Quantité": ing.get("qte"),
                     "Unité": ing.get("unite", ""),
                     "Palier": ing.get("palier"),
+                    "_rowid": str(i),
                 }
                 for i, ing in enumerate(recette["ingredients"])
             ],
-            columns=["_rowid", "Ingrédient", "Quantité", "Unité", "Palier"],
+            # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
+            columns=["Ingrédient", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
         def _cfg_ing(gb):
@@ -1814,8 +1815,9 @@ with onglet_edition:
             seq = st.session_state.get(f"{ss_ing}_seq", 0) + 1
             st.session_state[f"{ss_ing}_seq"] = seq
             st.session_state[ss_ing] = pd.concat(
-                [edite, pd.DataFrame([{"_rowid": f"n{seq}", "Ingrédient": "",
-                                       "Quantité": None, "Unité": "", "Palier": None}])],
+                [edite, pd.DataFrame([{"Ingrédient": "", "Quantité": None,
+                                       "Unité": "", "Palier": None,
+                                       "_rowid": f"n{seq}"}])],
                 ignore_index=True)
             st.rerun()
         if cb.button("🗑 Retirer les lignes cochées", key=f"del_ing_{k}",
@@ -1839,9 +1841,10 @@ with onglet_edition:
 
         ss_prep = f"agg_prep_{k}"
         df_prep = pd.DataFrame(
-            [{"_rowid": str(i), "Étape": e}
+            [{"Étape": e, "_rowid": str(i)}
              for i, e in enumerate(recette.get("preparation", []))],
-            columns=["_rowid", "Étape"],
+            # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
+            columns=["Étape", "_rowid"],
         )
 
         def _cfg_prep(gb):
@@ -1863,7 +1866,7 @@ with onglet_edition:
             seq = st.session_state.get(f"{ss_prep}_seq", 0) + 1
             st.session_state[f"{ss_prep}_seq"] = seq
             st.session_state[ss_prep] = pd.concat(
-                [edite_prep, pd.DataFrame([{"_rowid": f"n{seq}", "Étape": ""}])],
+                [edite_prep, pd.DataFrame([{"Étape": "", "_rowid": f"n{seq}"}])],
                 ignore_index=True)
             st.rerun()
         if cd.button("🗑 Retirer les étapes cochées", key=f"del_prep_{k}",
