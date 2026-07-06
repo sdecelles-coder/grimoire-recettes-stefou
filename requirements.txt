@@ -1,2 +1,3 @@
 streamlit>=1.44
 requests>=2.31
+streamlit-aggrid>=1.0
