@@ -732,14 +732,19 @@ st.markdown("""
   --field:#152036; --field-line:#31446b; --field-ph:#93a2c6;
 }
 
+/* Fond futuriste — uniquement des couches d'arrière-plan (rien ne recouvre le
+   contenu) : halos d'ambiance, grille technique + fines scanlines type HUD. */
 .stApp{
   background:
-    radial-gradient(1200px 560px at 10% -12%, rgba(77,243,227,.09), transparent 60%),
-    radial-gradient(1000px 520px at 105% -5%, rgba(255,180,84,.08), transparent 55%),
-    linear-gradient(rgba(77,243,227,.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(77,243,227,.028) 1px, transparent 1px),
+    radial-gradient(1200px 620px at 6% -16%, rgba(77,243,227,.16), transparent 60%),
+    radial-gradient(1100px 580px at 110% -8%, rgba(255,180,84,.12), transparent 55%),
+    radial-gradient(1100px 900px at 50% 124%, var(--accent-glow,rgba(77,243,227,.10)), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px),
+    linear-gradient(rgba(77,243,227,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(77,243,227,.055) 1px, transparent 1px),
     var(--bg);
-  background-size:auto,auto,44px 44px,44px 44px,auto;
+  background-size:auto,auto,auto,100% 3px,40px 40px,40px 40px,auto;
+  background-attachment:fixed,fixed,fixed,fixed,fixed,fixed,fixed;
 }
 #MainMenu, header, footer{visibility:hidden;}
 .block-container{padding-top:2.2rem; padding-bottom:3rem; max-width:980px;}
@@ -843,11 +848,16 @@ div[data-baseweb="popover"]:has([role="listbox"]) div{
 }
 
 /* Onglets — pilules futuristes, une couleur par mode */
-.stTabs [data-baseweb="tab-list"]{gap:14px; border-bottom:none; margin-bottom:.5rem;}
+/* overflow:visible + padding : la pastille surélevée au survol n'est pas rognée */
+.stTabs [data-baseweb="tab-list"]{
+  gap:14px; border-bottom:none; margin-bottom:.5rem;
+  padding:6px 2px 4px!important; overflow:visible!important;
+}
+.stTabs [data-baseweb="tab"]{overflow:visible!important;}
 .stTabs [data-baseweb="tab"]{
   font-family:'Orbitron',sans-serif!important; font-size:1rem!important;
   font-weight:700!important; letter-spacing:.16em!important;
-  border-radius:12px!important; padding:13px 28px!important;
+  border-radius:12px!important; padding:14px 32px!important;
   border:1px solid var(--line)!important; background:var(--panel)!important;
   transition:all .2s!important;
 }
@@ -855,38 +865,60 @@ div[data-baseweb="popover"]:has([role="listbox"]) div{
   display:none!important;
 }
 
-/* Onglet CUISINE — cyan */
+/* Onglet CUISINE — cyan.
+   Au repos : pastille remplie et en relief (look bouton) sans en être une. */
 .stTabs button[id$="-tab-0"]{
-  color:var(--cyan)!important; border-color:rgba(77,243,227,.4)!important;
+  color:var(--cyan)!important; border:1px solid rgba(77,243,227,.6)!important;
+  background:linear-gradient(135deg, rgba(77,243,227,.16), rgba(77,243,227,.05))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),
+             0 0 0 1px rgba(77,243,227,.10),
+             0 6px 16px rgba(0,0,0,.4)!important;
+  text-shadow:0 0 12px rgba(77,243,227,.4)!important;
 }
 .stTabs button[id$="-tab-0"]:hover{
-  border-color:var(--cyan)!important; box-shadow:0 0 16px rgba(77,243,227,.35)!important;
+  border-color:var(--cyan)!important; transform:translateY(-1px)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
+             0 0 20px rgba(77,243,227,.45), 0 8px 20px rgba(0,0,0,.45)!important;
 }
 .stTabs button[id$="-tab-0"][aria-selected="true"]{
-  color:#04060d!important; border-color:var(--cyan)!important;
+  color:#04060d!important; border-color:var(--cyan)!important; transform:none!important;
   background:linear-gradient(135deg,#4df3e3,#2bd3c4)!important;
-  box-shadow:0 0 24px rgba(77,243,227,.65)!important; text-shadow:none!important;
+  box-shadow:0 0 28px rgba(77,243,227,.7)!important; text-shadow:none!important;
 }
 
-/* Onglet ÉDITION — ambre */
+/* Onglet ÉDITION — ambre. */
 .stTabs button[id$="-tab-1"]{
-  color:var(--amber)!important; border-color:rgba(255,180,84,.4)!important;
+  color:var(--amber)!important; border:1px solid rgba(255,180,84,.6)!important;
+  background:linear-gradient(135deg, rgba(255,180,84,.16), rgba(255,180,84,.05))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),
+             0 0 0 1px rgba(255,180,84,.10),
+             0 6px 16px rgba(0,0,0,.4)!important;
+  text-shadow:0 0 12px rgba(255,180,84,.4)!important;
 }
 .stTabs button[id$="-tab-1"]:hover{
-  border-color:var(--amber)!important; box-shadow:0 0 16px rgba(255,180,84,.35)!important;
+  border-color:var(--amber)!important; transform:translateY(-1px)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
+             0 0 20px rgba(255,180,84,.45), 0 8px 20px rgba(0,0,0,.45)!important;
 }
 .stTabs button[id$="-tab-1"][aria-selected="true"]{
-  color:#04060d!important; border-color:var(--amber)!important;
+  color:#04060d!important; border-color:var(--amber)!important; transform:none!important;
   background:linear-gradient(135deg,#ffb454,#ff9d2e)!important;
-  box-shadow:0 0 24px rgba(255,180,84,.6)!important; text-shadow:none!important;
+  box-shadow:0 0 28px rgba(255,180,84,.65)!important; text-shadow:none!important;
 }
 
-/* Fond teinté selon le mode actif — renforce le repère cuisine / édition */
+/* Fond teinté selon le mode actif — repère cuisine / édition bien marqué.
+   Teal profond en cuisine, ambre profond en édition (dégradé + halo interne). */
 .stApp:has(button[id$="-tab-0"][aria-selected="true"]){
-  --bg:#041210; box-shadow:inset 0 0 240px rgba(77,243,227,.12);
+  --bg:#03181a;
+  --accent-glow:rgba(77,243,227,.14);
+  box-shadow:inset 0 0 320px rgba(77,243,227,.20),
+             inset 0 140px 260px -160px rgba(77,243,227,.28)!important;
 }
 .stApp:has(button[id$="-tab-1"][aria-selected="true"]){
-  --bg:#120e05; box-shadow:inset 0 0 240px rgba(255,180,84,.11);
+  --bg:#1a1204;
+  --accent-glow:rgba(255,180,84,.12);
+  box-shadow:inset 0 0 320px rgba(255,180,84,.18),
+             inset 0 140px 260px -160px rgba(255,180,84,.24)!important;
 }
 
 /* Boutons */
