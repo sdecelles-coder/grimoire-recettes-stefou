@@ -1801,6 +1801,12 @@ with onglet_edition:
 
         grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)
         edite = pd.DataFrame(grille_ing["data"])
+        # La sélection n'est renvoyée qu'au rerun « selectionChanged » ; on la
+        # mémorise pour que le bouton 🗑 (qui provoque un autre rerun, où la
+        # grille a « oublié » la sélection) puisse s'en servir.
+        ids_coches = _lignes_selectionnees_ids(grille_ing, "_rowid")
+        if ids_coches:
+            st.session_state[f"{ss_ing}_sel"] = ids_coches
 
         ca, cb = st.columns(2)
         if ca.button("＋ Ajouter un ingrédient", key=f"add_ing_{k}",
@@ -1814,13 +1820,15 @@ with onglet_edition:
             st.rerun()
         if cb.button("🗑 Retirer les lignes cochées", key=f"del_ing_{k}",
                      use_container_width=True):
-            ids = _lignes_selectionnees_ids(grille_ing, "_rowid")
+            ids = st.session_state.get(f"{ss_ing}_sel", set())
             if ids:
                 st.session_state[ss_ing] = edite[~edite["_rowid"].isin(ids)] \
                     .reset_index(drop=True)
+                st.session_state.pop(f"{ss_ing}_sel", None)
                 st.rerun()
             else:
-                st.info("Coche d'abord au moins une ligne à retirer.")
+                st.info("Coche d'abord au moins une ligne (case à gauche), "
+                        "puis clique 🗑.")
 
     with st.expander(f"🍳  Préparation ({len(recette.get('preparation', []))} étape"
                      f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
@@ -1845,6 +1853,9 @@ with onglet_edition:
 
         grille_prep = _grille_aggrid(df_prep, ss_prep, _cfg_prep)
         edite_prep = pd.DataFrame(grille_prep["data"])
+        ids_coches_prep = _lignes_selectionnees_ids(grille_prep, "_rowid")
+        if ids_coches_prep:
+            st.session_state[f"{ss_prep}_sel"] = ids_coches_prep
 
         cc, cd = st.columns(2)
         if cc.button("＋ Ajouter une étape", key=f"add_prep_{k}",
@@ -1857,13 +1868,15 @@ with onglet_edition:
             st.rerun()
         if cd.button("🗑 Retirer les étapes cochées", key=f"del_prep_{k}",
                      use_container_width=True):
-            ids = _lignes_selectionnees_ids(grille_prep, "_rowid")
+            ids = st.session_state.get(f"{ss_prep}_sel", set())
             if ids:
                 st.session_state[ss_prep] = edite_prep[~edite_prep["_rowid"].isin(ids)] \
                     .reset_index(drop=True)
+                st.session_state.pop(f"{ss_prep}_sel", None)
                 st.rerun()
             else:
-                st.info("Coche d'abord au moins une étape à retirer.")
+                st.info("Coche d'abord au moins une étape (case à gauche), "
+                        "puis clique 🗑.")
 
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
@@ -1905,8 +1918,9 @@ with onglet_edition:
             recette["tags"] = enregistrer_tags(tags_appliques)
             if persister(RECETTES):
                 # Repart des données sauvées : on vide les tables de travail.
-                st.session_state.pop(f"agg_ing_{k}", None)
-                st.session_state.pop(f"agg_prep_{k}", None)
+                for cle in (f"agg_ing_{k}", f"agg_prep_{k}",
+                            f"agg_ing_{k}_sel", f"agg_prep_{k}_sel"):
+                    st.session_state.pop(cle, None)
                 st.success("Recette enregistrée ✓")
                 st.rerun()
 
