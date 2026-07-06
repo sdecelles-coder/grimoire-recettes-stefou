@@ -72,7 +72,10 @@
       "preparation": [
         "bien mélanger le tout"
       ],
-      "tags": []
+      "tags": [
+        "Stefou",
+        "Marinade"
+      ]
     },
     {
       "titre": "Vinaigrette balsamique",
@@ -387,6 +390,10 @@
     {
       "nom": "lunch",
       "couleur": "#28b9ac"
+    },
+    {
+      "nom": "Marinade",
+      "couleur": "#5eead4"
     },
     {
       "nom": "plat principal",
