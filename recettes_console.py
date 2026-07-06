@@ -527,6 +527,9 @@ def _grille_aggrid(df_init, ss_key, configurer):
     if ss_key not in st.session_state:
         st.session_state[ss_key] = df_init.reset_index(drop=True)
     travail = st.session_state[ss_key]
+    # _rowid toujours en dernier : la 1re colonne (visible) garde la case à cocher.
+    if "_rowid" in travail.columns:
+        travail = travail[[c for c in travail.columns if c != "_rowid"] + ["_rowid"]]
 
     gb = GridOptionsBuilder.from_dataframe(travail)
     gb.configure_default_column(editable=True, resizable=True, sortable=False,
@@ -540,10 +543,13 @@ def _grille_aggrid(df_init, ss_key, configurer):
     options["suppressMoveWhenRowDragging"] = False
     options["domLayout"] = "autoHeight"   # la grille s'adapte au nombre de lignes
 
+    # Le nonce force un remontage propre après ajout/suppression (AgGrid recharge
+    # alors les données serveur, sans conserver un état client périmé).
+    nonce = st.session_state.get(f"{ss_key}_nonce", 0)
     grille = AgGrid(
         travail,
         gridOptions=options,
-        key=f"aggrid_{ss_key}",
+        key=f"aggrid_{ss_key}_{nonce}",
         update_on=["cellValueChanged", "rowDragEnd", "selectionChanged"],
         data_return_mode=DataReturnMode.AS_INPUT,
         allow_unsafe_jscode=True,
@@ -1802,12 +1808,6 @@ with onglet_edition:
 
         grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)
         edite = pd.DataFrame(grille_ing["data"])
-        # La sélection n'est renvoyée qu'au rerun « selectionChanged » ; on la
-        # mémorise pour que le bouton 🗑 (qui provoque un autre rerun, où la
-        # grille a « oublié » la sélection) puisse s'en servir.
-        ids_coches = _lignes_selectionnees_ids(grille_ing, "_rowid")
-        if ids_coches:
-            st.session_state[f"{ss_ing}_sel"] = ids_coches
 
         ca, cb = st.columns(2)
         if ca.button("＋ Ajouter un ingrédient", key=f"add_ing_{k}",
@@ -1819,14 +1819,17 @@ with onglet_edition:
                                        "Unité": "", "Palier": None,
                                        "_rowid": f"n{seq}"}])],
                 ignore_index=True)
+            st.session_state[f"{ss_ing}_nonce"] = \
+                st.session_state.get(f"{ss_ing}_nonce", 0) + 1
             st.rerun()
         if cb.button("🗑 Retirer les lignes cochées", key=f"del_ing_{k}",
                      use_container_width=True):
-            ids = st.session_state.get(f"{ss_ing}_sel", set())
+            ids = _lignes_selectionnees_ids(grille_ing, "_rowid")
             if ids:
                 st.session_state[ss_ing] = edite[~edite["_rowid"].isin(ids)] \
                     .reset_index(drop=True)
-                st.session_state.pop(f"{ss_ing}_sel", None)
+                st.session_state[f"{ss_ing}_nonce"] = \
+                    st.session_state.get(f"{ss_ing}_nonce", 0) + 1
                 st.rerun()
             else:
                 st.info("Coche d'abord au moins une ligne (case à gauche), "
@@ -1856,9 +1859,6 @@ with onglet_edition:
 
         grille_prep = _grille_aggrid(df_prep, ss_prep, _cfg_prep)
         edite_prep = pd.DataFrame(grille_prep["data"])
-        ids_coches_prep = _lignes_selectionnees_ids(grille_prep, "_rowid")
-        if ids_coches_prep:
-            st.session_state[f"{ss_prep}_sel"] = ids_coches_prep
 
         cc, cd = st.columns(2)
         if cc.button("＋ Ajouter une étape", key=f"add_prep_{k}",
@@ -1868,14 +1868,17 @@ with onglet_edition:
             st.session_state[ss_prep] = pd.concat(
                 [edite_prep, pd.DataFrame([{"Étape": "", "_rowid": f"n{seq}"}])],
                 ignore_index=True)
+            st.session_state[f"{ss_prep}_nonce"] = \
+                st.session_state.get(f"{ss_prep}_nonce", 0) + 1
             st.rerun()
         if cd.button("🗑 Retirer les étapes cochées", key=f"del_prep_{k}",
                      use_container_width=True):
-            ids = st.session_state.get(f"{ss_prep}_sel", set())
+            ids = _lignes_selectionnees_ids(grille_prep, "_rowid")
             if ids:
                 st.session_state[ss_prep] = edite_prep[~edite_prep["_rowid"].isin(ids)] \
                     .reset_index(drop=True)
-                st.session_state.pop(f"{ss_prep}_sel", None)
+                st.session_state[f"{ss_prep}_nonce"] = \
+                    st.session_state.get(f"{ss_prep}_nonce", 0) + 1
                 st.rerun()
             else:
                 st.info("Coche d'abord au moins une étape (case à gauche), "
@@ -1920,10 +1923,11 @@ with onglet_edition:
             # noms canoniques à la recette.
             recette["tags"] = enregistrer_tags(tags_appliques)
             if persister(RECETTES):
-                # Repart des données sauvées : on vide les tables de travail.
-                for cle in (f"agg_ing_{k}", f"agg_prep_{k}",
-                            f"agg_ing_{k}_sel", f"agg_prep_{k}_sel"):
-                    st.session_state.pop(cle, None)
+                # Repart des données sauvées : on vide les tables de travail
+                # (et leurs nonces/compteurs de remontage).
+                for base in (f"agg_ing_{k}", f"agg_prep_{k}"):
+                    for cle in (base, f"{base}_nonce", f"{base}_seq"):
+                        st.session_state.pop(cle, None)
                 st.success("Recette enregistrée ✓")
                 st.rerun()
 
