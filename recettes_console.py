@@ -6,6 +6,11 @@ Grimoire de recettes techno-futuriste
   s'ajustent automatiquement.
 • Onglet ÉDITION : sommaire (temps de préparation, cuisson, portions),
   édition des ingrédients et des étapes, création / suppression de recettes.
+  C'est aussi ici qu'on applique des TAGS aux recettes et qu'on gère le
+  catalogue partagé de tags (renommer, recolorer, supprimer).
+• TAGS : catalogue global partagé par tous les utilisateurs (enregistré avec
+  les recettes). Chaque tag a une couleur. Recherche par tags (ET), et affichage
+  des tags dans les sommaires de cuisine et d'édition.
 • Dans une étape, écris [nom d'ingrédient] entre crochets pour insérer
   sa quantité mise à l'échelle.
 • Sauvegarde vers GitHub (si secrets configurés) ou en local.
@@ -27,6 +32,42 @@ import streamlit.components.v1 as components
 #  PERSISTANCE — recettes.json à côté du script
 # ─────────────────────────────────────────────────────────────────────────────
 FICHIER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recettes.json")
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  GIFS DE VICTOIRE — fichiers stockés dans le repo (dossier images/).
+#
+#  La carte cuisine est rendue dans une iframe (srcdoc) : un chemin relatif n'y
+#  résout pas. Deux modes de service :
+#    • "local"  : le GIF est intégré en base64 dans le HTML → marche tout de
+#                 suite, sans push, sans dépendance externe. Plus lourd (le HTML
+#                 est renvoyé à chaque ajustement de portions).
+#    • "github" : le GIF est servi depuis raw.githubusercontent (repo public) →
+#                 léger et mis en cache par le navigateur, MAIS il faut d'abord
+#                 pousser les fichiers sur la branche ci-dessous.
+#  Pour basculer une fois les images poussées : GIF_MODE = "github".
+# ─────────────────────────────────────────────────────────────────────────────
+DOSSIER_IMAGES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "images")
+GIF_MODE = "local"                                     # "local" ou "github"
+GIF_REPO = "sdecelles-coder/grimoire-recettes-stefou"
+GIF_BRANCH = "main"
+GIF_BASE = f"https://raw.githubusercontent.com/{GIF_REPO}/{GIF_BRANCH}/images"
+GIF_INGREDIENTS_FICHIER = "ingredients.gif"            # mise en place terminée
+GIF_PREPARATION_FICHIER = "cat_eat.gif"               # préparation terminée
+
+
+@st.cache_data(show_spinner=False)
+def gif_src(nom_fichier):
+    """URL utilisable dans l'iframe pour un GIF de images/. En mode "local",
+    renvoie un data-URI base64 (lu depuis le disque) ; en mode "github", l'URL
+    raw. Repli sur l'URL raw si le fichier local est introuvable."""
+    if GIF_MODE == "local":
+        try:
+            with open(os.path.join(DOSSIER_IMAGES, nom_fichier), "rb") as f:
+                b64 = base64.b64encode(f.read()).decode("ascii")
+            return f"data:image/gif;base64,{b64}"
+        except OSError:
+            pass
+    return f"{GIF_BASE}/{nom_fichier}"
 
 RECETTES_DEFAUT = [
     {
@@ -101,6 +142,67 @@ RECETTES_DEFAUT = [
 ]
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  TAGS — catalogue global partagé (enregistré avec les recettes)
+# ─────────────────────────────────────────────────────────────────────────────
+# Palette de couleurs proposée par défaut aux nouveaux tags (cyclée selon le
+# nombre de tags déjà présents). L'utilisateur peut changer la couleur ensuite
+# dans le panneau « Gérer les tags ».
+PALETTE_TAGS = [
+    "#4df3e3", "#ffb454", "#ff7a9c", "#a78bfa", "#7ee787",
+    "#63b3ff", "#f4d35e", "#ff8f5e", "#5eead4", "#c084fc",
+]
+
+# Tags proposés au tout premier démarrage (aucun fichier encore enregistré).
+TAGS_DEFAUT = [
+    {"nom": "déjeuner",       "couleur": "#f4d35e"},
+    {"nom": "Félix",          "couleur": "#63b3ff"},
+    {"nom": "Juju",           "couleur": "#a78bfa"},
+    {"nom": "lunch",          "couleur": "#7ee787"},
+    {"nom": "Mélo",           "couleur": "#ff7a9c"},
+    {"nom": "dessert",        "couleur": "#ff8f5e"},
+    {"nom": "plat principal", "couleur": "#4df3e3"},
+    {"nom": "Stefou",         "couleur": "#ffb454"},
+]
+
+COULEUR_TAG_DEFAUT = "#7d8cb5"      # gris : tag sans couleur connue
+
+
+def _norm_tag(nom):
+    """Clé de comparaison d'un tag (insensible à la casse et aux espaces)."""
+    return (nom or "").strip().casefold()
+
+
+def trier_tags(tags):
+    """Trie une liste de tags (dicts {nom, couleur}) par nom, insensible à la
+    casse. Retourne une nouvelle liste."""
+    return sorted(tags, key=lambda t: _norm_tag(t.get("nom")))
+
+
+def normaliser_tags(tags):
+    """Nettoie le catalogue global : chaque entrée devient {nom, couleur},
+    doublons (même nom insensible à la casse) fusionnés, tri alphabétique."""
+    vus = {}
+    for t in tags or []:
+        if isinstance(t, str):                      # ancien format éventuel
+            t = {"nom": t}
+        nom = (t.get("nom") or "").strip()
+        if not nom:
+            continue
+        cle = _norm_tag(nom)
+        if cle in vus:
+            continue
+        couleur = t.get("couleur") or PALETTE_TAGS[len(vus) % len(PALETTE_TAGS)]
+        vus[cle] = {"nom": nom, "couleur": couleur}
+    return trier_tags(list(vus.values()))
+
+
+def index_couleurs(tags):
+    """Dict {clé normalisée -> couleur} pour retrouver vite la couleur d'un tag."""
+    return {_norm_tag(t["nom"]): t.get("couleur") or COULEUR_TAG_DEFAUT
+            for t in tags}
+
+
 def _github_cfg():
     """Retourne la config GitHub depuis st.secrets, ou None si absente (mode local)."""
     try:
@@ -127,9 +229,28 @@ def _gh_headers(cfg):
     }
 
 
+def _defaut():
+    """Copie fraîche des recettes et tags par défaut."""
+    return (json.loads(json.dumps(RECETTES_DEFAUT)),
+            json.loads(json.dumps(TAGS_DEFAUT)))
+
+
+def _extraire(data):
+    """Décompose le contenu JSON chargé en (recettes, tags).
+
+    Deux formats acceptés :
+      • ancien : une simple liste de recettes → les tags sont ceux par défaut ;
+      • nouveau : {"recettes": [...], "tags": [...]}."""
+    if isinstance(data, list):
+        return data, json.loads(json.dumps(TAGS_DEFAUT))
+    if isinstance(data, dict) and isinstance(data.get("recettes"), list):
+        return data["recettes"], data.get("tags") or []
+    return None
+
+
 def charger_recettes():
-    """Charge les recettes depuis GitHub si configuré, sinon depuis le fichier
-    local ; retourne (recettes, mode, erreur)."""
+    """Charge recettes + tags depuis GitHub si configuré, sinon depuis le
+    fichier local ; retourne (recettes, tags, mode, erreur)."""
     cfg = _github_cfg()
     if cfg:
         try:
@@ -137,33 +258,40 @@ def charger_recettes():
                              params={"ref": cfg["branch"]}, timeout=10)
             if r.status_code == 200:
                 data = json.loads(base64.b64decode(r.json()["content"]))
-                if isinstance(data, list):
-                    return data, "github", None
+                extrait = _extraire(data)
+                if extrait:
+                    return extrait[0], extrait[1], "github", None
             if r.status_code == 404:   # pas encore de fichier dans le repo
-                return json.loads(json.dumps(RECETTES_DEFAUT)), "github", None
-            return (json.loads(json.dumps(RECETTES_DEFAUT)), "github",
+                rec, tags = _defaut()
+                return rec, tags, "github", None
+            rec, tags = _defaut()
+            return (rec, tags, "github",
                     f"Lecture GitHub impossible (code {r.status_code}) — "
                     "vérifie le token et le nom du repo dans les secrets.")
         except requests.RequestException as e:
-            return (json.loads(json.dumps(RECETTES_DEFAUT)), "github",
+            rec, tags = _defaut()
+            return (rec, tags, "github",
                     f"Connexion à GitHub impossible : {e}")
     # Mode local
     if os.path.exists(FICHIER):
         try:
             with open(FICHIER, encoding="utf-8") as f:
                 data = json.load(f)
-            if isinstance(data, list):
-                return data, "local", None
+            extrait = _extraire(data)
+            if extrait:
+                return extrait[0], extrait[1], "local", None
         except (json.JSONDecodeError, OSError):
             pass
-    return json.loads(json.dumps(RECETTES_DEFAUT)), "local", None
+    rec, tags = _defaut()
+    return rec, tags, "local", None
 
 
-def sauvegarder_recettes(recettes):
-    """Écrit les recettes (GitHub si configuré, sinon local).
+def sauvegarder_recettes(recettes, tags):
+    """Écrit recettes + catalogue de tags (GitHub si configuré, sinon local).
     Retourne (ok, message_erreur)."""
     cfg = _github_cfg()
-    contenu = json.dumps(recettes, ensure_ascii=False, indent=2)
+    contenu = json.dumps({"recettes": recettes, "tags": tags},
+                         ensure_ascii=False, indent=2)
     if cfg:
         try:
             # SHA actuel du fichier (obligatoire pour mettre à jour un fichier existant)
@@ -245,6 +373,15 @@ def normaliser_recette(r):
     r.setdefault("temps_cuisson", 0)
     r.setdefault("preparation", [])
     r.setdefault("ingredients", [])
+    r.setdefault("tags", [])
+    # Tags : liste de noms (chaînes), nettoyée et sans doublons.
+    vus, propres = set(), []
+    for t in r.get("tags", []):
+        nom = (t or "").strip() if isinstance(t, str) else ""
+        if nom and _norm_tag(nom) not in vus:
+            vus.add(_norm_tag(nom))
+            propres.append(nom)
+    r["tags"] = propres
     r.setdefault("base", {})
     b = r["base"]
     b.setdefault("label", "Rendement")
@@ -278,10 +415,11 @@ def injecter_quantites(texte, index_ing, facteur):
 #  ÉTAT
 # ─────────────────────────────────────────────────────────────────────────────
 if "recettes" not in st.session_state:
-    recettes, mode, erreur = charger_recettes()
+    recettes, tags, mode, erreur = charger_recettes()
     for r in recettes:
         normaliser_recette(r)
     st.session_state.recettes = recettes
+    st.session_state.tags = normaliser_tags(tags)   # catalogue global
     st.session_state.stockage = mode          # "github" ou "local"
     st.session_state.erreur_chargement = erreur
 if "sel" not in st.session_state:
@@ -296,12 +434,110 @@ if "confirmer_suppr" not in st.session_state:
 RECETTES = st.session_state.recettes
 
 
-def persister(recettes):
-    """Sauvegarde et affiche l'erreur au besoin. Retourne True si OK."""
-    ok, err = sauvegarder_recettes(recettes)
+def persister(recettes, tags=None):
+    """Sauvegarde recettes + tags et affiche l'erreur au besoin. Retourne True
+    si OK. Sans `tags`, on réutilise le catalogue courant de la session."""
+    if tags is None:
+        tags = st.session_state.tags
+    ok, err = sauvegarder_recettes(recettes, tags)
     if not ok:
         st.error(f"⚠ Sauvegarde échouée — {err}")
     return ok
+
+
+def couleur_de(nom):
+    """Couleur associée à un nom de tag (gris par défaut si inconnu)."""
+    return index_couleurs(st.session_state.tags).get(_norm_tag(nom),
+                                                     COULEUR_TAG_DEFAUT)
+
+
+def noms_tags():
+    """Liste triée des noms de tags du catalogue global."""
+    return [t["nom"] for t in st.session_state.tags]
+
+
+def enregistrer_tags(noms):
+    """Convertit une liste de noms saisis (existants ou nouveaux) en noms
+    canoniques, en ajoutant au catalogue global tout tag inédit (couleur
+    attribuée depuis la palette). Retourne la liste des noms canoniques, sans
+    doublon. Met à jour st.session_state.tags (trié)."""
+    catalogue = st.session_state.tags
+    par_cle = {_norm_tag(t["nom"]): t for t in catalogue}
+    canon, vus = [], set()
+    for nom in noms:
+        nom = (nom or "").strip()
+        if not nom:
+            continue
+        cle = _norm_tag(nom)
+        if cle in vus:
+            continue
+        vus.add(cle)
+        if cle in par_cle:
+            canon.append(par_cle[cle]["nom"])          # nom canonique existant
+        else:
+            couleur = PALETTE_TAGS[len(catalogue) % len(PALETTE_TAGS)]
+            nouveau = {"nom": nom, "couleur": couleur}
+            catalogue.append(nouveau)
+            par_cle[cle] = nouveau
+            canon.append(nom)
+    st.session_state.tags = trier_tags(catalogue)
+    return canon
+
+
+def _renommer_tag_partout(ancien, nouveau):
+    """Applique un renommage de tag à toutes les recettes (par clé normalisée)."""
+    cle = _norm_tag(ancien)
+    for r in st.session_state.recettes:
+        r["tags"] = [nouveau if _norm_tag(x) == cle else x
+                     for x in r.get("tags", [])]
+
+
+def _supprimer_tag_partout(nom):
+    """Retire un tag du catalogue global ET de toutes les recettes."""
+    cle = _norm_tag(nom)
+    st.session_state.tags = [t for t in st.session_state.tags
+                             if _norm_tag(t["nom"]) != cle]
+    for r in st.session_state.recettes:
+        r["tags"] = [x for x in r.get("tags", []) if _norm_tag(x) != cle]
+
+
+@st.dialog("Supprimer le tag")
+def _dialog_suppr_tag(nom):
+    """Fenêtre de confirmation avant suppression d'un tag partout."""
+    st.warning(f"Le tag « {nom} » sera retiré de **toutes les recettes** qui le "
+               "portent, et du catalogue partagé. Cette action est définitive.")
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("Oui, supprimer partout", type="primary",
+                     use_container_width=True, key="confirm_suppr_tag"):
+            _supprimer_tag_partout(nom)
+            ok, err = sauvegarder_recettes(st.session_state.recettes,
+                                           st.session_state.tags)
+            st.session_state.err_save = None if ok else err
+            st.rerun()
+    with c2:
+        if st.button("Annuler", use_container_width=True, key="annuler_suppr_tag"):
+            st.rerun()
+
+
+def chips_tags_html(noms, taille="normal"):
+    """Rend une rangée de puces de tags colorées (HTML). `noms` = liste de
+    noms de tags de la recette."""
+    if not noms:
+        return ""
+    pad = "3px 10px" if taille == "normal" else "2px 8px"
+    fs = ".72rem" if taille == "normal" else ".66rem"
+    puces = []
+    for nom in sorted(noms, key=_norm_tag):
+        c = couleur_de(nom)
+        puces.append(
+            f'<span style="display:inline-block;font-family:\'JetBrains Mono\','
+            f'monospace;font-size:{fs};font-weight:700;letter-spacing:.04em;'
+            f'padding:{pad};margin:3px 6px 3px 0;border-radius:999px;'
+            f'color:{c};border:1px solid {c};background:{c}1f;">'
+            f'{html_escape(nom)}</span>')
+    return ('<div style="display:flex;flex-wrap:wrap;align-items:center;'
+            'margin-top:4px;">' + "".join(puces) + "</div>")
 
 
 def recette_vierge(n_total):
@@ -315,6 +551,7 @@ def recette_vierge(n_total):
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5}],
         "preparation": ["Première étape — écris [Premier ingrédient] pour insérer sa quantité."],
+        "tags": [],
     }
 
 
@@ -333,7 +570,7 @@ def _creer_recette():
     st.session_state.recherche_ingredient = ""
     st.session_state.recette_select = len(recettes) - 1
     st.session_state.confirmer_suppr = False
-    ok, err = sauvegarder_recettes(recettes)
+    ok, err = sauvegarder_recettes(recettes, st.session_state.tags)
     st.session_state.err_save = None if ok else err
 
 
@@ -345,7 +582,7 @@ def _supprimer_recette():
         recettes.pop(i)
     st.session_state.recette_select = None
     st.session_state.confirmer_suppr = False
-    ok, err = sauvegarder_recettes(recettes)
+    ok, err = sauvegarder_recettes(recettes, st.session_state.tags)
     st.session_state.err_save = None if ok else err
 
 
@@ -363,6 +600,9 @@ st.markdown("""
   --bg:#04060d; --panel:#0b1120; --line:#1e2a45;
   --cyan:#4df3e3; --amber:#ffb454;
   --text:#e9efff; --muted:#7d8cb5;
+  /* Champs de saisie / sélection : fond navy un peu plus clair que --panel
+     (meilleur confort de lecture) + bordure plus lisible + texte d'invite. */
+  --field:#152036; --field-line:#31446b; --field-ph:#93a2c6;
 }
 
 .stApp{
@@ -393,23 +633,86 @@ st.markdown("""
 .hero p{font-family:'Inter',sans-serif; color:var(--muted); margin:.5rem 0 0; font-size:.98rem;}
 
 /* ── Widgets Streamlit ───────────────────────────────── */
-.stSelectbox label, [data-testid="stNumberInput"] label, .stTextInput label{
+.stSelectbox label, [data-testid="stNumberInput"] label, .stTextInput label,
+[data-testid="stMultiSelect"] label{
   font-family:'JetBrains Mono',monospace!important; font-size:.68rem!important;
   letter-spacing:.24em!important; text-transform:uppercase!important; color:var(--muted)!important;
 }
+/* Boîte de saisie / sélection — même fond, bordure, rayon et texte PARTOUT
+   (texte, nombre, selectbox ET multiselect). */
 .stSelectbox div[data-baseweb="select"] > div,
+[data-testid="stMultiSelect"] div[data-baseweb="select"] > div,
 [data-testid="stNumberInput"] input,
 .stTextInput input{
-  background:var(--panel)!important; border:1px solid var(--line)!important;
+  background:var(--field)!important; border:1px solid var(--field-line)!important;
   border-radius:10px!important; color:var(--text)!important;
   font-family:'Inter',sans-serif!important;
 }
 [data-testid="stNumberInput"] input{font-family:'JetBrains Mono',monospace!important;
   font-size:1.1rem!important; font-weight:700!important;}
-[data-testid="stNumberInput"] button{background:var(--panel)!important; border-color:var(--line)!important; color:var(--text)!important;}
+[data-testid="stNumberInput"] button{background:var(--field)!important; border-color:var(--field-line)!important; color:var(--text)!important;}
+
+/* Selectbox : texte de la valeur sélectionnée bien lisible (clair) */
+.stSelectbox [data-baseweb="select"] > div > div{color:var(--text)!important;}
+/* Zone de frappe (texte tapé) des sélecteurs : clair */
+.stSelectbox [data-baseweb="select"] input{color:var(--text)!important;}
+/* Multiselect : quand il est vide, l'invite « Écris pour voir les tags… » est
+   un <div> BaseWeb (pas un input) — ::placeholder ne l'atteint pas. On colore
+   donc TOUT le texte de sa zone en gris clair lisible (comme le placeholder de
+   « ex. citron, ail… »). Les tags sélectionnés sont des puces stylées à part. */
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div *{
+  color:var(--field-ph)!important;
+}
+/* Invites (placeholders) des champs input : même gris clair lisible */
+.stTextInput input::placeholder,
+[data-testid="stNumberInput"] input::placeholder,
+[data-baseweb="select"] input::placeholder{color:var(--field-ph)!important; opacity:1!important;}
+/* Icônes (chevron, croix) : teinte discrète mais visible */
+[data-baseweb="select"] svg{fill:var(--muted)!important;}
+
+/* Focus : liseré cyan cohérent sur tous les champs */
 .stSelectbox div[data-baseweb="select"] > div:focus-within,
+[data-testid="stMultiSelect"] div[data-baseweb="select"] > div:focus-within,
 [data-testid="stNumberInput"] input:focus, .stTextInput input:focus{
   border-color:var(--cyan)!important; box-shadow:0 0 0 2px rgba(77,243,227,.22)!important;
+}
+
+/* Puces de tags sélectionnées dans un multiselect — teinte cyan du thème.
+   On force aussi le texte des enfants (span interne) pour qu'il ne soit pas
+   grisé par la règle générale d'invite ci-dessus. */
+[data-testid="stMultiSelect"] span[data-baseweb="tag"],
+[data-testid="stMultiSelect"] span[data-baseweb="tag"] *{
+  color:#cfe9ff!important; font-family:'JetBrains Mono',monospace!important;
+}
+[data-testid="stMultiSelect"] span[data-baseweb="tag"]{
+  background:rgba(77,243,227,.14)!important; border:1px solid rgba(77,243,227,.5)!important;
+}
+[data-testid="stMultiSelect"] span[data-baseweb="tag"] svg{fill:#cfe9ff!important;}
+
+/* Menu déroulant (selectbox & multiselect) — fond sombre, texte clair contrasté.
+   Le conteneur du menu ET la liste sont assombris (sélecteurs agnostiques du tag)
+   pour être sûr de couvrir le fond blanc par défaut de BaseWeb. Le :has() limite
+   l'effet aux popovers qui contiennent une liste (épargne les infobulles « ? » et
+   le sélecteur de couleur des tags). */
+div[data-baseweb="popover"]:has([role="listbox"]) > div,
+[role="listbox"], [data-baseweb="menu"]{
+  background:var(--field)!important; border:1px solid var(--field-line)!important;
+  border-radius:10px!important; box-shadow:0 12px 34px rgba(0,0,0,.5)!important;
+}
+/* Filet de sécurité : aucun sous-conteneur blanc ne subsiste dans le menu. */
+div[data-baseweb="popover"]:has([role="listbox"]) div{
+  background-color:var(--field)!important;
+}
+/* Les options laissent voir le fond sombre du menu ; texte clair = bon contraste */
+[role="listbox"] [role="option"], [data-baseweb="menu"] li{
+  background-color:transparent!important; color:var(--text)!important;
+  font-family:'Inter',sans-serif!important;
+}
+[role="listbox"] [role="option"]:hover,
+[role="listbox"] [role="option"][aria-selected="true"],
+[data-baseweb="menu"] li:hover,
+[data-baseweb="menu"] li[aria-selected="true"]{
+  background-color:rgba(77,243,227,.20)!important; color:#eaffff!important;
 }
 
 /* Onglets — pilules futuristes, une couleur par mode */
@@ -659,6 +962,7 @@ if st.session_state.sel is not None:
 def _reset_filtres():
     st.session_state.recherche_titre = ""
     st.session_state.recherche_ingredient = ""
+    st.session_state.recherche_tags = []
     st.session_state.recette_select = None      # aucune recette sélectionnée
     st.session_state.confirmer_suppr = False
 
@@ -677,12 +981,19 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
             placeholder="ex. citron, ail…",
             help="N'affiche que les recettes qui contiennent cet ingrédient.")
 
+    filtre_tags = st.multiselect(
+        "Filtrer par tags", options=noms_tags(), key="recherche_tags",
+        placeholder="Écris pour voir les tags…",
+        help="N'affiche que les recettes portant TOUS les tags choisis. "
+             "Tape du texte pour retrouver un tag existant.")
+
     q_titre = recherche.strip().lower()
     q_ing = filtre_ing.strip().lower()
+    q_tags = {_norm_tag(t) for t in filtre_tags}
 
     st.button("↺ Réinitialiser les filtres", key="reset_filtres",
-              on_click=_reset_filtres, disabled=not (q_titre or q_ing),
-              help="Efface la recherche et le filtre par ingrédient.")
+              on_click=_reset_filtres, disabled=not (q_titre or q_ing or q_tags),
+              help="Efface la recherche, l'ingrédient et les tags.")
 
     def _correspond(r):
         if q_titre and (q_titre not in r.get("titre", "").lower()
@@ -691,26 +1002,37 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
         if q_ing and not any(q_ing in (ing.get("nom") or "").lower()
                              for ing in r.get("ingredients", [])):
             return False
+        if q_tags:                                   # ET : tous les tags requis
+            tags_r = {_norm_tag(t) for t in r.get("tags", [])}
+            if not q_tags.issubset(tags_r):
+                return False
         return True
 
-    indices = [i for i, r in enumerate(RECETTES) if _correspond(r)]
+    # Recettes triées automatiquement par ordre alphabétique de titre.
+    indices = sorted((i for i, r in enumerate(RECETTES) if _correspond(r)),
+                     key=lambda i: (RECETTES[i].get("titre") or "").casefold())
 
     if not indices:
         st.info("Aucune recette ne correspond à ta recherche.")
         st.session_state.sel = None
     else:
-        # Une sélection devenue hors résultats est effacée (placeholder).
-        if (st.session_state.recette_select is not None
-                and st.session_state.recette_select not in indices):
-            st.session_state.recette_select = None
+        # VIDE = première option « ligne vide » (chaîne vide, distincte des index
+        # entiers). C'est un vrai choix sélectionnable — contrairement à None que
+        # Streamlit interprète comme « aucune sélection » (placeholder).
+        VIDE = ""
+        # None hérité (reset/suppression) ou sélection hors résultats -> ligne vide.
+        if (st.session_state.recette_select is None
+                or (st.session_state.recette_select != VIDE
+                    and st.session_state.recette_select not in indices)):
+            st.session_state.recette_select = VIDE
         idx = st.selectbox(
-            "Recettes disponibles", options=indices,
-            format_func=lambda i: RECETTES[i]["titre"],
-            placeholder="Choisis ta recette…",
+            "Recettes disponibles", options=[VIDE] + indices,
+            format_func=lambda i: "" if i == VIDE else RECETTES[i]["titre"],
             key="recette_select",
         )
-        if idx != st.session_state.sel:
-            st.session_state.sel = idx
+        sel = None if idx == VIDE else idx
+        if sel != st.session_state.sel:
+            st.session_state.sel = sel
             st.session_state.confirmer_suppr = False
         if len(indices) < len(RECETTES):
             st.markdown(
@@ -816,6 +1138,11 @@ with onglet_cuisine:
             f'<b>{rendement_ref:g} {unite}</b> pour '
             f'<b>{personnes_ref} personne{"s" if personnes_ref > 1 else ""}</b>'
             f' · soit <b>{portion:g} {unite}</b> par personne</div>')
+    # Tags de la recette (puces colorées), affichés dans le sommaire.
+    if recette.get("tags"):
+        somm_body += (
+            '<div class="tags-titre">Tags</div>'
+            + chips_tags_html(recette["tags"]))
 
     # Index des ingrédients pour l'auto-ajustement dans les étapes
     index_ing = {ing["nom"].strip().lower(): ing
@@ -922,6 +1249,8 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   margin-top:11px;padding:9px 12px;border-radius:10px;border:1px dashed #26355c;
   background:rgba(77,243,227,.04)}
 .sommaire-rel b{color:#ffb454;font-weight:700}
+.tags-titre{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.2em;
+  text-transform:uppercase;color:#7d8cb5;margin:12px 0 2px}
 .prog{height:4px;background:#141d34;border-radius:999px;margin-top:15px;overflow:hidden}
 .progfill{height:100%;width:0;background:linear-gradient(90deg,#4df3e3,#ffb454);
   box-shadow:0 0 14px rgba(77,243,227,.6);transition:width .35s ease}
@@ -1016,6 +1345,9 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   text-shadow:0 0 18px rgba(77,243,227,.7)}
 .v-sous{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#7d8cb5;
   letter-spacing:.22em;margin-top:6px;text-transform:uppercase}
+/* Variante « préparation terminée » — teinte ambre (comme la section Préparation) */
+.victoire.prep .v-cadre img{border-color:#ffb454;box-shadow:0 0 34px rgba(255,180,84,.55)}
+.victoire.prep .v-titre{color:#ffb454;text-shadow:0 0 18px rgba(255,180,84,.7)}
 @media (max-width:640px){
   .head{padding:16px 14px 13px}
   .rtitle{font-size:1.08rem}
@@ -1042,16 +1374,23 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   </div>
   <div class="list">__ROWS__</div>
   <div class="hint">Touche un ingrédient ou une étape pour le cocher</div>
-  <div class="victoire" id="victoire" onclick="fermerVictoire()">
+  <div class="victoire" id="victoire-ing" onclick="fermer('ing')">
     <div class="v-cadre">
-      <img src="https://i.pinimg.com/originals/fc/6e/a2/fc6ea2c2a09d097a22efca53e3780843.gif" alt="Mise en place complète !">
+      <img src="__GIF_ING__" alt="Mise en place complète !">
       <div class="v-titre">MISE EN PLACE COMPLÈTE</div>
-      <div class="v-sous">Touche pour fermer</div>
+      <div class="v-sous">Tous les ingrédients sont prêts · touche pour fermer</div>
+    </div>
+  </div>
+  <div class="victoire prep" id="victoire-prep" onclick="fermer('prep')">
+    <div class="v-cadre">
+      <img src="__GIF_PREP__" alt="Préparation terminée !">
+      <div class="v-titre">BON APPÉTIT !</div>
+      <div class="v-sous">Toutes les étapes sont faites · touche pour fermer</div>
     </div>
   </div>
 </div>
 <script>
-var victoireFermee=false;
+var fermeIng=false, fermePrep=false;
 // Ajuste la hauteur de l'iframe au contenu réellement visible (sections repliées
 // ou dépliées) pour éviter tout espace vide. Sans effet si l'accès à l'iframe
 // parente est refusé : la hauteur de repli sert alors de valeur fixe.
@@ -1098,18 +1437,30 @@ function restaurerSections(){
   }
   resizeFrame();
 }
+function estFait(el){return el.classList.contains('done');}
 function maj(){
+  // Progression globale (barre + compteur) sur ingrédients ET étapes.
   var items=Array.prototype.slice.call(document.querySelectorAll('.ing'));
-  var d=items.filter(function(i){return i.classList.contains('done')}).length;
+  var d=items.filter(estFait).length;
   document.getElementById('cnt').textContent=d+' / '+items.length+' \\u00e9l\\u00e9ments coch\\u00e9s';
   document.getElementById('fill').style.width=(items.length?d/items.length*100:0)+'%';
-  var complet=items.length>0 && d===items.length;
-  if(!complet){victoireFermee=false;}
-  document.getElementById('victoire').classList.toggle('visible', complet && !victoireFermee);
+
+  // Victoires par section : ingrédients (.ing sans .step) et préparation (.step).
+  var ings=Array.prototype.slice.call(document.querySelectorAll('.ing:not(.step)'));
+  var steps=Array.prototype.slice.call(document.querySelectorAll('.ing.step'));
+  var ingComplet=ings.length>0 && ings.every(estFait);
+  var prepComplet=steps.length>0 && steps.every(estFait);
+  if(!ingComplet){fermeIng=false;}
+  if(!prepComplet){fermePrep=false;}
+  // La préparation (fin de recette) a priorité si les deux sont complètes.
+  var montrePrep=prepComplet && !fermePrep;
+  var montreIng=ingComplet && !fermeIng && !montrePrep;
+  document.getElementById('victoire-prep').classList.toggle('visible', montrePrep);
+  document.getElementById('victoire-ing').classList.toggle('visible', montreIng);
 }
-function fermerVictoire(){
-  victoireFermee=true;
-  document.getElementById('victoire').classList.remove('visible');
+function fermer(quoi){
+  if(quoi==='prep'){fermePrep=true;}else{fermeIng=true;}
+  maj();
 }
 window.addEventListener('load', restaurerSections);
 window.addEventListener('load', resizeFrame);
@@ -1123,6 +1474,8 @@ resizeFrame();
             .replace("__TITRE__", html_escape(recette["titre"]))
             .replace("__SOUS__", html_escape(recette.get("sous_titre", "")))
             .replace("__N__", str(n))
+            .replace("__GIF_ING__", gif_src(GIF_INGREDIENTS_FICHIER))
+            .replace("__GIF_PREP__", gif_src(GIF_PREPARATION_FICHIER))
             .replace("__ROWS__", rows))
 
     # Hauteur de repli (les sections sont fermées par défaut). Si le
@@ -1130,6 +1483,7 @@ resizeFrame();
     # d'une section ; sinon cette valeur (contenu déplié) évite toute coupure.
     hauteur = (290
                + 210                                    # section Sommaire (dépliée)
+               + (48 if recette.get("tags") else 0)     # puces de tags
                + (60 if rendement_ref > 0 else 0)       # ligne « rendement »
                + (66 + n_ing * 60 if n_ing else 0)
                + (66 + n_prep * 92 if n_prep else 0))
@@ -1142,6 +1496,65 @@ with onglet_edition:
     st.button("＋ Nouvelle recette", use_container_width=True,
               key="nouvelle_edition", on_click=_creer_recette,
               help="Ajouter une recette vierge au menu")
+
+    # ── Panneau de gestion des tags (catalogue partagé) ──────────────────────
+    # Toujours accessible en édition, même sans recette sélectionnée.
+    with st.expander(f"🏷️  Gérer les tags partagés ({len(st.session_state.tags)})",
+                     expanded=False):
+        st.caption("Ces tags sont communs à tout le monde. Renomme un tag ou "
+                   "change sa couleur, puis enregistre : le changement se "
+                   "propage à toutes les recettes. Pour créer un tag, écris-le "
+                   "directement sur une recette (champ « Tags de cette recette »).")
+        if not st.session_state.tags:
+            st.info("Aucun tag pour l'instant. Ajoute-en un depuis une recette.")
+        else:
+            noms_saisis, cols_saisies, cles = [], [], []
+            for t in st.session_state.tags:
+                cle = _norm_tag(t["nom"])
+                cles.append(cle)
+                gc, gn, gd = st.columns([0.7, 3, 1])
+                with gc:
+                    couleur = st.color_picker(
+                        "Couleur", value=t.get("couleur") or COULEUR_TAG_DEFAUT,
+                        key=f"tagcol_{cle}", label_visibility="collapsed")
+                with gn:
+                    nom_saisi = st.text_input(
+                        "Nom du tag", value=t["nom"], key=f"tagname_{cle}",
+                        label_visibility="collapsed")
+                with gd:
+                    if st.button("🗑", key=f"deltag_{cle}",
+                                 help=f"Supprimer « {t['nom']} » partout",
+                                 use_container_width=True):
+                        _dialog_suppr_tag(t["nom"])
+                noms_saisis.append(nom_saisi)
+                cols_saisies.append(couleur)
+
+            if st.button("💾 Enregistrer les tags", type="primary",
+                         use_container_width=True, key="save_tags"):
+                anciens = [t["nom"] for t in st.session_state.tags]
+                nouveau_cat, renommages, vus, err_tag = [], [], set(), None
+                for ancien, nom_saisi, couleur in zip(anciens, noms_saisis,
+                                                      cols_saisies):
+                    nv = (nom_saisi or "").strip()
+                    if not nv:
+                        err_tag = "Un tag ne peut pas avoir un nom vide."
+                        break
+                    if _norm_tag(nv) in vus:
+                        err_tag = f"Deux tags portent le même nom « {nv} »."
+                        break
+                    vus.add(_norm_tag(nv))
+                    nouveau_cat.append({"nom": nv, "couleur": couleur})
+                    if nv != ancien:
+                        renommages.append((ancien, nv))
+                if err_tag:
+                    st.error(err_tag)
+                else:
+                    for ancien, nv in renommages:            # propage aux recettes
+                        _renommer_tag_partout(ancien, nv)
+                    st.session_state.tags = trier_tags(nouveau_cat)
+                    if persister(RECETTES):
+                        st.success("Tags enregistrés ✓")
+                        st.rerun()
 
     if recette is None:
         st.markdown(CHOIX_RECETTE, unsafe_allow_html=True)
@@ -1212,6 +1625,26 @@ with onglet_edition:
         if b_personnes and b_val:
             st.caption(f"→ soit {b_val / b_personnes:g} {b_unite or ''}".rstrip()
                        + " par personne.")
+
+        st.markdown("<div style='height:.3rem'></div>", unsafe_allow_html=True)
+        # Défaut = tags déjà appliqués ; on complète les options avec ces valeurs
+        # au cas (rare) où l'une ne serait pas dans le catalogue courant.
+        opts_tags = noms_tags()
+        for t in recette.get("tags", []):
+            if _norm_tag(t) not in {_norm_tag(o) for o in opts_tags}:
+                opts_tags.append(t)
+        tags_appliques = st.multiselect(
+            "Tags de cette recette",
+            options=sorted(opts_tags, key=_norm_tag),
+            default=list(recette.get("tags", [])),
+            key=f"rtags_{k}", accept_new_options=True,
+            placeholder="Écris un tag existant ou un nouveau…",
+            help="Choisis des tags existants ou écris-en un nouveau (il sera "
+                 "ajouté au catalogue partagé lors de l'enregistrement). "
+                 "Une couleur lui est attribuée automatiquement ; tu peux la "
+                 "changer dans « Gérer les tags ».")
+        if tags_appliques:
+            st.markdown(chips_tags_html(tags_appliques), unsafe_allow_html=True)
 
     with st.expander(f"🧺  Ingrédients ({len(recette['ingredients'])})",
                      expanded=True):
@@ -1326,6 +1759,9 @@ with onglet_edition:
                                "multiples": bool(b_multiples)}
             recette["ingredients"] = nouveaux
             recette["preparation"] = etapes
+            # Tags : enregistre les nouveaux au catalogue global, applique les
+            # noms canoniques à la recette.
+            recette["tags"] = enregistrer_tags(tags_appliques)
             if persister(RECETTES):
                 st.success("Recette enregistrée ✓")
                 st.rerun()
