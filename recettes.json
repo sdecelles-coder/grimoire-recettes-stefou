@@ -203,10 +203,7 @@
       "base": {
         "label": "Cuisses de poulet avec la peau",
         "unite": "cuisses",
-        "valeur": 4,
-        "min": 2,
-        "max": 12,
-        "pas": 1,
+        "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
         "multiples": false
@@ -284,7 +281,9 @@
         "Retirer le couvercle de la cocotte. Poursuivre la cuisson au four, sans couvrir, 30 minutes ou jusqu'à ce que les cuisses de poulet soient cuites et bien dorées.",
         "Retirer les branches de romarin et les gousses d'ail de la cocotte, puis les composter. Accompagner les cuisses de poulet et les oignons d'un gratin de pommes de terre aux poireaux et au thym, si désiré."
       ],
-      "tags": []
+      "tags": [
+        "plat principal"
+      ]
     },
     {
       "titre": "Biscuits moelleux aux brisures de chocolat (les meilleurs)",
