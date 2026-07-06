@@ -1487,13 +1487,23 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 
 /* Overlay de victoire — apparaît quand tout est coché */
 .victoire{
-  position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;z-index:10;
   background:rgba(4,6,13,.86);backdrop-filter:blur(3px);border-radius:16px;
   opacity:0;visibility:hidden;transition:opacity .35s ease, visibility .35s;cursor:pointer;
 }
 .victoire.visible{opacity:1;visibility:visible;}
-.v-cadre{text-align:center;padding:18px;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
-@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+/* La cadre (gif + textes) est positionnée par JS au centre de la portion
+   réellement visible à l'écran (voir positionVictoire), pas au milieu de toute
+   la carte : sur mobile/tablette la carte dépasse l'écran et l'animation
+   pouvait tomber hors champ. « top » est ajusté dynamiquement. */
+.v-cadre{
+  position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  text-align:center;padding:18px;animation:pop .45s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes pop{
+  from{transform:translateY(-50%) scale(.7);opacity:0}
+  to{transform:translateY(-50%) scale(1);opacity:1}
+}
 @media (prefers-reduced-motion: reduce){.v-cadre{animation:none}}
 .v-cadre img{
   max-width:min(280px,70vw);max-height:44vh;border-radius:14px;
@@ -1560,6 +1570,38 @@ function resizeFrame(){
     }
   }catch(e){}
 }
+// Centre vertical (en coordonnées internes à l'iframe) de la portion de la carte
+// réellement visible dans la fenêtre du navigateur parent. L'iframe fait toute
+// la hauteur du contenu et c'est la page Streamlit parente qui défile : on lit
+// donc la position de l'iframe dans le viewport parent pour savoir où regarde
+// l'utilisateur. Repli : centre du document si l'accès parent est refusé.
+function centreVisible(){
+  var h=document.documentElement.scrollHeight;
+  try{
+    var fe=window.frameElement;
+    if(fe){
+      var r=fe.getBoundingClientRect();
+      var vpH=(window.parent&&window.parent.innerHeight)||window.innerHeight;
+      var haut=Math.max(0,-r.top);
+      var bas=Math.min(h, vpH-r.top);
+      if(bas>haut){ return (haut+bas)/2; }
+    }
+  }catch(e){}
+  return h/2;
+}
+// Place la cadre de chaque overlay au centre de la zone visible. Le « top » est
+// relatif à l'overlay (.victoire, inset:0 sur la carte) : on soustrait donc son
+// décalage. L'iframe n'ayant pas de défilement interne, getBoundingClientRect
+// donne directement le décalage dans le document.
+function positionVictoire(){
+  var centre=centreVisible();
+  var ov=document.querySelectorAll('.victoire');
+  for(var i=0;i<ov.length;i++){
+    var cadre=ov[i].querySelector('.v-cadre');
+    if(!cadre) continue;
+    cadre.style.top=(centre-ov[i].getBoundingClientRect().top)+'px';
+  }
+}
 function toggle(el){el.classList.toggle('done');maj();}
 // Clé stable par section (sec-som / sec-ing / sec-prep) pour mémoriser son état.
 function cleSection(el){
@@ -1614,6 +1656,7 @@ function maj(){
   // La préparation (fin de recette) a priorité si les deux sont complètes.
   var montrePrep=prepComplet && !fermePrep;
   var montreIng=ingComplet && !fermeIng && !montrePrep;
+  if(montrePrep || montreIng){ positionVictoire(); }
   document.getElementById('victoire-prep').classList.toggle('visible', montrePrep);
   document.getElementById('victoire-ing').classList.toggle('visible', montreIng);
 }
@@ -1623,9 +1666,21 @@ function fermer(quoi){
 }
 window.addEventListener('load', restaurerSections);
 window.addEventListener('load', resizeFrame);
+window.addEventListener('load', positionVictoire);
 window.addEventListener('resize', resizeFrame);
+window.addEventListener('resize', positionVictoire);
+// Suivre le défilement pour garder l'animation dans le champ de vision. Le
+// défilement se produit sur la page parente (l'iframe fait toute la hauteur) ;
+// on écoute donc le parent, avec repli sur l'iframe si l'accès est refusé.
+window.addEventListener('scroll', positionVictoire, {passive:true});
+try{
+  if(window.parent && window.parent!==window){
+    window.parent.addEventListener('scroll', positionVictoire, {passive:true});
+  }
+}catch(e){}
 restaurerSections();
 resizeFrame();
+positionVictoire();
 </script></body></html>
 """
 
