@@ -83,10 +83,7 @@
       "base": {
         "label": "Volume",
         "unite": "ml",
-        "valeur": 250,
-        "min": 60,
-        "max": 1000,
-        "pas": 10,
+        "valeur": 250.0,
         "personnes": 4,
         "max_personnes": 20,
         "multiples": false
@@ -94,25 +91,25 @@
       "ingredients": [
         {
           "nom": "Huile d'olive",
-          "qte": 6,
+          "qte": 6.0,
           "unite": "c. à table",
           "palier": 0.5
         },
         {
           "nom": "Vinaigre balsamique",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5
         },
         {
           "nom": "Moutarde de Dijon",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25
         },
         {
           "nom": "Miel",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25
         },
@@ -132,7 +129,9 @@
       "temps_prep": 0,
       "temps_cuisson": 0,
       "preparation": [],
-      "tags": []
+      "tags": [
+        "Vinaigrette"
+      ]
     },
     {
       "titre": "Marinade BBQ maison",
@@ -404,6 +403,10 @@
     {
       "nom": "Stefou",
       "couleur": "#007cfb"
+    },
+    {
+      "nom": "Vinaigrette",
+      "couleur": "#c084fc"
     }
   ]
 }
