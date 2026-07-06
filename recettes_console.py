@@ -27,6 +27,7 @@ import pandas as pd
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
+from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  PERSISTANCE — recettes.json à côté du script
@@ -463,7 +464,7 @@ def _ingredients_depuis_editeur(df):
             "nom": nom,
             "qte": None if au_gout else float(qte),
             "unite": unite or ("au goût" if au_gout else ""),
-            "palier": None if (palier is None or pd.isna(palier)) else float(palier),
+            "palier": None if (palier is None or palier == "" or pd.isna(palier)) else float(palier),
         })
     return nouveaux
 
@@ -475,54 +476,100 @@ def _etapes_depuis_editeur(df):
 
 
 def _bloc_reordonner(recette, champ, items, labels, k):
-    """Contrôles « sélection de ligne + ▲/▼ » pour réordonner `recette[champ]`.
+    """Liste compacte pour réordonner `recette[champ]` : chaque ligne porte ses
+    propres flèches ▲/▼ (manipulation directe, sans étape de sélection).
 
-    `items` est la liste déjà reconstruite depuis l'éditeur (elle contient donc
-    les éditions non encore enregistrées) et `labels` les libellés parallèles
-    pour la sélection. Un déplacement enregistre immédiatement puis réinitialise
-    l'éditeur concerné (via un « nonce » dans sa clé) afin d'éviter que les
-    modifications internes du data_editor ne s'appliquent au mauvais rang."""
+    `items` est la liste reconstruite depuis l'éditeur (elle contient donc les
+    éditions non encore enregistrées) et `labels` les libellés parallèles.
+
+    Un déplacement s'applique EN MÉMOIRE (instantané, aucune écriture réseau) et
+    est conservé jusqu'au bouton « 💾 Enregistrer », exactement comme les
+    éditions de cellules. On réinitialise l'éditeur concerné (nonce dans sa clé)
+    pour resynchroniser le data_editor sur le nouvel ordre sans décaler ses
+    modifications internes."""
     n = len(items)
     if n < 2:
         return
-    sel_key = f"ord_sel_{champ}_{k}"
-    pend_key = f"ord_pend_{champ}_{k}"
     nonce_key = f"ord_nonce_{champ}_{k}"
-    # Une sélection « en attente » (posée après un déplacement) doit être
-    # appliquée AVANT de créer le selectbox — seul moment où l'on peut fixer sa
-    # valeur sans erreur Streamlit.
-    if pend_key in st.session_state:
-        st.session_state[sel_key] = st.session_state.pop(pend_key)
-    options = list(range(n))
-    if st.session_state.get(sel_key) not in options:
-        st.session_state[sel_key] = 0
 
-    st.caption("Réordonner : choisis une ligne puis déplace-la avec ▲ / ▼ "
-               "(le déplacement est enregistré aussitôt).")
-    c_sel, c_up, c_down = st.columns([6, 1, 1])
-    sel = c_sel.selectbox(
-        "Ligne à déplacer", options,
-        format_func=lambda i: labels[i] if i < len(labels) else str(i + 1),
-        key=sel_key, label_visibility="collapsed")
-    monte = c_up.button("▲", key=f"ord_up_{champ}_{k}", disabled=(sel == 0),
-                        use_container_width=True, help="Monter la ligne")
-    descend = c_down.button("▼", key=f"ord_down_{champ}_{k}",
-                            disabled=(sel >= n - 1), use_container_width=True,
-                            help="Descendre la ligne")
-
-    def _appliquer(nouvelle_sel):
+    def _echanger(i, j):
+        items[i], items[j] = items[j], items[i]
         recette[champ] = items
-        if persister(RECETTES):
-            st.session_state[pend_key] = nouvelle_sel
-            st.session_state[nonce_key] = st.session_state.get(nonce_key, 0) + 1
-            st.rerun()
+        # Pas de persist ici : l'ordre est gardé en session et écrit au 💾.
+        st.session_state[nonce_key] = st.session_state.get(nonce_key, 0) + 1
+        st.rerun()
 
-    if monte and sel > 0:
-        items[sel - 1], items[sel] = items[sel], items[sel - 1]
-        _appliquer(sel - 1)
-    if descend and sel < n - 1:
-        items[sel + 1], items[sel] = items[sel], items[sel + 1]
-        _appliquer(sel + 1)
+    st.caption("Ordre des lignes — ▲ / ▼ pour déplacer "
+               "(pris en compte à l'enregistrement 💾).")
+    for i in range(n):
+        c_txt, c_up, c_down = st.columns([8, 1, 1])
+        c_txt.markdown(
+            "<div style=\"font-family:'JetBrains Mono',monospace;font-size:.8rem;"
+            "color:#9aa8cf;padding-top:.5rem;white-space:nowrap;overflow:hidden;"
+            f"text-overflow:ellipsis;\">{i + 1}. {html_escape(labels[i])}</div>",
+            unsafe_allow_html=True)
+        if c_up.button("▲", key=f"ord_up_{champ}_{k}_{i}", disabled=(i == 0),
+                       use_container_width=True, help="Monter cette ligne"):
+            _echanger(i, i - 1)
+        if c_down.button("▼", key=f"ord_down_{champ}_{k}_{i}", disabled=(i == n - 1),
+                         use_container_width=True, help="Descendre cette ligne"):
+            _echanger(i, i + 1)
+
+
+def _grille_aggrid(df_init, ss_key, configurer):
+    """PROTOTYPE — Option B : une seule grille AgGrid qui édite les cellules ET
+    réordonne les lignes par glisser (poignée ⠿ sur la 1ʳᵉ colonne).
+
+    L'état de travail (éditions + ordre) vit en session sous `ss_key`, appliqué
+    en mémoire jusqu'au bouton « 💾 Enregistrer ». `configurer(gb)` applique les
+    réglages de colonnes propres à chaque tableau. Retourne l'objet AgGrid (dont
+    `["data"]` = DataFrame courant, `["selected_rows"]` = lignes cochées)."""
+    if ss_key not in st.session_state:
+        st.session_state[ss_key] = df_init.reset_index(drop=True)
+    travail = st.session_state[ss_key]
+    # _rowid toujours en dernier : la 1re colonne (visible) garde la case à cocher.
+    if "_rowid" in travail.columns:
+        travail = travail[[c for c in travail.columns if c != "_rowid"] + ["_rowid"]]
+
+    gb = GridOptionsBuilder.from_dataframe(travail)
+    gb.configure_default_column(editable=True, resizable=True, sortable=False,
+                                filter=False)
+    gb.configure_selection("multiple", use_checkbox=True,
+                           header_checkbox=False)
+    configurer(gb)
+    options = gb.build()
+    options["rowDragManaged"] = True      # AgGrid réordonne rowData au glisser
+    options["animateRows"] = True
+    options["suppressMoveWhenRowDragging"] = False
+    options["domLayout"] = "autoHeight"   # la grille s'adapte au nombre de lignes
+
+    # Le nonce force un remontage propre après ajout/suppression (AgGrid recharge
+    # alors les données serveur, sans conserver un état client périmé).
+    nonce = st.session_state.get(f"{ss_key}_nonce", 0)
+    grille = AgGrid(
+        travail,
+        gridOptions=options,
+        key=f"aggrid_{ss_key}_{nonce}",
+        update_on=["cellValueChanged", "rowDragEnd", "selectionChanged"],
+        data_return_mode=DataReturnMode.AS_INPUT,
+        allow_unsafe_jscode=True,
+        fit_columns_on_grid_load=True,
+        theme="streamlit",
+    )
+    # Persiste l'état courant (ordre glissé + éditions) pour les reruns suivants.
+    st.session_state[ss_key] = pd.DataFrame(grille["data"])
+    return grille
+
+
+def _lignes_selectionnees_ids(grille, colonne_id):
+    """Renvoie l'ensemble des identifiants de lignes cochées dans une grille
+    AgGrid, en tolérant les deux formats de retour (DataFrame ou liste)."""
+    sel = grille["selected_rows"]
+    if sel is None:
+        return set()
+    if isinstance(sel, pd.DataFrame):
+        return set(sel.get(colonne_id, [])) if not sel.empty else set()
+    return {ligne.get(colonne_id) for ligne in sel}
 
 
 def couleur_de(nom):
@@ -1728,10 +1775,12 @@ with onglet_edition:
 
     with st.expander(f"🧺  Ingrédients ({len(recette['ingredients'])})",
                      expanded=True):
-        st.caption("Modifie les cellules · la ligne vide du bas ajoute un "
-                   "ingrédient · coche une ligne puis 🗑 pour la retirer · "
-                   "quantité vide = « au goût »")
+        st.caption("PROTOTYPE AgGrid — double-clique une cellule pour l'éditer · "
+                   "glisse la poignée ⠿ (à gauche du nom) pour changer l'ordre · "
+                   "coche des lignes puis 🗑 pour les retirer · quantité vide = "
+                   "« au goût ». Pris en compte à l'enregistrement 💾.")
 
+        ss_ing = f"agg_ing_{k}"
         df_ing = pd.DataFrame(
             [
                 {
@@ -1739,66 +1788,101 @@ with onglet_edition:
                     "Quantité": ing.get("qte"),
                     "Unité": ing.get("unite", ""),
                     "Palier": ing.get("palier"),
+                    "_rowid": str(i),
                 }
-                for ing in recette["ingredients"]
+                for i, ing in enumerate(recette["ingredients"])
             ],
-            columns=["Ingrédient", "Quantité", "Unité", "Palier"],
+            # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
+            columns=["Ingrédient", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
-        ing_nonce = st.session_state.get(f"ord_nonce_ingredients_{k}", 0)
-        edite = st.data_editor(
-            df_ing,
-            num_rows="dynamic",
-            use_container_width=True,
-            hide_index=True,
-            key=f"editeur_{k}_{ing_nonce}",
-            column_config={
-                "Ingrédient": st.column_config.TextColumn("Ingrédient", required=True,
-                                                          width="large"),
-                "Quantité": st.column_config.NumberColumn(
-                    "Quantité", min_value=0.0, step=0.25,
-                    help="Laisser vide pour « au goût »"),
-                "Unité": st.column_config.TextColumn("Unité", width="medium"),
-                "Palier": st.column_config.SelectboxColumn(
-                    "Palier", options=[0.25, 0.5, 1.0],
-                    help="Arrondi lors de la mise à l'échelle"),
-            },
-        )
+        def _cfg_ing(gb):
+            gb.configure_column("_rowid", hide=True, editable=False)
+            gb.configure_column("Ingrédient", rowDrag=True, editable=True, flex=3)
+            gb.configure_column("Quantité", editable=True, flex=1,
+                                type=["numericColumn"])
+            gb.configure_column("Unité", editable=True, flex=1)
+            gb.configure_column("Palier", editable=True, flex=1,
+                                cellEditor="agSelectCellEditor",
+                                cellEditorParams={"values": ["", "0.25", "0.5", "1.0"]})
 
-        # Réordonnancement des ingrédients (capture les éditions en cours).
-        items_ing = _ingredients_depuis_editeur(edite)
-        labels_ing = [f"{i + 1}. {it['nom']}" for i, it in enumerate(items_ing)]
-        _bloc_reordonner(recette, "ingredients", items_ing, labels_ing, k)
+        grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)
+        edite = pd.DataFrame(grille_ing["data"])
+
+        ca, cb = st.columns(2)
+        if ca.button("＋ Ajouter un ingrédient", key=f"add_ing_{k}",
+                     use_container_width=True):
+            seq = st.session_state.get(f"{ss_ing}_seq", 0) + 1
+            st.session_state[f"{ss_ing}_seq"] = seq
+            st.session_state[ss_ing] = pd.concat(
+                [edite, pd.DataFrame([{"Ingrédient": "", "Quantité": None,
+                                       "Unité": "", "Palier": None,
+                                       "_rowid": f"n{seq}"}])],
+                ignore_index=True)
+            st.session_state[f"{ss_ing}_nonce"] = \
+                st.session_state.get(f"{ss_ing}_nonce", 0) + 1
+            st.rerun()
+        if cb.button("🗑 Retirer les lignes cochées", key=f"del_ing_{k}",
+                     use_container_width=True):
+            ids = _lignes_selectionnees_ids(grille_ing, "_rowid")
+            if ids:
+                st.session_state[ss_ing] = edite[~edite["_rowid"].isin(ids)] \
+                    .reset_index(drop=True)
+                st.session_state[f"{ss_ing}_nonce"] = \
+                    st.session_state.get(f"{ss_ing}_nonce", 0) + 1
+                st.rerun()
+            else:
+                st.info("Coche d'abord au moins une ligne (case à gauche), "
+                        "puis clique 🗑.")
 
     with st.expander(f"🍳  Préparation ({len(recette.get('preparation', []))} étape"
                      f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
                      expanded=True):
-        st.caption("Une étape par ligne (dans l'ordre) · clique la ligne vide du bas "
-                   "pour ajouter une étape · écris [nom d'ingrédient] entre crochets "
-                   "pour insérer sa quantité, qui s'ajustera automatiquement en cuisine.")
+        st.caption("PROTOTYPE AgGrid — double-clique pour éditer l'étape · glisse "
+                   "la poignée ⠿ pour réordonner · coche + 🗑 pour retirer · écris "
+                   "[nom d'ingrédient] entre crochets pour insérer sa quantité.")
 
+        ss_prep = f"agg_prep_{k}"
         df_prep = pd.DataFrame(
-            {"Étape": list(recette.get("preparation", []))},
-            columns=["Étape"],
-        ).astype({"Étape": "string"})
-        prep_nonce = st.session_state.get(f"ord_nonce_preparation_{k}", 0)
-        edite_prep = st.data_editor(
-            df_prep,
-            num_rows="dynamic",
-            use_container_width=True,
-            hide_index=True,
-            key=f"prep_editeur_{k}_{prep_nonce}",
-            column_config={
-                "Étape": st.column_config.TextColumn(
-                    "Étape", required=True, width="large",
-                    help="Ex. : Fouetter [Huile d'olive] avec [Miel]."),
-            },
+            [{"Étape": e, "_rowid": str(i)}
+             for i, e in enumerate(recette.get("preparation", []))],
+            # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
+            columns=["Étape", "_rowid"],
         )
 
-        # Réordonnancement des étapes (capture les éditions en cours).
-        items_prep = _etapes_depuis_editeur(edite_prep)
-        labels_prep = [f"{i + 1}. {t[:45]}" for i, t in enumerate(items_prep)]
-        _bloc_reordonner(recette, "preparation", items_prep, labels_prep, k)
+        def _cfg_prep(gb):
+            gb.configure_column("_rowid", hide=True, editable=False)
+            gb.configure_column("Étape", rowDrag=True, editable=True, flex=1,
+                                wrapText=True, autoHeight=True,
+                                cellEditor="agLargeTextCellEditor",
+                                cellEditorPopup=True)
+
+        grille_prep = _grille_aggrid(df_prep, ss_prep, _cfg_prep)
+        edite_prep = pd.DataFrame(grille_prep["data"])
+
+        cc, cd = st.columns(2)
+        if cc.button("＋ Ajouter une étape", key=f"add_prep_{k}",
+                     use_container_width=True):
+            seq = st.session_state.get(f"{ss_prep}_seq", 0) + 1
+            st.session_state[f"{ss_prep}_seq"] = seq
+            st.session_state[ss_prep] = pd.concat(
+                [edite_prep, pd.DataFrame([{"Étape": "", "_rowid": f"n{seq}"}])],
+                ignore_index=True)
+            st.session_state[f"{ss_prep}_nonce"] = \
+                st.session_state.get(f"{ss_prep}_nonce", 0) + 1
+            st.rerun()
+        if cd.button("🗑 Retirer les étapes cochées", key=f"del_prep_{k}",
+                     use_container_width=True):
+            ids = _lignes_selectionnees_ids(grille_prep, "_rowid")
+            if ids:
+                st.session_state[ss_prep] = edite_prep[~edite_prep["_rowid"].isin(ids)] \
+                    .reset_index(drop=True)
+                st.session_state[f"{ss_prep}_nonce"] = \
+                    st.session_state.get(f"{ss_prep}_nonce", 0) + 1
+                st.rerun()
+            else:
+                st.info("Coche d'abord au moins une étape (case à gauche), "
+                        "puis clique 🗑.")
 
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
@@ -1839,6 +1923,11 @@ with onglet_edition:
             # noms canoniques à la recette.
             recette["tags"] = enregistrer_tags(tags_appliques)
             if persister(RECETTES):
+                # Repart des données sauvées : on vide les tables de travail
+                # (et leurs nonces/compteurs de remontage).
+                for base in (f"agg_ing_{k}", f"agg_prep_{k}"):
+                    for cle in (base, f"{base}_nonce", f"{base}_seq"):
+                        st.session_state.pop(cle, None)
                 st.success("Recette enregistrée ✓")
                 st.rerun()
 
