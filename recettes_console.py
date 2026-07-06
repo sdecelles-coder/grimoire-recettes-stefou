@@ -445,6 +445,86 @@ def persister(recettes, tags=None):
     return ok
 
 
+def _ingredients_depuis_editeur(df):
+    """Convertit le tableau édité (data_editor) en liste d'ingrédients propre,
+    en ignorant les lignes sans nom. Sert à l'enregistrement ET au
+    réordonnancement, pour ne pas perdre les éditions en cours."""
+    nouveaux = []
+    for ligne in df.to_dict("records"):
+        nom = str(ligne.get("Ingrédient") or "").strip()
+        if not nom or nom.lower() == "nan":
+            continue
+        qte = ligne.get("Quantité")
+        au_gout = qte is None or qte == "" or pd.isna(qte)
+        palier = ligne.get("Palier")
+        unite_raw = ligne.get("Unité")
+        unite = "" if (unite_raw is None or pd.isna(unite_raw)) else str(unite_raw).strip()
+        nouveaux.append({
+            "nom": nom,
+            "qte": None if au_gout else float(qte),
+            "unite": unite or ("au goût" if au_gout else ""),
+            "palier": None if (palier is None or pd.isna(palier)) else float(palier),
+        })
+    return nouveaux
+
+
+def _etapes_depuis_editeur(df):
+    """Convertit le tableau des étapes édité en liste de chaînes propre."""
+    return [str(v).strip() for v in df["Étape"].tolist()
+            if pd.notna(v) and str(v).strip()]
+
+
+def _bloc_reordonner(recette, champ, items, labels, k):
+    """Contrôles « sélection de ligne + ▲/▼ » pour réordonner `recette[champ]`.
+
+    `items` est la liste déjà reconstruite depuis l'éditeur (elle contient donc
+    les éditions non encore enregistrées) et `labels` les libellés parallèles
+    pour la sélection. Un déplacement enregistre immédiatement puis réinitialise
+    l'éditeur concerné (via un « nonce » dans sa clé) afin d'éviter que les
+    modifications internes du data_editor ne s'appliquent au mauvais rang."""
+    n = len(items)
+    if n < 2:
+        return
+    sel_key = f"ord_sel_{champ}_{k}"
+    pend_key = f"ord_pend_{champ}_{k}"
+    nonce_key = f"ord_nonce_{champ}_{k}"
+    # Une sélection « en attente » (posée après un déplacement) doit être
+    # appliquée AVANT de créer le selectbox — seul moment où l'on peut fixer sa
+    # valeur sans erreur Streamlit.
+    if pend_key in st.session_state:
+        st.session_state[sel_key] = st.session_state.pop(pend_key)
+    options = list(range(n))
+    if st.session_state.get(sel_key) not in options:
+        st.session_state[sel_key] = 0
+
+    st.caption("Réordonner : choisis une ligne puis déplace-la avec ▲ / ▼ "
+               "(le déplacement est enregistré aussitôt).")
+    c_sel, c_up, c_down = st.columns([6, 1, 1])
+    sel = c_sel.selectbox(
+        "Ligne à déplacer", options,
+        format_func=lambda i: labels[i] if i < len(labels) else str(i + 1),
+        key=sel_key, label_visibility="collapsed")
+    monte = c_up.button("▲", key=f"ord_up_{champ}_{k}", disabled=(sel == 0),
+                        use_container_width=True, help="Monter la ligne")
+    descend = c_down.button("▼", key=f"ord_down_{champ}_{k}",
+                            disabled=(sel >= n - 1), use_container_width=True,
+                            help="Descendre la ligne")
+
+    def _appliquer(nouvelle_sel):
+        recette[champ] = items
+        if persister(RECETTES):
+            st.session_state[pend_key] = nouvelle_sel
+            st.session_state[nonce_key] = st.session_state.get(nonce_key, 0) + 1
+            st.rerun()
+
+    if monte and sel > 0:
+        items[sel - 1], items[sel] = items[sel], items[sel - 1]
+        _appliquer(sel - 1)
+    if descend and sel < n - 1:
+        items[sel + 1], items[sel] = items[sel], items[sel + 1]
+        _appliquer(sel + 1)
+
+
 def couleur_de(nom):
     """Couleur associée à un nom de tag (gris par défaut si inconnu)."""
     return index_couleurs(st.session_state.tags).get(_norm_tag(nom),
@@ -620,8 +700,8 @@ st.markdown("""
 /* ── En-tête ─────────────────────────────────────────── */
 .hero{margin-bottom:1.3rem; position:relative;}
 .hero .eyebrow{
-  font-family:'JetBrains Mono',monospace; font-size:.7rem; letter-spacing:.46em;
-  color:var(--cyan); text-transform:uppercase; margin-bottom:.45rem;
+  font-family:'JetBrains Mono',monospace; font-size:.8rem; letter-spacing:.46em;
+  color:#7af6e9; text-transform:uppercase; margin-bottom:.45rem;
 }
 .hero .eyebrow::before{content:"▮ "; animation:blink 1.4s steps(1) infinite;}
 @keyframes blink{50%{opacity:0}}
@@ -791,8 +871,8 @@ div[data-baseweb="popover"]:has([role="listbox"]) div{
   letter-spacing:.18em!important; text-transform:uppercase!important; color:var(--muted)!important;
 }
 [data-testid="stCaptionContainer"] p{
-  font-family:'JetBrains Mono',monospace!important; font-size:.7rem!important;
-  color:var(--muted)!important; letter-spacing:.06em;
+  font-family:'JetBrains Mono',monospace!important; font-size:.8rem!important;
+  color:#9aa8cf!important; letter-spacing:.06em;
 }
 div[data-testid="stAlert"]{
   background:var(--panel)!important; border:1px solid var(--line)!important;
@@ -1094,7 +1174,7 @@ with onglet_cuisine:
             # On garantit un multiple exact même si une valeur est saisie à la main.
             cible_pers = int(round(cible_pers / personnes_ref)) * personnes_ref
             cible_pers = max(personnes_ref, min(cible_pers, max_mult_pers))
-            # Note plus grande (.8rem = .7rem globale + .1rem) et bien claire.
+            # Note à .8rem, bien claire (couleur --text plutôt que muted).
             st.markdown(
                 f"<div style=\"font-family:'JetBrains Mono',monospace;"
                 f"font-size:.8rem;font-weight:600;color:var(--text);"
@@ -1254,7 +1334,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .prog{height:4px;background:#141d34;border-radius:999px;margin-top:15px;overflow:hidden}
 .progfill{height:100%;width:0;background:linear-gradient(90deg,#4df3e3,#ffb454);
   box-shadow:0 0 14px rgba(77,243,227,.6);transition:width .35s ease}
-.count{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#7d8cb5;margin-top:7px;letter-spacing:.12em}
+.count{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#9aa8cf;margin-top:7px;letter-spacing:.12em}
 
 .list{padding:8px 10px 4px}
 .ing{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:11px;
@@ -1665,12 +1745,13 @@ with onglet_edition:
             columns=["Ingrédient", "Quantité", "Unité", "Palier"],
         )
 
+        ing_nonce = st.session_state.get(f"ord_nonce_ingredients_{k}", 0)
         edite = st.data_editor(
             df_ing,
             num_rows="dynamic",
             use_container_width=True,
             hide_index=True,
-            key=f"editeur_{k}",
+            key=f"editeur_{k}_{ing_nonce}",
             column_config={
                 "Ingrédient": st.column_config.TextColumn("Ingrédient", required=True,
                                                           width="large"),
@@ -1684,6 +1765,11 @@ with onglet_edition:
             },
         )
 
+        # Réordonnancement des ingrédients (capture les éditions en cours).
+        items_ing = _ingredients_depuis_editeur(edite)
+        labels_ing = [f"{i + 1}. {it['nom']}" for i, it in enumerate(items_ing)]
+        _bloc_reordonner(recette, "ingredients", items_ing, labels_ing, k)
+
     with st.expander(f"🍳  Préparation ({len(recette.get('preparation', []))} étape"
                      f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
                      expanded=True):
@@ -1695,12 +1781,13 @@ with onglet_edition:
             {"Étape": list(recette.get("preparation", []))},
             columns=["Étape"],
         ).astype({"Étape": "string"})
+        prep_nonce = st.session_state.get(f"ord_nonce_preparation_{k}", 0)
         edite_prep = st.data_editor(
             df_prep,
             num_rows="dynamic",
             use_container_width=True,
             hide_index=True,
-            key=f"prep_editeur_{k}",
+            key=f"prep_editeur_{k}_{prep_nonce}",
             column_config={
                 "Étape": st.column_config.TextColumn(
                     "Étape", required=True, width="large",
@@ -1708,26 +1795,15 @@ with onglet_edition:
             },
         )
 
+        # Réordonnancement des étapes (capture les éditions en cours).
+        items_prep = _etapes_depuis_editeur(edite_prep)
+        labels_prep = [f"{i + 1}. {t[:45]}" for i, t in enumerate(items_prep)]
+        _bloc_reordonner(recette, "preparation", items_prep, labels_prep, k)
+
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
-        nouveaux = []
-        for ligne in edite.to_dict("records"):
-            nom = str(ligne.get("Ingrédient") or "").strip()
-            if not nom or nom.lower() == "nan":
-                continue
-            qte = ligne.get("Quantité")
-            au_gout = qte is None or qte == "" or pd.isna(qte)
-            palier = ligne.get("Palier")
-            unite_raw = ligne.get("Unité")
-            unite = "" if (unite_raw is None or pd.isna(unite_raw)) else str(unite_raw).strip()
-            nouveaux.append({
-                "nom": nom,
-                "qte": None if au_gout else float(qte),
-                "unite": unite or ("au goût" if au_gout else ""),
-                "palier": None if (palier is None or pd.isna(palier)) else float(palier),
-            })
-        etapes = [str(v).strip() for v in edite_prep["Étape"].tolist()
-                  if pd.notna(v) and str(v).strip()]
+        nouveaux = _ingredients_depuis_editeur(edite)
+        etapes = _etapes_depuis_editeur(edite_prep)
 
         # L'élément de base (étiquette + valeur de référence + unité) est
         # obligatoire pour chaque recette : c'est ce qui s'ajuste avec le nombre
