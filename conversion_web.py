@@ -135,6 +135,44 @@ def extraire_recette_jsonld(html_text: str):
     return None
 
 
+# Le JSON-LD aplatit les sections d'ingrédients ; on les récupère dans le HTML
+# (WP Recipe Maker et thèmes similaires exposent des groupes nommés).
+_RE_GROUPE_NOM = re.compile(
+    r'wprm-recipe-ingredient-group-name[^>]*>(.*?)</', re.I | re.S)
+_RE_INGREDIENT_LI = re.compile(
+    r'<li[^>]*wprm-recipe-ingredient[^>]*>(.*?)</li>', re.I | re.S)
+
+
+def extraire_groupes_ingredients(html_text: str):
+    """Renvoie [(nom_section, [textes_ingredients])] à partir des groupes du HTML,
+    ou [] si la page n'expose pas de groupes reconnus. Chaque ingrédient est
+    rattaché au dernier nom de groupe qui le précède dans la page."""
+    noms = [(m.start(), _clean(m.group(1)).rstrip(" :·-"))
+            for m in _RE_GROUPE_NOM.finditer(html_text)]
+    ingredients = [(m.start(), _clean(m.group(1)))
+                   for m in _RE_INGREDIENT_LI.finditer(html_text)]
+    if not ingredients:
+        return []
+    groupes: list[tuple[str, list[str]]] = []
+    for pos, texte in ingredients:
+        if not texte:
+            continue
+        nom = ""
+        for npos, nnom in noms:
+            if npos < pos:
+                nom = nnom
+            else:
+                break
+        if groupes and groupes[-1][0] == nom:
+            groupes[-1][1].append(texte)
+        else:
+            groupes.append((nom, [texte]))
+    # Sans aucun nom de section (groupe unique anonyme), inutile de sectionner.
+    if len(groupes) == 1 and not groupes[0][0]:
+        return []
+    return groupes
+
+
 # ── Helpers de nettoyage / mise en forme du texte source ─────────────────────
 def _clean(txt) -> str:
     """Déséchappe les entités HTML, retire les balises et compresse les espaces."""
@@ -177,8 +215,12 @@ def _yield_str(y) -> str:
     return _clean(y)
 
 
-def texte_depuis_jsonld(recipe: dict) -> str:
-    """Assemble un texte lisible à partir du nœud Recipe schema.org."""
+def texte_depuis_jsonld(recipe: dict, groupes=None) -> str:
+    """Assemble un texte lisible à partir du nœud Recipe schema.org.
+
+    Si `groupes` (issu de extraire_groupes_ingredients) est fourni, la liste des
+    ingrédients est structurée par section ; sinon on utilise la liste plate du
+    JSON-LD."""
     lignes = []
     nom = _clean(recipe.get("name"))
     if nom:
@@ -199,13 +241,20 @@ def texte_depuis_jsonld(recipe: dict) -> str:
     if recipe.get("totalTime"):
         lignes.append(f"TEMPS TOTAL (ISO 8601) : {recipe['totalTime']}")
 
-    ings = recipe.get("recipeIngredient") or recipe.get("ingredients") or []
-    if isinstance(ings, str):
-        ings = [ings]
-    ings = [_clean(i) for i in ings if _clean(i)]
-    if ings:
+    if groupes:
         lignes.append("INGRÉDIENTS :")
-        lignes += [f"- {i}" for i in ings]
+        for nom, items in groupes:
+            if nom:
+                lignes.append(f"[Section : {nom}]")
+            lignes += [f"- {it}" for it in items if it]
+    else:
+        ings = recipe.get("recipeIngredient") or recipe.get("ingredients") or []
+        if isinstance(ings, str):
+            ings = [ings]
+        ings = [_clean(i) for i in ings if _clean(i)]
+        if ings:
+            lignes.append("INGRÉDIENTS :")
+            lignes += [f"- {i}" for i in ings]
 
     etapes = _flatten_instructions(recipe.get("recipeInstructions"))
     if etapes:
@@ -255,11 +304,19 @@ FORMAT EXACT de l'objet :
     "multiples": false
   },
   "ingredients": [
-    {"nom": "string", "qte": nombre|null, "unite": "string", "palier": nombre|null}
+    {"nom": "string", "qte": nombre|null, "unite": "string",
+     "palier": nombre|null, "section": "string"}
   ],
   "preparation": ["étape 1", "étape 2", ...],
   "tags": ["Mot1", "Mot2"]
 }
+
+SECTIONS D'INGRÉDIENTS : si la recette regroupe ses ingrédients sous des \
+sous-titres (« Pour la garniture », « Pour le bouillon », « Glaçage », \
+marqueurs [Section : …], etc.), mets le nom du groupe dans "section" pour chaque \
+ingrédient concerné — sous une forme COURTE et cohérente (« Garniture », \
+« Bouillon », « Pâte », « Glaçage »). Garde l'ordre des ingrédients par section. \
+Si la recette n'a AUCUN regroupement, mets "section": "" partout.
 
 UNITÉS (privilégie ces formes québécoises) :
 - cuillère à soupe / tablespoon / tbsp  -> "c. à table"   (palier 0.5)
@@ -348,8 +405,9 @@ def convertir_url(url: str, api_key: str,
     """Convertit l'URL en recette. Renvoie (recette, source ∈ {"jsonld","html"})."""
     html_text = fetch_html(url)
     recipe = extraire_recette_jsonld(html_text)
+    groupes = extraire_groupes_ingredients(html_text)   # sections si le HTML les expose
     if recipe:
-        source_texte = texte_depuis_jsonld(recipe)
+        source_texte = texte_depuis_jsonld(recipe, groupes)
         origine = "jsonld"
     else:
         source_texte = texte_visible(html_text)

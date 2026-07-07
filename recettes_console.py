@@ -403,6 +403,9 @@ def normaliser_recette(r):
             vus.add(_norm_tag(nom))
             propres.append(nom)
     r["tags"] = propres
+    for _ing in r.get("ingredients", []):         # section : groupe d'ingrédients
+        if isinstance(_ing, dict):                # (« Garniture », « Bouillon »…)
+            _ing.setdefault("section", "")
     r.setdefault("base", {})
     b = r["base"]
     b.setdefault("label", "Rendement")
@@ -733,11 +736,14 @@ def _ingredients_depuis_editeur(df):
         palier = ligne.get("Palier")
         unite_raw = ligne.get("Unité")
         unite = "" if (unite_raw is None or pd.isna(unite_raw)) else str(unite_raw).strip()
+        section_raw = ligne.get("Section")
+        section = "" if (section_raw is None or pd.isna(section_raw)) else str(section_raw).strip()
         nouveaux.append({
             "nom": nom,
             "qte": None if au_gout else float(qte),
             "unite": unite or ("au goût" if au_gout else ""),
             "palier": None if (palier is None or palier == "" or pd.isna(palier)) else float(palier),
+            "section": section,
         })
     return nouveaux
 
@@ -949,7 +955,7 @@ def recette_vierge(n_total):
         "base": {"label": "Portions", "unite": "portions", "valeur": 4,
                  "personnes": 4, "max_personnes": 20, "multiples": False},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
-                         "unite": "c. à table", "palier": 0.5}],
+                         "unite": "c. à table", "palier": 0.5, "section": ""}],
         "preparation": ["Première étape — cite un ingrédient et sa quantité "
                         "s'insérera toute seule à l'enregistrement."],
         "tags": [],
@@ -1652,7 +1658,14 @@ with onglet_cuisine:
           <span class="nom">{label}</span>
           <span class="qte"><b>{rendement:g}</b> {unite}</span>
         </div>"""
+    section_courante = None
     for ing in recette["ingredients"]:
+        sec = (ing.get("section") or "").strip()
+        if sec != section_courante:          # nouveau groupe : sous-titre
+            section_courante = sec
+            if sec:
+                lignes_ing += (f'<div class="ing-groupe">'
+                               f'{html_escape(sec)}</div>')
         q = jolie_qte(echelle(ing, facteur))
         au_gout = ing.get("qte") is None
         unite_ing = "" if au_gout else html_escape(ing.get("unite") or "")
@@ -1770,6 +1783,11 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .qte.gout{color:#7d8cb5;background:transparent;border-color:transparent}
 .qte.gout b{color:#7d8cb5;text-shadow:none;font-weight:500}
 .ing.done .qte{opacity:.35}
+/* Sous-titre de groupe d'ingrédients (« Garniture », « Bouillon »…). */
+.ing-groupe{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#4df3e3;
+  padding:14px 12px 4px;margin-top:4px;border-top:1px solid #1e2a45}
+.ing-groupe:first-child{border-top:none;margin-top:0;padding-top:4px}
 /* Ligne « aliment principal » (étiquette de base + valeur de référence mise à
    l'échelle, non cochable). Rendu à plat, exactement comme un ingrédient — pas
    d'encadré ni de fond — mais en doré. */
@@ -2142,7 +2160,13 @@ with onglet_conversion:
                 st.write(" · ".join(meta))
 
             st.markdown("**Ingrédients**")
+            section_apercu = None
             for ing in rec.get("ingredients", []):
+                sec = (ing.get("section") or "").strip()
+                if sec != section_apercu:
+                    section_apercu = sec
+                    if sec:
+                        st.markdown(f"*{sec}*")
                 q = ing.get("qte")
                 u = (ing.get("unite") or "").strip()
                 if q in (None, ""):
@@ -2336,6 +2360,7 @@ with onglet_edition:
             [
                 {
                     "Ingrédient": ing.get("nom", ""),
+                    "Section": ing.get("section", ""),
                     "Quantité": ing.get("qte"),
                     "Unité": ing.get("unite", ""),
                     "Palier": ing.get("palier"),
@@ -2344,12 +2369,15 @@ with onglet_edition:
                 for i, ing in enumerate(recette["ingredients"])
             ],
             # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
-            columns=["Ingrédient", "Quantité", "Unité", "Palier", "_rowid"],
+            columns=["Ingrédient", "Section", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
         def _cfg_ing(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
             gb.configure_column("Ingrédient", rowDrag=True, editable=True, flex=3)
+            gb.configure_column("Section", editable=True, flex=2,
+                                headerTooltip="Groupe d'ingrédients (ex. Garniture, "
+                                              "Bouillon). Laisser vide si aucun.")
             gb.configure_column("Quantité", editable=True, flex=1,
                                 type=["numericColumn"])
             gb.configure_column("Unité", editable=True, flex=1)
@@ -2366,9 +2394,9 @@ with onglet_edition:
             seq = st.session_state.get(f"{ss_ing}_seq", 0) + 1
             st.session_state[f"{ss_ing}_seq"] = seq
             st.session_state[ss_ing] = pd.concat(
-                [edite, pd.DataFrame([{"Ingrédient": "", "Quantité": None,
-                                       "Unité": "", "Palier": None,
-                                       "_rowid": f"n{seq}"}])],
+                [edite, pd.DataFrame([{"Ingrédient": "", "Section": "",
+                                       "Quantité": None, "Unité": "",
+                                       "Palier": None, "_rowid": f"n{seq}"}])],
                 ignore_index=True)
             st.session_state[f"{ss_ing}_nonce"] = \
                 st.session_state.get(f"{ss_ing}_nonce", 0) + 1
