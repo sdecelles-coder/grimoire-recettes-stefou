@@ -366,12 +366,186 @@
         "Amélie",
         "dessert"
       ]
+    },
+    {
+      "titre": "Pâté chinois traditionnel à l'agneau et au bœuf",
+      "sous_titre": "Garniture de viande riche surmontée d'une purée de pommes de terre au cheddar",
+      "temps_prep": 20,
+      "temps_cuisson": 60,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 8,
+        "personnes": 8,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "pommes de terre Yukon Gold",
+          "qte": 1.36,
+          "unite": "kg",
+          "palier": null
+        },
+        {
+          "nom": "sel casher",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5
+        },
+        {
+          "nom": "lait",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "beurre salé, divisé",
+          "qte": 3,
+          "unite": "c. à table",
+          "palier": 0.5
+        },
+        {
+          "nom": "cheddar blanc râpé",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "crème sure",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "jaune d'œuf",
+          "qte": 1,
+          "unite": "unité",
+          "palier": null
+        },
+        {
+          "nom": "sel casher (pour la garniture)",
+          "qte": 2,
+          "unite": "c. à thé",
+          "palier": 0.25
+        },
+        {
+          "nom": "poivre noir moulu (pour la garniture)",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5
+        },
+        {
+          "nom": "oignon, en dés",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "carotte, en dés",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "agneau haché",
+          "qte": 454,
+          "unite": "g",
+          "palier": null
+        },
+        {
+          "nom": "bœuf haché (surlonge)",
+          "qte": 454,
+          "unite": "g",
+          "palier": null
+        },
+        {
+          "nom": "farine tout usage",
+          "qte": 3,
+          "unite": "c. à table",
+          "palier": 0.5
+        },
+        {
+          "nom": "romarin frais, finement haché",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25
+        },
+        {
+          "nom": "thym frais, finement haché",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25
+        },
+        {
+          "nom": "bouillon de bœuf",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "pâte de tomate",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5
+        },
+        {
+          "nom": "sauce Worcestershire",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5
+        },
+        {
+          "nom": "petits pois surgelés",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25
+        },
+        {
+          "nom": "persil frais haché",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null
+        }
+      ],
+      "preparation": [
+        "Déposer les pommes de terre dans une grande casserole et couvrir d'eau froide de 5 cm. Ajouter 1 c. à table de sel et porter à ébullition à feu moyen-élevé. Cuire jusqu'à ce que les pommes de terre soient tendres à la fourchette, environ 10 minutes. Retirer du feu et égoutter.",
+        "Remettre les pommes de terre dans la casserole chaude. Ajouter le lait et 2 c. à table de beurre ; laisser fondre le beurre à la chaleur résiduelle. Écraser les pommes de terre jusqu'à consistance lisse. Incorporer le cheddar, la crème sure, le jaune d'œuf, 0,5 c. à thé de sel et 0,25 c. à thé de poivre. Réserver.",
+        "Préchauffer le four à 190 °C (375 °F). Graisser un plat de cuisson de 23 x 33 cm (9 x 13 po).",
+        "Dans une grande poêle, chauffer l'huile d'olive et le reste du beurre (1 c. à table) à feu moyen-élevé. Ajouter l'oignon et la carotte et cuire en remuant constamment jusqu'à ce que l'oignon commence à devenir translucide, environ 5 minutes.",
+        "Ajouter l'agneau et le bœuf hachés et cuire en émiettant la viande jusqu'à ce qu'elle soit bien dorée, environ 5 minutes. Saupoudrer du reste de sel, de poivre, de farine, de romarin et de thym. Cuire en remuant constamment pendant 2 minutes.",
+        "Ajouter le bouillon de bœuf, la pâte de tomate et la sauce Worcestershire en grattant les sucs de cuisson au fond de la poêle. Porter à frémissement et cuire jusqu'à épaississement et légumes tendres, environ 8 minutes. Incorporer les petits pois. Transférer la garniture dans le plat de cuisson préparé et couvrir uniformément de purée de pommes de terre.",
+        "Cuire au four préchauffé jusqu'à ce que le dessus soit doré et que les bords bouillonnent, 25 à 30 minutes. Parsemer de persil et servir."
+      ],
+      "tags": [
+        "Casserole",
+        "Agneau",
+        "Comfort food"
+      ]
     }
   ],
   "tags": [
     {
+      "nom": "Agneau",
+      "couleur": "#7d8cb5"
+    },
+    {
       "nom": "Amélie",
       "couleur": "#f7406d"
+    },
+    {
+      "nom": "Casserole",
+      "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Comfort food",
+      "couleur": "#7d8cb5"
     },
     {
       "nom": "dessert",
