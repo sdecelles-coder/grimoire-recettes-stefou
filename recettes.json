@@ -572,7 +572,7 @@
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 8,
+        "valeur": 8.0,
         "personnes": 8,
         "max_personnes": 20,
         "multiples": false
@@ -580,49 +580,49 @@
       "ingredients": [
         {
           "nom": "Viande hachée mélangée (porc, veau, bœuf)",
-          "qte": 1500,
+          "qte": 1500.0,
           "unite": "g",
           "palier": null,
           "section": "Garniture"
         },
         {
           "nom": "Pommes de terre, pelées, en cubes de 2 cm",
-          "qte": 1200,
+          "qte": 1200.0,
           "unite": "g",
           "palier": null,
           "section": "Garniture"
         },
         {
           "nom": "Gros oignons, finement ciselés",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "unité",
           "palier": null,
           "section": "Garniture"
         },
         {
           "nom": "Gousses d'ail, hachées",
-          "qte": 3,
+          "qte": 3.0,
           "unite": "unité",
           "palier": null,
           "section": "Garniture"
         },
         {
           "nom": "Sel fin",
-          "qte": 18,
+          "qte": 18.0,
           "unite": "g",
           "palier": null,
           "section": "Garniture"
         },
         {
           "nom": "Poivre noir moulu",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à thé",
           "palier": 0.25,
           "section": "Garniture"
         },
         {
           "nom": "Muscade moulue",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
           "section": "Garniture"
@@ -643,42 +643,42 @@
         },
         {
           "nom": "Sauge séchée",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
           "section": "Garniture"
         },
         {
           "nom": "Persil frais haché (optionnel)",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": "Garniture"
         },
         {
           "nom": "Bouillon de bœuf non salé",
-          "qte": 1200,
+          "qte": 1200.0,
           "unite": "ml",
           "palier": null,
           "section": "Bouillon"
         },
         {
           "nom": "Feuille de laurier",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "unité",
           "palier": null,
           "section": "Bouillon"
         },
         {
           "nom": "Brins de thym frais (ou ½ c. à thé thym séché)",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "unité",
           "palier": null,
           "section": "Bouillon"
         },
         {
           "nom": "Pâte brisée ou pâte à tourtière, divisée en 2 x 500 g",
-          "qte": 1000,
+          "qte": 1000.0,
           "unite": "g",
           "palier": null,
           "section": "Pâte et dorure"
@@ -692,26 +692,26 @@
         },
         {
           "nom": "Œuf",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "unité",
           "palier": null,
           "section": "Pâte et dorure"
         },
         {
           "nom": "Lait ou eau",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": "Pâte et dorure"
         }
       ],
       "preparation": [
-        "Dans un grand bol, mélangez la viande hachée, le sel, le poivre, la muscade, la cannelle, le clou de girofle, la sauge, l'ail, les oignons et le persil. Ajoutez les pommes de terre en cubes et mélangez délicatement.",
-        "Chauffez le bouillon avec le laurier et le thym, laissez frémir 5 minutes, puis retirez du feu. Ajustez légèrement le sel si nécessaire.",
+        "Dans un grand bol, mélangez la [viande hachée], le [sel], le [poivre], la [muscade], la [cannelle], le [clou de girofle], la [sauge], l'ail, les oignons et le [persil]. Ajoutez les [pommes de terre] en cubes et mélangez délicatement.",
+        "Chauffez le [bouillon] avec le laurier et le thym, laissez frémir 5 minutes, puis retirez du feu. Ajustez légèrement le [sel] si nécessaire.",
         "Préchauffez le four à 160 °C (325 °F). Abaissez 500 g de pâte et foncez un moule profond de 26 à 28 cm.",
-        "Versez la garniture crue dans le moule et tassez légèrement. Abaissez le deuxième disque de pâte, couvrez la tourte, scellez les bords, faites une cheminée au centre et quelques fentes.",
-        "Versez doucement le bouillon chaud par la cheminée jusqu'à ce qu'il approche du sommet de la garniture (environ 900 ml à 1,2 L).",
-        "Badigeonnez la croûte avec l'œuf battu et le lait. Couvrez d'aluminium sans serrer et enfournez 4 heures à 160 °C (325 °F). Retirez l'aluminium pour la dernière heure afin de bien dorer la croûte. Rajoutez un peu de bouillon chaud au besoin par la cheminée en cours de cuisson.",
+        "Versez la garniture crue dans le moule et tassez légèrement. Abaissez le deuxième disque de [pâte], couvrez la tourte, scellez les bords, faites une cheminée au centre et quelques fentes.",
+        "Versez doucement le [bouillon] chaud par la cheminée jusqu'à ce qu'il approche du sommet de la garniture (environ 900 ml à 1,2 L).",
+        "Badigeonnez la croûte avec l'œ[uf] battu et le [lait]. Couvrez d'aluminium sans serrer et enfournez 4 heures à 160 °C (325 °F). Retirez l'aluminium pour la dernière heure afin de bien dorer la croûte. Rajoutez un peu de [bouillon] chaud au besoin par la cheminée en cours de cuisson.",
         "Laissez reposer 20 à 30 minutes avant de couper. Servez avec une salade de chou, des légumes ou un dessert québécois comme le pouding chômeur ou la bûche de Noël."
       ],
       "tags": [
