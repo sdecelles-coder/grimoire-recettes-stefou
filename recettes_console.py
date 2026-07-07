@@ -11,8 +11,9 @@ Grimoire de recettes techno-futuriste
 • TAGS : catalogue global partagé par tous les utilisateurs (enregistré avec
   les recettes). Chaque tag a une couleur. Recherche par tags (ET), et affichage
   des tags dans les sommaires de cuisine et d'édition.
-• Dans une étape, écris [nom d'ingrédient] entre crochets pour insérer
-  sa quantité mise à l'échelle.
+• Dans une étape, les ingrédients cités sont marqués [ainsi] automatiquement
+  à l'enregistrement ; leur quantité mise à l'échelle s'affiche « nom (qté) ».
+  On peut aussi ajouter/retirer les crochets à la main.
 • Sauvegarde vers GitHub (si secrets configurés) ou en local.
 
 Lancer avec :  streamlit run recettes_console.py
@@ -544,6 +545,28 @@ def injecter_quantites(texte, idx, facteur):
     return re.sub(r"\[([^\[\]]+)\]", repl, texte)
 
 
+_MK_OK = ("background:rgba(74,222,128,.15);color:#7ee787;"
+          "border:1px solid rgba(74,222,128,.45);border-radius:4px;padding:0 4px")
+_MK_KO = ("background:rgba(248,81,73,.15);color:#ff7b72;"
+          "border:1px solid rgba(248,81,73,.45);border-radius:4px;padding:0 4px")
+
+
+def apercu_marqueurs(texte, idx):
+    """HTML d'une étape pour l'aperçu de l'éditeur : chaque [marqueur] est
+    surligné en vert s'il désigne un ingrédient connu, en rouge sinon. Styles
+    inline (la feuille de style .inq ne vit que dans l'iframe de cuisine). Le
+    reste du texte est échappé."""
+    morceaux, prev = [], 0
+    for m in re.finditer(r"\[([^\[\]]+)\]", texte):
+        morceaux.append(html_escape(texte[prev:m.start()]))
+        nom = m.group(1)
+        style = _MK_OK if resoudre_marqueur(nom, idx) else _MK_KO
+        morceaux.append(f'<span style="{style}">[{html_escape(nom)}]</span>')
+        prev = m.end()
+    morceaux.append(html_escape(texte[prev:]))
+    return "".join(morceaux)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  ÉTAT
 # ─────────────────────────────────────────────────────────────────────────────
@@ -809,7 +832,8 @@ def recette_vierge(n_total):
                  "personnes": 4, "max_personnes": 20, "multiples": False},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5}],
-        "preparation": ["Première étape — écris [Premier ingrédient] pour insérer sa quantité."],
+        "preparation": ["Première étape — cite un ingrédient et sa quantité "
+                        "s'insérera toute seule à l'enregistrement."],
         "tags": [],
     }
 
@@ -2122,6 +2146,30 @@ with onglet_edition:
             else:
                 st.info("Coche d'abord au moins une étape (case à gauche), "
                         "puis clique 🗑.")
+
+        # Aperçu live : montre les [marqueurs] surlignés (reconnu / introuvable),
+        # calculés sur les ingrédients ET les étapes en cours d'édition.
+        if "Étape" in edite_prep.columns:
+            idx_ape = index_marqueurs(_ingredients_depuis_editeur(edite))
+            lignes_ape = []
+            for i, e in enumerate(edite_prep["Étape"].tolist(), start=1):
+                if e is None or (isinstance(e, float) and pd.isna(e)):
+                    continue
+                txt = str(e).strip()
+                if not txt:
+                    continue
+                lignes_ape.append(
+                    f'<div style="margin:.3rem 0;line-height:1.55">'
+                    f'<b style="color:#ffb454">{i}.</b> '
+                    f'{apercu_marqueurs(txt, idx_ape)}</div>')
+            if lignes_ape:
+                st.caption("Aperçu — 🟩 ingrédient reconnu · 🟥 introuvable "
+                           "(corrige l'orthographe ou vérifie l'ingrédient)")
+                st.markdown(
+                    '<div style="padding:.6rem .8rem;border:1px solid #2a2d36;'
+                    'border-radius:8px;background:#12141a;font-size:.92rem">'
+                    + "".join(lignes_ape) + "</div>",
+                    unsafe_allow_html=True)
 
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
