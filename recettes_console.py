@@ -14,6 +14,9 @@ Grimoire de recettes techno-futuriste
 • Dans une étape, les ingrédients cités sont marqués [ainsi] automatiquement
   à l'enregistrement ; leur quantité mise à l'échelle s'affiche « nom (qté) ».
   On peut aussi ajouter/retirer les crochets à la main.
+• Pour un ingrédient fractionné, une PORTION explicite : [beurre: 15 ml]
+  (le 15 s'échelonne) ou [beurre: reste] (le solde). L'auto-marquage ne pose
+  jamais le total sur une portion (« 15 ml … du beurre », « le reste du beurre »).
 • Sauvegarde vers GitHub (si secrets configurés) ou en local.
 
 Lancer avec :  streamlit run recettes_console.py
@@ -459,6 +462,72 @@ def resoudre_marqueur(texte, idx):
     return None
 
 
+# ── Portions ────────────────────────────────────────────────────────────────
+#  Un marqueur peut préciser une SOUS-quantité au lieu du total :
+#    • [beurre: 15 ml]  → « beurre (15 ml) », le 15 s'échelonne avec le facteur.
+#    • [beurre: reste]  → « beurre (le reste) » (solde chiffré seulement si des
+#      portions de la MÊME unité ont été explicitées ailleurs — sinon texte).
+#  Le garde-fou empêche l'auto-marquage d'apposer le TOTAL sur une mention qui
+#  est manifestement une portion (quantité chiffrée ou mot de fractionnement
+#  juste avant l'ingrédient).
+_FRAC_UNI = {"½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": 0.125}
+_RESTE = {"reste", "le reste", "restant", "le restant", "restante"}
+_AVANT_FRACTION = re.compile(
+    r"(?:reste|restant\w*|moiti\w*|quart|une partie)\s+"
+    r"(?:du|des|de|d)\s+(?:la\s+|l\s+)?$")
+_AVANT_QTE = re.compile(r"\d.*\b(?:du|des|de|d)\s+(?:la\s+|l\s+)?$")
+
+
+def _lire_portion(spec):
+    """(nombre, unité) depuis « 15 ml », « 1/2 tasse », « ½ c. à thé »,
+    « 1 ½ tasse ». Renvoie None si aucun nombre n'ouvre la chaîne."""
+    s = spec.strip()
+    total, trouve = 0.0, False
+    m = re.match(r"(\d+)\s*/\s*(\d+)", s)                 # fraction « a/b »
+    if m:
+        total += int(m.group(1)) / int(m.group(2))
+        s, trouve = s[m.end():], True
+    else:
+        m = re.match(r"\d+(?:[.,]\d+)?", s)               # entier ou décimal
+        if m:
+            total += float(m.group(0).replace(",", "."))
+            s, trouve = s[m.end():], True
+        m = re.match(r"\s*([½¼¾⅓⅔⅛])", s)                 # fraction unicode
+        if m:
+            total += _FRAC_UNI.get(m.group(1), 0.0)
+            s, trouve = s[m.end():], True
+    return (total, s.strip()) if trouve else None
+
+
+def _echelle_portion(nombre, facteur):
+    """Met à l'échelle une portion (qui n'a pas de palier propre) en gardant des
+    fractions lisibles : arrondi au quart."""
+    return round(nombre * facteur / 0.25) * 0.25
+
+
+def calc_allocations(etapes, idx):
+    """Somme, par ingrédient (clé id()), des portions explicites [ing: N unité]
+    dont l'unité correspond à l'unité TOTALE de l'ingrédient — à l'échelle de
+    référence. Sert au calcul fiable du « reste »."""
+    sommes = {}
+    for etape in etapes:
+        for m in re.finditer(r"\[([^\[\]]+)\]", etape):
+            nom, sep, spec = m.group(1).partition(":")
+            if not sep:
+                continue
+            ing = resoudre_marqueur(nom.strip(), idx)
+            p = _lire_portion(spec.strip()) if ing else None
+            if p and _plier(p[1]) == _plier(ing.get("unite") or ""):
+                sommes[id(ing)] = sommes.get(id(ing), 0.0) + p[0]
+    return sommes
+
+
+def _mention_est_portion(prefix):
+    """Vrai si le texte qui précède immédiatement une mention en fait une portion
+    (quantité chiffrée « 15 ml … du » ou mot de fractionnement « le reste du »)."""
+    return bool(_AVANT_FRACTION.search(prefix) or _AVANT_QTE.search(prefix))
+
+
 def detecter_mentions(texte, ingredients, idx):
     """Repère dans `texte` les mentions d'ingrédients pas encore entre crochets.
     Renvoie une liste (start, end, ingrédient) non chevauchante : une seule
@@ -479,10 +548,18 @@ def detecter_mentions(texte, ingredients, idx):
             motif = (r"(?<![a-z0-9])"
                      + r"[^a-z0-9]+".join(map(re.escape, ph.split()))
                      + r"(?![a-z0-9])")
-            m = re.search(motif, folded)
-            if m and not chevauche(m.start(), m.end(), exclus):
+            # 1re occurrence « propre » : ni déjà marquée, ni une portion
+            # (« 15 ml … du beurre », « le reste du beurre » → laissées à l'auteur).
+            for m in re.finditer(motif, folded):
+                if chevauche(m.start(), m.end(), exclus):
+                    continue
+                if _mention_est_portion(folded[max(0, m.start() - 40):m.start()]):
+                    continue
                 trouves.append((m.start(), m.end(), ing))
-                break                             # 1re phrase (la + longue) suffit
+                break
+            else:
+                continue                          # aucune occurrence propre
+            break                                 # ingrédient traité
     # Chevauchements entre ingrédients : garder la plus longue puis la 1re.
     trouves.sort(key=lambda t: (t[0], -(t[1] - t[0])))
     retenus, occup = [], []
@@ -525,22 +602,47 @@ def auto_marquer(etapes, ingredients):
     return resultat, noms
 
 
-def injecter_quantites(texte, idx, facteur):
+def _valeur_reste(ing, facteur, allocations):
+    """« le reste » : chiffre exact uniquement si des portions de la MÊME unité
+    ont été explicitées ailleurs (sinon on ne peut pas soustraire fiablement,
+    ex. total en g et portion en ml)."""
+    total_ref, somme_ref = ing.get("qte"), allocations.get(id(ing))
+    if total_ref is not None and somme_ref:
+        diff = total_ref - somme_ref
+        if diff > 0:
+            reste = echelle({"qte": diff, "palier": ing.get("palier")}, facteur)
+            return f"{jolie_qte(reste)} {html_escape(ing.get('unite') or '')}".strip()
+    return "le reste"
+
+
+def injecter_quantites(texte, idx, facteur, allocations=None):
     """Remplace les [ingrédient] d'une étape par « nom (quantité) », la quantité
-    étant mise à l'échelle et surlignée. Le texte est déjà échappé HTML ; les
-    crochets survivent. `idx` provient de index_marqueurs()."""
+    étant mise à l'échelle et surlignée. Gère aussi les portions :
+    [ing: 15 ml] (nombre échelonné) et [ing: reste] (solde). Le texte est déjà
+    échappé HTML ; les crochets survivent. `idx` provient de index_marqueurs()."""
+    allocations = allocations or {}
+
     def repl(m):
-        brut = m.group(1)                          # nom tel qu'écrit (échappé)
-        ing = resoudre_marqueur(brut, idx)
+        nom, sep, spec = m.group(1).partition(":")
+        nom, spec = nom.strip(), spec.strip()
+        ing = resoudre_marqueur(nom, idx)
         if not ing:
-            return brut                            # nom seul si non résolu
-        q = echelle(ing, facteur)
-        if q is None:
-            val = "au goût"
-        else:
-            unite = html_escape(ing.get("unite") or "")
-            val = f"{jolie_qte(q)} {unite}".strip()
-        return (f'<span class="inqnom">{brut}</span>'
+            return m.group(1)                      # texte seul si non résolu
+        if sep and spec:                           # marqueur de portion
+            if _plier(spec) in _RESTE:
+                val = _valeur_reste(ing, facteur, allocations)
+            else:
+                p = _lire_portion(spec)
+                if p:
+                    val = (f"{jolie_qte(_echelle_portion(p[0], facteur))} "
+                           f"{html_escape(p[1])}").strip()
+                else:
+                    val = html_escape(spec)        # portion libre, non chiffrée
+        else:                                      # quantité totale
+            q = echelle(ing, facteur)
+            val = ("au goût" if q is None else
+                   f"{jolie_qte(q)} {html_escape(ing.get('unite') or '')}".strip())
+        return (f'<span class="inqnom">{nom}</span>'
                 f' <span class="inq">({val})</span>')
     return re.sub(r"\[([^\[\]]+)\]", repl, texte)
 
@@ -559,9 +661,10 @@ def apercu_marqueurs(texte, idx):
     morceaux, prev = [], 0
     for m in re.finditer(r"\[([^\[\]]+)\]", texte):
         morceaux.append(html_escape(texte[prev:m.start()]))
-        nom = m.group(1)
+        contenu = m.group(1)
+        nom = contenu.partition(":")[0].strip()    # ignore la portion éventuelle
         style = _MK_OK if resoudre_marqueur(nom, idx) else _MK_KO
-        morceaux.append(f'<span style="{style}">[{html_escape(nom)}]</span>')
+        morceaux.append(f'<span style="{style}">[{html_escape(contenu)}]</span>')
         prev = m.end()
     morceaux.append(html_escape(texte[prev:]))
     return "".join(morceaux)
@@ -1486,9 +1589,12 @@ with onglet_cuisine:
         </div>"""
 
     # Section PRÉPARATION (étapes numérotées, quantités auto-ajustées)
+    # Les portions explicites [ing: N unité] servent à calculer le « reste ».
+    allocations = calc_allocations(recette.get("preparation", []), index_ing)
     lignes_prep = ""
     for i, etape in enumerate(recette.get("preparation", []), start=1):
-        texte = injecter_quantites(html_escape(etape), index_ing, facteur)
+        texte = injecter_quantites(html_escape(etape), index_ing, facteur,
+                                   allocations)
         lignes_prep += f"""
         <div class="ing step" onclick="toggle(this)">
           <span class="box"></span>
@@ -2087,8 +2193,9 @@ with onglet_edition:
         st.caption("Double-clique pour éditer l'étape · glisse la poignée ⠿ pour "
                    "réordonner · coche + 🗑 pour retirer. À l'enregistrement, les "
                    "ingrédients cités sont marqués [ainsi] et leur quantité "
-                   "s'insère automatiquement (tu peux ajuster les crochets à la "
-                   "main).")
+                   "s'insère automatiquement. Pour une PORTION, écris "
+                   "[beurre: 15 ml] (s'échelonne) ou [beurre: reste] (le solde) ; "
+                   "l'auto-marquage laisse ces cas-là de côté.")
 
         ss_prep = f"agg_prep_{k}"
 
