@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pandas, streamlit; print\\('pandas', pandas.__version__, 'streamlit', streamlit.__version__\\)\")",
+      "Bash(python -m py_compile recettes_console.py)",
+      "Bash(grep -nE \"b_min|b_max|b_pas|\\\\\\\\bcible\\\\\\\\b|__META__|base\\\\[.min.\\\\]|base\\\\[.max.\\\\]|base\\\\[.pas.\\\\]\" recettes_console.py)",
+      "Bash(python -c ' *)",
+      "Bash(git checkout *)"
+    ]
+  }
+}

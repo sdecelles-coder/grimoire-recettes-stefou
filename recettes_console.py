@@ -11,8 +11,12 @@ Grimoire de recettes techno-futuriste
 • TAGS : catalogue global partagé par tous les utilisateurs (enregistré avec
   les recettes). Chaque tag a une couleur. Recherche par tags (ET), et affichage
   des tags dans les sommaires de cuisine et d'édition.
-• Dans une étape, écris [nom d'ingrédient] entre crochets pour insérer
-  sa quantité mise à l'échelle.
+• Dans une étape, les ingrédients cités sont marqués [ainsi] automatiquement
+  à l'enregistrement ; leur quantité mise à l'échelle s'affiche « nom (qté) ».
+  On peut aussi ajouter/retirer les crochets à la main.
+• Pour un ingrédient fractionné, une PORTION explicite : [beurre: 15 ml]
+  (le 15 s'échelonne) ou [beurre: reste] (le solde). L'auto-marquage ne pose
+  jamais le total sur une portion (« 15 ml … du beurre », « le reste du beurre »).
 • Sauvegarde vers GitHub (si secrets configurés) ou en local.
 
 Lancer avec :  streamlit run recettes_console.py
@@ -22,6 +26,7 @@ import base64
 import json
 import os
 import re
+import unicodedata
 
 import pandas as pd
 import requests
@@ -394,22 +399,275 @@ def normaliser_recette(r):
     return r
 
 
-def injecter_quantites(texte, index_ing, facteur):
-    """Remplace les [nom d'ingrédient] d'une étape par la quantité mise à
-    l'échelle. Le texte est déjà échappé HTML ; les crochets survivent."""
+# ─────────────────────────────────────────────────────────────────────────────
+#  MATCHING DES INGRÉDIENTS DANS LES ÉTAPES
+#
+#  Une « variable » d'étape est un ingrédient mentionné dans le texte, marqué
+#  par des crochets [ainsi]. Les fonctions ci-dessous servent à la fois à
+#  DÉTECTER ces mentions (auto-marquage à l'enregistrement) et à RÉSOUDRE un
+#  marqueur vers le bon ingrédient (au rendu). Elles partagent la même
+#  normalisation pour rester cohérentes.
+# ─────────────────────────────────────────────────────────────────────────────
+def _plier(s):
+    """Minuscule + sans accents, longueur préservée (é→e). Permet de repérer une
+    sous-chaîne dans un texte tout en gardant les positions d'origine."""
+    out = []
+    for ch in str(s or ""):
+        d = unicodedata.normalize("NFD", ch)
+        out.append((d[0] if d else ch).lower())
+    return "".join(out)
+
+
+def _mots_ing(nom):
+    """Mots significatifs d'un nom d'ingrédient : sans accents ni casse, les
+    qualificatifs entre parenthèses et la ponctuation retirés.
+    « Beurre non salé (fondu) » → ['beurre', 'non', 'sale']."""
+    s = re.sub(r"\([^)]*\)", " ", _plier(nom))     # retire « (fondu) » etc.
+    s = re.sub(r"[^a-z0-9]+", " ", s)
+    return s.split()
+
+
+def _phrases_ing(nom):
+    """Préfixes de mots d'un ingrédient, du plus long au plus court.
+    « Beurre non salé (fondu) » → ['beurre non sale', 'beurre non', 'beurre'].
+    Le préfixe court capte les mentions abrégées (« beurre ») dans les étapes."""
+    mots = _mots_ing(nom)
+    return [" ".join(mots[:n]) for n in range(len(mots), 0, -1)]
+
+
+def index_marqueurs(ingredients):
+    """Map « phrase-clé → ingrédient », en ne gardant que les clés NON ambiguës
+    (une phrase qui désignerait deux ingrédients est écartée). Sert à résoudre
+    un marqueur [texte] ou une mention détectée vers le bon ingrédient."""
+    par_phrase, ing_par_id = {}, {}
+    for ing in ingredients:
+        if not ing.get("nom"):
+            continue
+        ing_par_id[id(ing)] = ing
+        for ph in set(_phrases_ing(ing["nom"])):
+            par_phrase.setdefault(ph, set()).add(id(ing))
+    return {ph: ing_par_id[next(iter(ids))]
+            for ph, ids in par_phrase.items() if ph and len(ids) == 1}
+
+
+def resoudre_marqueur(texte, idx):
+    """Ingrédient désigné par le contenu d'un marqueur [texte] : on teste les
+    préfixes de mots décroissants (pluriel toléré)."""
+    mots = _mots_ing(texte)
+    for n in range(len(mots), 0, -1):
+        cle = " ".join(mots[:n])
+        ing = idx.get(cle) or (idx.get(cle[:-1]) if cle.endswith("s") else None)
+        if ing:
+            return ing
+    return None
+
+
+# ── Portions ────────────────────────────────────────────────────────────────
+#  Un marqueur peut préciser une SOUS-quantité au lieu du total :
+#    • [beurre: 15 ml]  → « beurre (15 ml) », le 15 s'échelonne avec le facteur.
+#    • [beurre: reste]  → « beurre (le reste) » (solde chiffré seulement si des
+#      portions de la MÊME unité ont été explicitées ailleurs — sinon texte).
+#  Le garde-fou empêche l'auto-marquage d'apposer le TOTAL sur une mention qui
+#  est manifestement une portion (quantité chiffrée ou mot de fractionnement
+#  juste avant l'ingrédient).
+_FRAC_UNI = {"½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": 0.125}
+_RESTE = {"reste", "le reste", "restant", "le restant", "restante"}
+_AVANT_FRACTION = re.compile(
+    r"(?:reste|restant\w*|moiti\w*|quart|une partie)\s+"
+    r"(?:du|des|de|d)\s+(?:la\s+|l\s+)?$")
+_AVANT_QTE = re.compile(r"\d.*\b(?:du|des|de|d)\s+(?:la\s+|l\s+)?$")
+
+
+def _lire_portion(spec):
+    """(nombre, unité) depuis « 15 ml », « 1/2 tasse », « ½ c. à thé »,
+    « 1 ½ tasse ». Renvoie None si aucun nombre n'ouvre la chaîne."""
+    s = spec.strip()
+    total, trouve = 0.0, False
+    m = re.match(r"(\d+)\s*/\s*(\d+)", s)                 # fraction « a/b »
+    if m:
+        total += int(m.group(1)) / int(m.group(2))
+        s, trouve = s[m.end():], True
+    else:
+        m = re.match(r"\d+(?:[.,]\d+)?", s)               # entier ou décimal
+        if m:
+            total += float(m.group(0).replace(",", "."))
+            s, trouve = s[m.end():], True
+        m = re.match(r"\s*([½¼¾⅓⅔⅛])", s)                 # fraction unicode
+        if m:
+            total += _FRAC_UNI.get(m.group(1), 0.0)
+            s, trouve = s[m.end():], True
+    return (total, s.strip()) if trouve else None
+
+
+def _echelle_portion(nombre, facteur):
+    """Met à l'échelle une portion (qui n'a pas de palier propre) en gardant des
+    fractions lisibles : arrondi au quart."""
+    return round(nombre * facteur / 0.25) * 0.25
+
+
+def calc_allocations(etapes, idx):
+    """Somme, par ingrédient (clé id()), des portions explicites [ing: N unité]
+    dont l'unité correspond à l'unité TOTALE de l'ingrédient — à l'échelle de
+    référence. Sert au calcul fiable du « reste »."""
+    sommes = {}
+    for etape in etapes:
+        for m in re.finditer(r"\[([^\[\]]+)\]", etape):
+            nom, sep, spec = m.group(1).partition(":")
+            if not sep:
+                continue
+            ing = resoudre_marqueur(nom.strip(), idx)
+            p = _lire_portion(spec.strip()) if ing else None
+            if p and _plier(p[1]) == _plier(ing.get("unite") or ""):
+                sommes[id(ing)] = sommes.get(id(ing), 0.0) + p[0]
+    return sommes
+
+
+def _mention_est_portion(prefix):
+    """Vrai si le texte qui précède immédiatement une mention en fait une portion
+    (quantité chiffrée « 15 ml … du » ou mot de fractionnement « le reste du »)."""
+    return bool(_AVANT_FRACTION.search(prefix) or _AVANT_QTE.search(prefix))
+
+
+def detecter_mentions(texte, ingredients, idx):
+    """Repère dans `texte` les mentions d'ingrédients pas encore entre crochets.
+    Renvoie une liste (start, end, ingrédient) non chevauchante : une seule
+    occurrence par ingrédient (la 1re), phrase la plus longue prioritaire."""
+    folded = _plier(texte)
+    exclus = [(m.start(), m.end()) for m in re.finditer(r"\[[^\[\]]*\]", texte)]
+
+    def chevauche(a, b, spans):
+        return any(a < j and i < b for i, j in spans)
+
+    trouves = []
+    for ing in ingredients:
+        if not ing.get("nom") or ing.get("qte") is None:   # ignore « au goût »
+            continue
+        for ph in _phrases_ing(ing["nom"]):
+            if idx.get(ph) is not ing:            # phrase ambiguë ou d'un autre
+                continue
+            motif = (r"(?<![a-z0-9])"
+                     + r"[^a-z0-9]+".join(map(re.escape, ph.split()))
+                     + r"(?![a-z0-9])")
+            # 1re occurrence « propre » : ni déjà marquée, ni une portion
+            # (« 15 ml … du beurre », « le reste du beurre » → laissées à l'auteur).
+            for m in re.finditer(motif, folded):
+                if chevauche(m.start(), m.end(), exclus):
+                    continue
+                if _mention_est_portion(folded[max(0, m.start() - 40):m.start()]):
+                    continue
+                trouves.append((m.start(), m.end(), ing))
+                break
+            else:
+                continue                          # aucune occurrence propre
+            break                                 # ingrédient traité
+    # Chevauchements entre ingrédients : garder la plus longue puis la 1re.
+    trouves.sort(key=lambda t: (t[0], -(t[1] - t[0])))
+    retenus, occup = [], []
+    for a, b, ing in trouves:
+        if not chevauche(a, b, occup):
+            occup.append((a, b))
+            retenus.append((a, b, ing))
+    retenus.sort()
+    return retenus
+
+
+def marquer_etape(texte, ingredients, idx):
+    """Enveloppe de crochets les mentions détectées dans une étape.
+    Renvoie (texte_marqué, [noms d'ingrédients nouvellement marqués])."""
+    retenus = detecter_mentions(texte, ingredients, idx)
+    if not retenus:
+        return texte, []
+    morceaux, prev, noms = [], 0, []
+    for a, b, ing in retenus:
+        morceaux.append(texte[prev:a])
+        morceaux.append("[" + texte[a:b] + "]")
+        noms.append(ing["nom"])
+        prev = b
+    morceaux.append(texte[prev:])
+    return "".join(morceaux), noms
+
+
+def auto_marquer(etapes, ingredients):
+    """Applique `marquer_etape` à chaque étape. Idempotent : n'ajoute des
+    crochets qu'aux mentions pas encore marquées.
+    Renvoie (étapes_marquées, [noms d'ingrédients marqués, sans doublon])."""
+    idx = index_marqueurs(ingredients)
+    resultat, noms = [], []
+    for e in etapes:
+        t, ns = marquer_etape(e, ingredients, idx)
+        resultat.append(t)
+        for n in ns:
+            if n not in noms:
+                noms.append(n)
+    return resultat, noms
+
+
+def _valeur_reste(ing, facteur, allocations):
+    """« le reste » : chiffre exact uniquement si des portions de la MÊME unité
+    ont été explicitées ailleurs (sinon on ne peut pas soustraire fiablement,
+    ex. total en g et portion en ml)."""
+    total_ref, somme_ref = ing.get("qte"), allocations.get(id(ing))
+    if total_ref is not None and somme_ref:
+        diff = total_ref - somme_ref
+        if diff > 0:
+            reste = echelle({"qte": diff, "palier": ing.get("palier")}, facteur)
+            return f"{jolie_qte(reste)} {html_escape(ing.get('unite') or '')}".strip()
+    return "le reste"
+
+
+def injecter_quantites(texte, idx, facteur, allocations=None):
+    """Remplace les [ingrédient] d'une étape par « nom (quantité) », la quantité
+    étant mise à l'échelle et surlignée. Gère aussi les portions :
+    [ing: 15 ml] (nombre échelonné) et [ing: reste] (solde). Le texte est déjà
+    échappé HTML ; les crochets survivent. `idx` provient de index_marqueurs()."""
+    allocations = allocations or {}
+
     def repl(m):
-        cle = m.group(1).strip().lower()
-        ing = index_ing.get(cle)
+        nom, sep, spec = m.group(1).partition(":")
+        nom, spec = nom.strip(), spec.strip()
+        ing = resoudre_marqueur(nom, idx)
         if not ing:
-            return m.group(1)                      # nom seul si non trouvé
-        q = echelle(ing, facteur)
-        if q is None:
-            val = "au goût"
-        else:
-            unite = html_escape(ing.get("unite") or "")
-            val = f"{jolie_qte(q)} {unite}".strip()
-        return f'<span class="inq">{val}</span>'
+            return m.group(1)                      # texte seul si non résolu
+        if sep and spec:                           # marqueur de portion
+            if _plier(spec) in _RESTE:
+                val = _valeur_reste(ing, facteur, allocations)
+            else:
+                p = _lire_portion(spec)
+                if p:
+                    val = (f"{jolie_qte(_echelle_portion(p[0], facteur))} "
+                           f"{html_escape(p[1])}").strip()
+                else:
+                    val = html_escape(spec)        # portion libre, non chiffrée
+        else:                                      # quantité totale
+            q = echelle(ing, facteur)
+            val = ("au goût" if q is None else
+                   f"{jolie_qte(q)} {html_escape(ing.get('unite') or '')}".strip())
+        return (f'<span class="inqnom">{nom}</span>'
+                f' <span class="inq">({val})</span>')
     return re.sub(r"\[([^\[\]]+)\]", repl, texte)
+
+
+_MK_OK = ("background:rgba(74,222,128,.15);color:#7ee787;"
+          "border:1px solid rgba(74,222,128,.45);border-radius:4px;padding:0 4px")
+_MK_KO = ("background:rgba(248,81,73,.15);color:#ff7b72;"
+          "border:1px solid rgba(248,81,73,.45);border-radius:4px;padding:0 4px")
+
+
+def apercu_marqueurs(texte, idx):
+    """HTML d'une étape pour l'aperçu de l'éditeur : chaque [marqueur] est
+    surligné en vert s'il désigne un ingrédient connu, en rouge sinon. Styles
+    inline (la feuille de style .inq ne vit que dans l'iframe de cuisine). Le
+    reste du texte est échappé."""
+    morceaux, prev = [], 0
+    for m in re.finditer(r"\[([^\[\]]+)\]", texte):
+        morceaux.append(html_escape(texte[prev:m.start()]))
+        contenu = m.group(1)
+        nom = contenu.partition(":")[0].strip()    # ignore la portion éventuelle
+        style = _MK_OK if resoudre_marqueur(nom, idx) else _MK_KO
+        morceaux.append(f'<span style="{style}">[{html_escape(contenu)}]</span>')
+        prev = m.end()
+    morceaux.append(html_escape(texte[prev:]))
+    return "".join(morceaux)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -677,7 +935,8 @@ def recette_vierge(n_total):
                  "personnes": 4, "max_personnes": 20, "multiples": False},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5}],
-        "preparation": ["Première étape — écris [Premier ingrédient] pour insérer sa quantité."],
+        "preparation": ["Première étape — cite un ingrédient et sa quantité "
+                        "s'insérera toute seule à l'enregistrement."],
         "tags": [],
     }
 
@@ -718,6 +977,40 @@ def _supprimer_recette():
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="grimoire de recettes", page_icon="🛰️",
                    layout="centered", initial_sidebar_state="collapsed")
+
+
+def toast_enregistre(cle):
+    """Petit pop-up « Enregistré » qui apparaît juste SOUS le bouton d'où on
+    l'appelle, tient ~2 s puis se replie et disparaît. Déclenché par le drapeau
+    de session `cle` posé au moment du 💾 (il survit au st.rerun())."""
+    if not st.session_state.pop(cle, False):
+        return
+    st.markdown("""
+    <style>
+    @keyframes toast-sb{
+      0%  {opacity:0;transform:translateY(-8px);max-height:0;padding-top:0;padding-bottom:0}
+      12% {opacity:1;transform:translateY(0);max-height:64px;padding-top:10px;padding-bottom:10px}
+      70% {opacity:1;transform:translateY(0);max-height:64px}
+      100%{opacity:0;transform:translateY(-4px);max-height:0;margin-top:0;
+           padding-top:0;padding-bottom:0}
+    }
+    .toast-sb{
+      overflow:hidden;box-sizing:border-box;
+      display:flex;align-items:center;justify-content:center;gap:9px;
+      width:fit-content;margin:8px auto 0;padding:10px 18px;border-radius:11px;
+      background:linear-gradient(135deg,#0b1120,#141a2b);
+      border:1px solid rgba(77,243,227,.55);
+      color:#7ff5ea;font-family:'JetBrains Mono',monospace;font-weight:700;
+      letter-spacing:.04em;box-shadow:0 0 20px rgba(77,243,227,.35);
+      animation:toast-sb 2s ease forwards;
+    }
+    .toast-sb .ts-ico{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:21px;height:21px;border-radius:50%;
+      background:rgba(77,243,227,.18);color:#4df3e3;font-size:.85rem}
+    </style>
+    <div class="toast-sb"><span class="ts-ico">✓</span> Enregistré</div>
+    """, unsafe_allow_html=True)
 
 st.markdown("""
 <style>
@@ -1304,8 +1597,7 @@ with onglet_cuisine:
             + chips_tags_html(recette["tags"]))
 
     # Index des ingrédients pour l'auto-ajustement dans les étapes
-    index_ing = {ing["nom"].strip().lower(): ing
-                 for ing in recette["ingredients"] if ing.get("nom")}
+    index_ing = index_marqueurs(recette["ingredients"])
 
     # Section INGRÉDIENTS — on ouvre par une ligne « rendement » : l'étiquette
     # de base et sa valeur de référence, mise à l'échelle comme les ingrédients
@@ -1331,9 +1623,12 @@ with onglet_cuisine:
         </div>"""
 
     # Section PRÉPARATION (étapes numérotées, quantités auto-ajustées)
+    # Les portions explicites [ing: N unité] servent à calculer le « reste ».
+    allocations = calc_allocations(recette.get("preparation", []), index_ing)
     lignes_prep = ""
     for i, etape in enumerate(recette.get("preparation", []), start=1):
-        texte = injecter_quantites(html_escape(etape), index_ing, facteur)
+        texte = injecter_quantites(html_escape(etape), index_ing, facteur,
+                                   allocations)
         lignes_prep += f"""
         <div class="ing step" onclick="toggle(this)">
           <span class="box"></span>
@@ -1480,20 +1775,34 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .step .num{font-family:'JetBrains Mono',monospace;font-weight:700;color:#ffb454;
   flex:0 0 auto;font-size:.95rem;line-height:1.5}
 .step .nom{font-weight:400;line-height:1.5}
+/* Nom d'ingrédient « variable » : souligné pointillé discret pour dire
+   « ce mot est dynamique », suivi de sa quantité en pastille (.inq). */
+.inqnom{border-bottom:1px dotted rgba(255,180,84,.55);color:#ffd9a6}
 .inq{font-family:'JetBrains Mono',monospace;color:#ffb454;font-weight:700;
   background:rgba(255,180,84,.1);padding:1px 6px;border-radius:5px;white-space:nowrap;
   text-shadow:0 0 10px rgba(255,180,84,.35)}
+.ing.done .inqnom{opacity:.4;border-bottom-color:transparent;color:inherit}
 .ing.done .inq{opacity:.4;text-shadow:none}
 
 /* Overlay de victoire — apparaît quand tout est coché */
 .victoire{
-  position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;z-index:10;
   background:rgba(4,6,13,.86);backdrop-filter:blur(3px);border-radius:16px;
   opacity:0;visibility:hidden;transition:opacity .35s ease, visibility .35s;cursor:pointer;
 }
 .victoire.visible{opacity:1;visibility:visible;}
-.v-cadre{text-align:center;padding:18px;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
-@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+/* La cadre (gif + textes) est positionnée par JS au centre de la portion
+   réellement visible à l'écran (voir positionVictoire), pas au milieu de toute
+   la carte : sur mobile/tablette la carte dépasse l'écran et l'animation
+   pouvait tomber hors champ. « top » est ajusté dynamiquement. */
+.v-cadre{
+  position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  text-align:center;padding:18px;animation:pop .45s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes pop{
+  from{transform:translateY(-50%) scale(.7);opacity:0}
+  to{transform:translateY(-50%) scale(1);opacity:1}
+}
 @media (prefers-reduced-motion: reduce){.v-cadre{animation:none}}
 .v-cadre img{
   max-width:min(280px,70vw);max-height:44vh;border-radius:14px;
@@ -1560,6 +1869,38 @@ function resizeFrame(){
     }
   }catch(e){}
 }
+// Centre vertical (en coordonnées internes à l'iframe) de la portion de la carte
+// réellement visible dans la fenêtre du navigateur parent. L'iframe fait toute
+// la hauteur du contenu et c'est la page Streamlit parente qui défile : on lit
+// donc la position de l'iframe dans le viewport parent pour savoir où regarde
+// l'utilisateur. Repli : centre du document si l'accès parent est refusé.
+function centreVisible(){
+  var h=document.documentElement.scrollHeight;
+  try{
+    var fe=window.frameElement;
+    if(fe){
+      var r=fe.getBoundingClientRect();
+      var vpH=(window.parent&&window.parent.innerHeight)||window.innerHeight;
+      var haut=Math.max(0,-r.top);
+      var bas=Math.min(h, vpH-r.top);
+      if(bas>haut){ return (haut+bas)/2; }
+    }
+  }catch(e){}
+  return h/2;
+}
+// Place la cadre de chaque overlay au centre de la zone visible. Le « top » est
+// relatif à l'overlay (.victoire, inset:0 sur la carte) : on soustrait donc son
+// décalage. L'iframe n'ayant pas de défilement interne, getBoundingClientRect
+// donne directement le décalage dans le document.
+function positionVictoire(){
+  var centre=centreVisible();
+  var ov=document.querySelectorAll('.victoire');
+  for(var i=0;i<ov.length;i++){
+    var cadre=ov[i].querySelector('.v-cadre');
+    if(!cadre) continue;
+    cadre.style.top=(centre-ov[i].getBoundingClientRect().top)+'px';
+  }
+}
 function toggle(el){el.classList.toggle('done');maj();}
 // Clé stable par section (sec-som / sec-ing / sec-prep) pour mémoriser son état.
 function cleSection(el){
@@ -1614,6 +1955,7 @@ function maj(){
   // La préparation (fin de recette) a priorité si les deux sont complètes.
   var montrePrep=prepComplet && !fermePrep;
   var montreIng=ingComplet && !fermeIng && !montrePrep;
+  if(montrePrep || montreIng){ positionVictoire(); }
   document.getElementById('victoire-prep').classList.toggle('visible', montrePrep);
   document.getElementById('victoire-ing').classList.toggle('visible', montreIng);
 }
@@ -1623,9 +1965,21 @@ function fermer(quoi){
 }
 window.addEventListener('load', restaurerSections);
 window.addEventListener('load', resizeFrame);
+window.addEventListener('load', positionVictoire);
 window.addEventListener('resize', resizeFrame);
+window.addEventListener('resize', positionVictoire);
+// Suivre le défilement pour garder l'animation dans le champ de vision. Le
+// défilement se produit sur la page parente (l'iframe fait toute la hauteur) ;
+// on écoute donc le parent, avec repli sur l'iframe si l'accès est refusé.
+window.addEventListener('scroll', positionVictoire, {passive:true});
+try{
+  if(window.parent && window.parent!==window){
+    window.parent.addEventListener('scroll', positionVictoire, {passive:true});
+  }
+}catch(e){}
 restaurerSections();
 resizeFrame();
+positionVictoire();
 </script></body></html>
 """
 
@@ -1712,8 +2066,9 @@ with onglet_edition:
                         _renommer_tag_partout(ancien, nv)
                     st.session_state.tags = trier_tags(nouveau_cat)
                     if persister(RECETTES):
-                        st.success("Tags enregistrés ✓")
+                        st.session_state["_toast_tags"] = True
                         st.rerun()
+            toast_enregistre("_toast_tags")       # pop-up juste sous le bouton
 
     if recette is None:
         st.markdown(CHOIX_RECETTE, unsafe_allow_html=True)
@@ -1870,11 +2225,29 @@ with onglet_edition:
     with st.expander(f"🍳  Préparation ({len(recette.get('preparation', []))} étape"
                      f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
                      expanded=True):
-        st.caption("PROTOTYPE AgGrid — double-clique pour éditer l'étape · glisse "
-                   "la poignée ⠿ pour réordonner · coche + 🗑 pour retirer · écris "
-                   "[nom d'ingrédient] entre crochets pour insérer sa quantité.")
+        st.caption("Double-clique pour éditer l'étape · glisse la poignée ⠿ pour "
+                   "réordonner · coche + 🗑 pour retirer. À l'enregistrement, les "
+                   "ingrédients cités sont marqués [ainsi] et leur quantité "
+                   "s'insère automatiquement. Pour une PORTION, écris "
+                   "[beurre: 15 ml] (s'échelonne) ou [beurre: reste] (le solde) ; "
+                   "l'auto-marquage laisse ces cas-là de côté.")
 
         ss_prep = f"agg_prep_{k}"
+
+        # Récap du dernier auto-marquage, avec possibilité de l'annuler.
+        flash = st.session_state.get("flash_marquage")
+        if flash and flash.get("k") == k:
+            liste = ", ".join(flash["noms"])
+            st.info(f"✨ Quantités insérées automatiquement pour : {liste}.")
+            if st.button("↩︎ Annuler le marquage automatique",
+                         key=f"annuler_marquage_{k}", use_container_width=True):
+                recette["preparation"] = flash["brut"]
+                if persister(RECETTES):
+                    for cle in (ss_prep, f"{ss_prep}_nonce", f"{ss_prep}_seq"):
+                        st.session_state.pop(cle, None)
+                    st.session_state.pop("flash_marquage", None)
+                    st.rerun()
+
         df_prep = pd.DataFrame(
             [{"Étape": e, "_rowid": str(i)}
              for i, e in enumerate(recette.get("preparation", []))],
@@ -1916,6 +2289,30 @@ with onglet_edition:
                 st.info("Coche d'abord au moins une étape (case à gauche), "
                         "puis clique 🗑.")
 
+        # Aperçu live : montre les [marqueurs] surlignés (reconnu / introuvable),
+        # calculés sur les ingrédients ET les étapes en cours d'édition.
+        if "Étape" in edite_prep.columns:
+            idx_ape = index_marqueurs(_ingredients_depuis_editeur(edite))
+            lignes_ape = []
+            for i, e in enumerate(edite_prep["Étape"].tolist(), start=1):
+                if e is None or (isinstance(e, float) and pd.isna(e)):
+                    continue
+                txt = str(e).strip()
+                if not txt:
+                    continue
+                lignes_ape.append(
+                    f'<div style="margin:.3rem 0;line-height:1.55">'
+                    f'<b style="color:#ffb454">{i}.</b> '
+                    f'{apercu_marqueurs(txt, idx_ape)}</div>')
+            if lignes_ape:
+                st.caption("Aperçu — 🟩 ingrédient reconnu · 🟥 introuvable "
+                           "(corrige l'orthographe ou vérifie l'ingrédient)")
+                st.markdown(
+                    '<div style="padding:.6rem .8rem;border:1px solid #2a2d36;'
+                    'border-radius:8px;background:#12141a;font-size:.92rem">'
+                    + "".join(lignes_ape) + "</div>",
+                    unsafe_allow_html=True)
+
     if st.button("💾 Enregistrer les modifications", type="primary",
                  use_container_width=True, key=f"save_{k}"):
         nouveaux = _ingredients_depuis_editeur(edite)
@@ -1950,7 +2347,12 @@ with onglet_edition:
                                "max_personnes": max(int(b_maxpers), int(b_personnes)),
                                "multiples": bool(b_multiples)}
             recette["ingredients"] = nouveaux
-            recette["preparation"] = etapes
+            # Auto-marquage : on enveloppe [ainsi] les ingrédients cités dans les
+            # étapes pour insérer leur quantité au rendu. Idempotent (ne touche
+            # pas aux crochets déjà présents). `etapes` reste la version brute,
+            # conservée pour l'annulation.
+            etapes_marquees, noms_marques = auto_marquer(etapes, nouveaux)
+            recette["preparation"] = etapes_marquees
             # Tags : enregistre les nouveaux au catalogue global, applique les
             # noms canoniques à la recette.
             recette["tags"] = enregistrer_tags(tags_appliques)
@@ -1960,8 +2362,15 @@ with onglet_edition:
                 for base in (f"agg_ing_{k}", f"agg_prep_{k}"):
                     for cle in (base, f"{base}_nonce", f"{base}_seq"):
                         st.session_state.pop(cle, None)
-                st.success("Recette enregistrée ✓")
+                # Récap d'auto-marquage (survit au rerun) pour permettre l'annulation.
+                if noms_marques:
+                    st.session_state["flash_marquage"] = {
+                        "k": k, "brut": etapes, "noms": noms_marques}
+                else:
+                    st.session_state.pop("flash_marquage", None)
+                st.session_state["_toast_recette"] = True
                 st.rerun()
+    toast_enregistre("_toast_recette")            # pop-up juste sous le bouton
 
     st.divider()
 

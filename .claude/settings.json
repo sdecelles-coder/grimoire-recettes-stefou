@@ -7,7 +7,8 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8599/)",
       "Bash(pkill -f \"streamlit run\")",
       "Bash(déplacement capture *)",
-      "Bash('léditeur concerné \\(nonce dans la clé\\) pour éviter les décalages de rang. *)"
+      "Bash('léditeur concerné \\(nonce dans la clé\\) pour éviter les décalages de rang. *)",
+      "Bash(python -c ' *)"
     ]
   }
 }
