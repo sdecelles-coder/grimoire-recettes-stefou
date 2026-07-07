@@ -978,6 +978,45 @@ def _supprimer_recette():
 st.set_page_config(page_title="grimoire de recettes", page_icon="🛰️",
                    layout="centered", initial_sidebar_state="collapsed")
 
+
+def toast_enregistre():
+    """Petit pop-up « Enregistré » (coin bas-droit) qui apparaît une fois après
+    une sauvegarde, s'anime puis disparaît. Déclenché par le drapeau de session
+    posé au moment du 💾 (il survit au st.rerun())."""
+    if not st.session_state.pop("_toast_enregistre", False):
+        return
+    st.markdown("""
+    <style>
+    @keyframes toast-pop{
+      0%{opacity:0;transform:translateY(14px) scale(.94)}
+      10%{opacity:1;transform:translateY(0) scale(1)}
+      82%{opacity:1;transform:translateY(0) scale(1)}
+      100%{opacity:0;transform:translateY(-8px) scale(.98)}
+    }
+    @keyframes toast-glow{
+      0%,100%{box-shadow:0 0 22px rgba(77,243,227,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+      50%{box-shadow:0 0 34px rgba(77,243,227,.6),inset 0 1px 0 rgba(255,255,255,.08)}
+    }
+    .toast-save{
+      position:fixed;bottom:30px;right:30px;z-index:99999;pointer-events:none;
+      display:flex;align-items:center;gap:11px;padding:13px 22px;border-radius:13px;
+      background:linear-gradient(135deg,#0b1120,#141a2b);
+      border:1px solid rgba(77,243,227,.55);
+      color:#7ff5ea;font-family:'JetBrains Mono',monospace;font-weight:700;
+      letter-spacing:.04em;
+      animation:toast-pop 2.6s ease forwards,toast-glow 1.3s ease-in-out infinite;
+    }
+    .toast-save .ts-ico{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:22px;height:22px;border-radius:50%;
+      background:rgba(77,243,227,.18);color:#4df3e3;font-size:.9rem}
+    </style>
+    <div class="toast-save"><span class="ts-ico">✓</span> Enregistré</div>
+    """, unsafe_allow_html=True)
+
+
+toast_enregistre()
+
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
@@ -2032,7 +2071,7 @@ with onglet_edition:
                         _renommer_tag_partout(ancien, nv)
                     st.session_state.tags = trier_tags(nouveau_cat)
                     if persister(RECETTES):
-                        st.success("Tags enregistrés ✓")
+                        st.session_state["_toast_enregistre"] = True
                         st.rerun()
 
     if recette is None:
@@ -2333,7 +2372,7 @@ with onglet_edition:
                         "k": k, "brut": etapes, "noms": noms_marques}
                 else:
                     st.session_state.pop("flash_marquage", None)
-                st.success("Recette enregistrée ✓")
+                st.session_state["_toast_enregistre"] = True
                 st.rerun()
 
     st.divider()
