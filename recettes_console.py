@@ -2060,11 +2060,28 @@ with onglet_edition:
     with st.expander(f"🍳  Préparation ({len(recette.get('preparation', []))} étape"
                      f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
                      expanded=True):
-        st.caption("PROTOTYPE AgGrid — double-clique pour éditer l'étape · glisse "
-                   "la poignée ⠿ pour réordonner · coche + 🗑 pour retirer · écris "
-                   "[nom d'ingrédient] entre crochets pour insérer sa quantité.")
+        st.caption("Double-clique pour éditer l'étape · glisse la poignée ⠿ pour "
+                   "réordonner · coche + 🗑 pour retirer. À l'enregistrement, les "
+                   "ingrédients cités sont marqués [ainsi] et leur quantité "
+                   "s'insère automatiquement (tu peux ajuster les crochets à la "
+                   "main).")
 
         ss_prep = f"agg_prep_{k}"
+
+        # Récap du dernier auto-marquage, avec possibilité de l'annuler.
+        flash = st.session_state.get("flash_marquage")
+        if flash and flash.get("k") == k:
+            liste = ", ".join(flash["noms"])
+            st.info(f"✨ Quantités insérées automatiquement pour : {liste}.")
+            if st.button("↩︎ Annuler le marquage automatique",
+                         key=f"annuler_marquage_{k}", use_container_width=True):
+                recette["preparation"] = flash["brut"]
+                if persister(RECETTES):
+                    for cle in (ss_prep, f"{ss_prep}_nonce", f"{ss_prep}_seq"):
+                        st.session_state.pop(cle, None)
+                    st.session_state.pop("flash_marquage", None)
+                    st.rerun()
+
         df_prep = pd.DataFrame(
             [{"Étape": e, "_rowid": str(i)}
              for i, e in enumerate(recette.get("preparation", []))],
@@ -2140,7 +2157,12 @@ with onglet_edition:
                                "max_personnes": max(int(b_maxpers), int(b_personnes)),
                                "multiples": bool(b_multiples)}
             recette["ingredients"] = nouveaux
-            recette["preparation"] = etapes
+            # Auto-marquage : on enveloppe [ainsi] les ingrédients cités dans les
+            # étapes pour insérer leur quantité au rendu. Idempotent (ne touche
+            # pas aux crochets déjà présents). `etapes` reste la version brute,
+            # conservée pour l'annulation.
+            etapes_marquees, noms_marques = auto_marquer(etapes, nouveaux)
+            recette["preparation"] = etapes_marquees
             # Tags : enregistre les nouveaux au catalogue global, applique les
             # noms canoniques à la recette.
             recette["tags"] = enregistrer_tags(tags_appliques)
@@ -2150,6 +2172,12 @@ with onglet_edition:
                 for base in (f"agg_ing_{k}", f"agg_prep_{k}"):
                     for cle in (base, f"{base}_nonce", f"{base}_seq"):
                         st.session_state.pop(cle, None)
+                # Récap d'auto-marquage (survit au rerun) pour permettre l'annulation.
+                if noms_marques:
+                    st.session_state["flash_marquage"] = {
+                        "k": k, "brut": etapes, "noms": noms_marques}
+                else:
+                    st.session_state.pop("flash_marquage", None)
                 st.success("Recette enregistrée ✓")
                 st.rerun()
 
