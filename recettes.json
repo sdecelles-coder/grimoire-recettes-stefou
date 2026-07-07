@@ -719,6 +719,83 @@
         "Fêtes",
         "Québécois"
       ]
+    },
+    {
+      "titre": "Saumon à l'érable sur BBQ",
+      "sous_titre": "",
+      "temps_prep": 15,
+      "temps_cuisson": 10,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2,
+        "personnes": 2,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "sirop d'érable",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "sauce soya",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "moutarde de Dijon",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "gingembre frais haché",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "oignons verts hachés",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "jus de citron ou d'orange",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "filets de saumon frais (environ 225 g chaque)",
+          "qte": 2,
+          "unite": "unité",
+          "palier": null,
+          "section": "Poisson"
+        }
+      ],
+      "preparation": [
+        "Enlever la peau des filets de saumon.",
+        "Mélanger tous les ingrédients de la marinade dans un bol.",
+        "Faire mariner le saumon au réfrigérateur pendant 3 à 4 heures.",
+        "Préchauffer le BBQ à haute intensité. Cuire les filets environ 5 minutes de chaque côté, en ajustant selon l'épaisseur.",
+        "Variante au four : déposer les filets sur une plaque à biscuits et cuire 10 minutes à 450 °F."
+      ],
+      "tags": [
+        "BBQ",
+        "Saumon",
+        "Érable"
+      ]
     }
   ],
   "tags": [
@@ -729,6 +806,10 @@
     {
       "nom": "Amélie",
       "couleur": "#f7406d"
+    },
+    {
+      "nom": "BBQ",
+      "couleur": "#7d8cb5"
     },
     {
       "nom": "Casserole",
@@ -775,6 +856,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Saumon",
+      "couleur": "#7d8cb5"
+    },
+    {
       "nom": "Stefou",
       "couleur": "#007cfb"
     },
@@ -785,6 +870,10 @@
     {
       "nom": "Vinaigrette",
       "couleur": "#c084fc"
+    },
+    {
+      "nom": "Érable",
+      "couleur": "#7d8cb5"
     }
   ]
 }
