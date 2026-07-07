@@ -34,6 +34,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode
 
+import conversion_web as cw          # module local : import d'une recette web
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  PERSISTANCE — recettes.json à côté du script
 # ─────────────────────────────────────────────────────────────────────────────
@@ -221,6 +223,19 @@ def _github_cfg():
         }
     except (KeyError, FileNotFoundError):
         return None
+
+
+def _anthropic_cfg():
+    """Retourne {api_key, model} depuis st.secrets["anthropic"], ou None si absent.
+    Sert à la fonctionnalité « Conversion recette web »."""
+    try:
+        an = st.secrets["anthropic"]
+        api_key = an["api_key"]
+    except (KeyError, FileNotFoundError):
+        return None
+    if not api_key:
+        return None
+    return {"api_key": api_key, "model": an.get("model", "claude-sonnet-4-6")}
 
 
 def _gh_url(cfg):
@@ -972,6 +987,32 @@ def _supprimer_recette():
     st.session_state.err_save = None if ok else err
 
 
+def _ajouter_recette_convertie(rec):
+    """Callback : ajoute au menu une recette convertie du web, l'affiche et la
+    sélectionne. Intègre ses nouveaux tags au catalogue global."""
+    normaliser_recette(rec)
+    connus = {_norm_tag(t["nom"]) for t in st.session_state.tags}
+    for nom in rec.get("tags", []):
+        if nom and _norm_tag(nom) not in connus:
+            st.session_state.tags.append(
+                {"nom": nom, "couleur": COULEUR_TAG_DEFAUT})
+            connus.add(_norm_tag(nom))
+    st.session_state.tags = trier_tags(st.session_state.tags)
+
+    recettes = st.session_state.recettes
+    recettes.append(rec)
+    st.session_state.recherche_titre = ""
+    st.session_state.recherche_ingredient = ""
+    st.session_state.recette_select = len(recettes) - 1
+    st.session_state.confirmer_suppr = False
+    ok, err = sauvegarder_recettes(recettes, st.session_state.tags)
+    st.session_state.err_save = None if ok else err
+
+    st.session_state["_conv_ajoutee"] = rec.get("titre", "")
+    for cle in ("conv_resultat", "conv_source", "conv_erreur"):
+        st.session_state.pop(cle, None)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  PAGE + THÈME
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1498,7 +1539,8 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
 recette = RECETTES[st.session_state.sel] if st.session_state.sel is not None else None
 base = recette["base"] if recette else None
 
-onglet_cuisine, onglet_edition = st.tabs(["◈  CUISINE", "⚙  ÉDITION"])
+onglet_cuisine, onglet_edition, onglet_conversion = st.tabs(
+    ["◈  CUISINE", "⚙  ÉDITION", "🌐  CONVERSION WEB"])
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET CUISINE — mise à l'échelle + checklist
@@ -2001,6 +2043,128 @@ positionVictoire();
                + (66 + n_ing * 60 if n_ing else 0)
                + (66 + n_prep * 92 if n_prep else 0))
     components.html(html, height=hauteur, scrolling=True)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  ONGLET CONVERSION WEB — importer une recette depuis une URL ou du texte collé
+# ═════════════════════════════════════════════════════════════════════════════
+with onglet_conversion:
+    st.markdown("#### 🌐 Convertir une recette du web")
+    st.caption("Colle l'adresse (URL) d'une recette OU colle directement son "
+               "texte. L'IA la convertit au format du grimoire, en français. "
+               "Tu pourras la peaufiner ensuite dans l'onglet ⚙ ÉDITION.")
+
+    # Bandeau de succès après un ajout au menu (survit au rerun du callback).
+    titre_ajoute = st.session_state.pop("_conv_ajoutee", None)
+    if titre_ajoute:
+        st.success(f"✅ « {titre_ajoute} » ajoutée au menu ! Ouvre l'onglet "
+                   "⚙ ÉDITION pour la peaufiner.")
+
+    cfg = _anthropic_cfg()
+    if cfg is None:
+        st.warning("🔑 Clé API Claude absente. Ajoute une section **[anthropic]** "
+                   "(api_key) dans les secrets Streamlit pour activer la "
+                   "conversion.")
+    else:
+        mode = st.radio("Source", ["Depuis une URL", "Coller le texte"],
+                        horizontal=True, key="conv_mode")
+        if mode == "Depuis une URL":
+            entree_url = st.text_input(
+                "Adresse de la recette", key="conv_url",
+                placeholder="https://www.ricardocuisine.com/recettes/…")
+            entree_txt = ""
+        else:
+            entree_url = ""
+            entree_txt = st.text_area(
+                "Texte de la recette", key="conv_txt", height=220,
+                placeholder="Colle ici le titre, les ingrédients et les étapes…")
+
+        if st.button("✨ Convertir", type="primary", use_container_width=True,
+                     key="conv_go"):
+            for cle in ("conv_resultat", "conv_source", "conv_erreur"):
+                st.session_state.pop(cle, None)
+            try:
+                with st.spinner("Conversion en cours… (quelques secondes)"):
+                    if mode == "Depuis une URL":
+                        rec, src = cw.convertir_url(
+                            entree_url, cfg["api_key"], cfg["model"])
+                    else:
+                        if len((entree_txt or "").strip()) < 40:
+                            raise cw.RecetteIntrouvable(
+                                "Colle au moins le titre, les ingrédients et les "
+                                "étapes de la recette.")
+                        rec = cw.convertir_texte(
+                            entree_txt, cfg["api_key"], cfg["model"])
+                        src = "texte"
+                    normaliser_recette(rec)
+                    st.session_state.conv_resultat = rec
+                    st.session_state.conv_source = src
+            except cw.CreditEpuise as e:
+                st.session_state.conv_erreur = f"🪫 {e}"
+            except cw.SiteBloque as e:
+                st.session_state.conv_erreur = f"🚫 {e}"
+            except cw.RecetteIntrouvable as e:
+                st.session_state.conv_erreur = f"🔍 {e}"
+            except cw.URLInvalide as e:
+                st.session_state.conv_erreur = f"⚠ {e}"
+            except cw.ConfigManquante as e:
+                st.session_state.conv_erreur = f"🔑 {e}"
+            except cw.ConversionError as e:
+                st.session_state.conv_erreur = f"⚠ {e}"
+            except Exception as e:                       # filet de sécurité
+                st.session_state.conv_erreur = f"⚠ Erreur inattendue : {e}"
+
+        if st.session_state.get("conv_erreur"):
+            st.error(st.session_state.conv_erreur)
+
+        rec = st.session_state.get("conv_resultat")
+        if rec:
+            src = st.session_state.get("conv_source", "")
+            libelle = {"jsonld": "données structurées du site",
+                       "html": "texte de la page",
+                       "texte": "texte collé"}.get(src, src)
+            st.success(f"Recette détectée (via {libelle}). Vérifie l'aperçu, "
+                       "puis ajoute-la au menu.")
+
+            st.divider()
+            st.markdown(f"### {rec.get('titre', '')}")
+            if rec.get("sous_titre"):
+                st.caption(rec["sous_titre"])
+            b = rec.get("base", {})
+            meta = []
+            if b.get("personnes"):
+                meta.append(f"🍽 {b['personnes']} portions")
+            if rec.get("temps_prep"):
+                meta.append(f"⏱ prép. {rec['temps_prep']} min")
+            if rec.get("temps_cuisson"):
+                meta.append(f"🔥 cuisson {rec['temps_cuisson']} min")
+            if meta:
+                st.write(" · ".join(meta))
+
+            st.markdown("**Ingrédients**")
+            for ing in rec.get("ingredients", []):
+                q = ing.get("qte")
+                u = (ing.get("unite") or "").strip()
+                if q in (None, ""):
+                    detail = u or "au goût"
+                elif isinstance(q, (int, float)):
+                    detail = f"{q:g} {u}".strip()
+                else:
+                    detail = f"{q} {u}".strip()
+                st.write(f"- **{ing.get('nom', '')}** — {detail}")
+
+            st.markdown("**Préparation**")
+            for i, etape in enumerate(rec.get("preparation", []), 1):
+                st.write(f"{i}. {etape}")
+
+            if rec.get("tags"):
+                st.write("🏷 " + " · ".join(rec["tags"]))
+
+            st.divider()
+            st.button("➕ Ajouter au menu", type="primary",
+                      use_container_width=True, key="conv_add",
+                      on_click=_ajouter_recette_convertie, args=(rec,))
+
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET ÉDITION — modifier / ajouter / retirer / supprimer
