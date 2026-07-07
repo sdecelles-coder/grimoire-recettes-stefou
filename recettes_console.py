@@ -34,6 +34,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode
 
+import conversion_web as cw          # module local : import d'une recette web
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  PERSISTANCE — recettes.json à côté du script
 # ─────────────────────────────────────────────────────────────────────────────
@@ -223,6 +225,19 @@ def _github_cfg():
         return None
 
 
+def _anthropic_cfg():
+    """Retourne {api_key, model} depuis st.secrets["anthropic"], ou None si absent.
+    Sert à la fonctionnalité « Conversion recette web »."""
+    try:
+        an = st.secrets["anthropic"]
+        api_key = an["api_key"]
+    except (KeyError, FileNotFoundError):
+        return None
+    if not api_key:
+        return None
+    return {"api_key": api_key, "model": an.get("model", "claude-sonnet-4-6")}
+
+
 def _gh_url(cfg):
     return f"https://api.github.com/repos/{cfg['repo']}/contents/{cfg['chemin']}"
 
@@ -388,6 +403,9 @@ def normaliser_recette(r):
             vus.add(_norm_tag(nom))
             propres.append(nom)
     r["tags"] = propres
+    for _ing in r.get("ingredients", []):         # section : groupe d'ingrédients
+        if isinstance(_ing, dict):                # (« Garniture », « Bouillon »…)
+            _ing.setdefault("section", "")
     r.setdefault("base", {})
     b = r["base"]
     b.setdefault("label", "Rendement")
@@ -718,11 +736,14 @@ def _ingredients_depuis_editeur(df):
         palier = ligne.get("Palier")
         unite_raw = ligne.get("Unité")
         unite = "" if (unite_raw is None or pd.isna(unite_raw)) else str(unite_raw).strip()
+        section_raw = ligne.get("Section")
+        section = "" if (section_raw is None or pd.isna(section_raw)) else str(section_raw).strip()
         nouveaux.append({
             "nom": nom,
             "qte": None if au_gout else float(qte),
             "unite": unite or ("au goût" if au_gout else ""),
             "palier": None if (palier is None or palier == "" or pd.isna(palier)) else float(palier),
+            "section": section,
         })
     return nouveaux
 
@@ -934,7 +955,7 @@ def recette_vierge(n_total):
         "base": {"label": "Portions", "unite": "portions", "valeur": 4,
                  "personnes": 4, "max_personnes": 20, "multiples": False},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
-                         "unite": "c. à table", "palier": 0.5}],
+                         "unite": "c. à table", "palier": 0.5, "section": ""}],
         "preparation": ["Première étape — cite un ingrédient et sa quantité "
                         "s'insérera toute seule à l'enregistrement."],
         "tags": [],
@@ -970,6 +991,32 @@ def _supprimer_recette():
     st.session_state.confirmer_suppr = False
     ok, err = sauvegarder_recettes(recettes, st.session_state.tags)
     st.session_state.err_save = None if ok else err
+
+
+def _ajouter_recette_convertie(rec):
+    """Callback : ajoute au menu une recette convertie du web, l'affiche et la
+    sélectionne. Intègre ses nouveaux tags au catalogue global."""
+    normaliser_recette(rec)
+    connus = {_norm_tag(t["nom"]) for t in st.session_state.tags}
+    for nom in rec.get("tags", []):
+        if nom and _norm_tag(nom) not in connus:
+            st.session_state.tags.append(
+                {"nom": nom, "couleur": COULEUR_TAG_DEFAUT})
+            connus.add(_norm_tag(nom))
+    st.session_state.tags = trier_tags(st.session_state.tags)
+
+    recettes = st.session_state.recettes
+    recettes.append(rec)
+    st.session_state.recherche_titre = ""
+    st.session_state.recherche_ingredient = ""
+    st.session_state.recette_select = len(recettes) - 1
+    st.session_state.confirmer_suppr = False
+    ok, err = sauvegarder_recettes(recettes, st.session_state.tags)
+    st.session_state.err_save = None if ok else err
+
+    st.session_state["_conv_ajoutee"] = rec.get("titre", "")
+    for cle in ("conv_resultat", "conv_source", "conv_erreur"):
+        st.session_state.pop(cle, None)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1498,7 +1545,8 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
 recette = RECETTES[st.session_state.sel] if st.session_state.sel is not None else None
 base = recette["base"] if recette else None
 
-onglet_cuisine, onglet_edition = st.tabs(["◈  CUISINE", "⚙  ÉDITION"])
+onglet_cuisine, onglet_edition, onglet_conversion = st.tabs(
+    ["◈  CUISINE", "⚙  ÉDITION", "🌐  CONVERSION WEB"])
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET CUISINE — mise à l'échelle + checklist
@@ -1610,7 +1658,14 @@ with onglet_cuisine:
           <span class="nom">{label}</span>
           <span class="qte"><b>{rendement:g}</b> {unite}</span>
         </div>"""
+    section_courante = None
     for ing in recette["ingredients"]:
+        sec = (ing.get("section") or "").strip()
+        if sec != section_courante:          # nouveau groupe : sous-titre
+            section_courante = sec
+            if sec:
+                lignes_ing += (f'<div class="ing-groupe">'
+                               f'{html_escape(sec)}</div>')
         q = jolie_qte(echelle(ing, facteur))
         au_gout = ing.get("qte") is None
         unite_ing = "" if au_gout else html_escape(ing.get("unite") or "")
@@ -1728,6 +1783,11 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .qte.gout{color:#7d8cb5;background:transparent;border-color:transparent}
 .qte.gout b{color:#7d8cb5;text-shadow:none;font-weight:500}
 .ing.done .qte{opacity:.35}
+/* Sous-titre de groupe d'ingrédients (« Garniture », « Bouillon »…). */
+.ing-groupe{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#4df3e3;
+  padding:14px 12px 4px;margin-top:4px;border-top:1px solid #1e2a45}
+.ing-groupe:first-child{border-top:none;margin-top:0;padding-top:4px}
 /* Ligne « aliment principal » (étiquette de base + valeur de référence mise à
    l'échelle, non cochable). Rendu à plat, exactement comme un ingrédient — pas
    d'encadré ni de fond — mais en doré. */
@@ -2002,6 +2062,134 @@ positionVictoire();
                + (66 + n_prep * 92 if n_prep else 0))
     components.html(html, height=hauteur, scrolling=True)
 
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  ONGLET CONVERSION WEB — importer une recette depuis une URL ou du texte collé
+# ═════════════════════════════════════════════════════════════════════════════
+with onglet_conversion:
+    st.markdown("#### 🌐 Convertir une recette du web")
+    st.caption("Colle l'adresse (URL) d'une recette OU colle directement son "
+               "texte. L'IA la convertit au format du grimoire, en français. "
+               "Tu pourras la peaufiner ensuite dans l'onglet ⚙ ÉDITION.")
+
+    # Bandeau de succès après un ajout au menu (survit au rerun du callback).
+    titre_ajoute = st.session_state.pop("_conv_ajoutee", None)
+    if titre_ajoute:
+        st.success(f"✅ « {titre_ajoute} » ajoutée au menu ! Ouvre l'onglet "
+                   "⚙ ÉDITION pour la peaufiner.")
+
+    cfg = _anthropic_cfg()
+    if cfg is None:
+        st.warning("🔑 Clé API Claude absente. Ajoute une section **[anthropic]** "
+                   "(api_key) dans les secrets Streamlit pour activer la "
+                   "conversion.")
+    else:
+        mode = st.radio("Source", ["Depuis une URL", "Coller le texte"],
+                        horizontal=True, key="conv_mode")
+        if mode == "Depuis une URL":
+            entree_url = st.text_input(
+                "Adresse de la recette", key="conv_url",
+                placeholder="https://www.ricardocuisine.com/recettes/…")
+            entree_txt = ""
+        else:
+            entree_url = ""
+            entree_txt = st.text_area(
+                "Texte de la recette", key="conv_txt", height=220,
+                placeholder="Colle ici le titre, les ingrédients et les étapes…")
+
+        if st.button("✨ Convertir", type="primary", use_container_width=True,
+                     key="conv_go"):
+            for cle in ("conv_resultat", "conv_source", "conv_erreur"):
+                st.session_state.pop(cle, None)
+            try:
+                with st.spinner("Conversion en cours… (quelques secondes)"):
+                    if mode == "Depuis une URL":
+                        rec, src = cw.convertir_url(
+                            entree_url, cfg["api_key"], cfg["model"])
+                    else:
+                        if len((entree_txt or "").strip()) < 40:
+                            raise cw.RecetteIntrouvable(
+                                "Colle au moins le titre, les ingrédients et les "
+                                "étapes de la recette.")
+                        rec = cw.convertir_texte(
+                            entree_txt, cfg["api_key"], cfg["model"])
+                        src = "texte"
+                    normaliser_recette(rec)
+                    st.session_state.conv_resultat = rec
+                    st.session_state.conv_source = src
+            except cw.CreditEpuise as e:
+                st.session_state.conv_erreur = f"🪫 {e}"
+            except cw.SiteBloque as e:
+                st.session_state.conv_erreur = f"🚫 {e}"
+            except cw.RecetteIntrouvable as e:
+                st.session_state.conv_erreur = f"🔍 {e}"
+            except cw.URLInvalide as e:
+                st.session_state.conv_erreur = f"⚠ {e}"
+            except cw.ConfigManquante as e:
+                st.session_state.conv_erreur = f"🔑 {e}"
+            except cw.ConversionError as e:
+                st.session_state.conv_erreur = f"⚠ {e}"
+            except Exception as e:                       # filet de sécurité
+                st.session_state.conv_erreur = f"⚠ Erreur inattendue : {e}"
+
+        if st.session_state.get("conv_erreur"):
+            st.error(st.session_state.conv_erreur)
+
+        rec = st.session_state.get("conv_resultat")
+        if rec:
+            src = st.session_state.get("conv_source", "")
+            libelle = {"jsonld": "données structurées du site",
+                       "html": "texte de la page",
+                       "texte": "texte collé"}.get(src, src)
+            st.success(f"Recette détectée (via {libelle}). Vérifie l'aperçu, "
+                       "puis ajoute-la au menu.")
+
+            st.divider()
+            st.markdown(f"### {rec.get('titre', '')}")
+            if rec.get("sous_titre"):
+                st.caption(rec["sous_titre"])
+            b = rec.get("base", {})
+            meta = []
+            if b.get("personnes"):
+                meta.append(f"🍽 {b['personnes']} portions")
+            if rec.get("temps_prep"):
+                meta.append(f"⏱ prép. {rec['temps_prep']} min")
+            if rec.get("temps_cuisson"):
+                meta.append(f"🔥 cuisson {rec['temps_cuisson']} min")
+            if meta:
+                st.write(" · ".join(meta))
+
+            st.markdown("**Ingrédients**")
+            section_apercu = None
+            for ing in rec.get("ingredients", []):
+                sec = (ing.get("section") or "").strip()
+                if sec != section_apercu:
+                    section_apercu = sec
+                    if sec:
+                        st.markdown(f"*{sec}*")
+                q = ing.get("qte")
+                u = (ing.get("unite") or "").strip()
+                if q in (None, ""):
+                    detail = u or "au goût"
+                elif isinstance(q, (int, float)):
+                    detail = f"{q:g} {u}".strip()
+                else:
+                    detail = f"{q} {u}".strip()
+                st.write(f"- **{ing.get('nom', '')}** — {detail}")
+
+            st.markdown("**Préparation**")
+            for i, etape in enumerate(rec.get("preparation", []), 1):
+                st.write(f"{i}. {etape}")
+
+            if rec.get("tags"):
+                st.write("🏷 " + " · ".join(rec["tags"]))
+
+            st.divider()
+            st.button("➕ Ajouter au menu", type="primary",
+                      use_container_width=True, key="conv_add",
+                      on_click=_ajouter_recette_convertie, args=(rec,))
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET ÉDITION — modifier / ajouter / retirer / supprimer
 # ═════════════════════════════════════════════════════════════════════════════
@@ -2172,6 +2360,7 @@ with onglet_edition:
             [
                 {
                     "Ingrédient": ing.get("nom", ""),
+                    "Section": ing.get("section", ""),
                     "Quantité": ing.get("qte"),
                     "Unité": ing.get("unite", ""),
                     "Palier": ing.get("palier"),
@@ -2180,12 +2369,15 @@ with onglet_edition:
                 for i, ing in enumerate(recette["ingredients"])
             ],
             # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
-            columns=["Ingrédient", "Quantité", "Unité", "Palier", "_rowid"],
+            columns=["Ingrédient", "Section", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
         def _cfg_ing(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
             gb.configure_column("Ingrédient", rowDrag=True, editable=True, flex=3)
+            gb.configure_column("Section", editable=True, flex=2,
+                                headerTooltip="Groupe d'ingrédients (ex. Garniture, "
+                                              "Bouillon). Laisser vide si aucun.")
             gb.configure_column("Quantité", editable=True, flex=1,
                                 type=["numericColumn"])
             gb.configure_column("Unité", editable=True, flex=1)
@@ -2202,9 +2394,9 @@ with onglet_edition:
             seq = st.session_state.get(f"{ss_ing}_seq", 0) + 1
             st.session_state[f"{ss_ing}_seq"] = seq
             st.session_state[ss_ing] = pd.concat(
-                [edite, pd.DataFrame([{"Ingrédient": "", "Quantité": None,
-                                       "Unité": "", "Palier": None,
-                                       "_rowid": f"n{seq}"}])],
+                [edite, pd.DataFrame([{"Ingrédient": "", "Section": "",
+                                       "Quantité": None, "Unité": "",
+                                       "Palier": None, "_rowid": f"n{seq}"}])],
                 ignore_index=True)
             st.session_state[f"{ss_ing}_nonce"] = \
                 st.session_state.get(f"{ss_ing}_nonce", 0) + 1
