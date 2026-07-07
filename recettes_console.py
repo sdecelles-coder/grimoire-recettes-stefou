@@ -22,6 +22,7 @@ import base64
 import json
 import os
 import re
+import unicodedata
 
 import pandas as pd
 import requests
@@ -394,21 +395,152 @@ def normaliser_recette(r):
     return r
 
 
-def injecter_quantites(texte, index_ing, facteur):
-    """Remplace les [nom d'ingrédient] d'une étape par la quantité mise à
-    l'échelle. Le texte est déjà échappé HTML ; les crochets survivent."""
+# ─────────────────────────────────────────────────────────────────────────────
+#  MATCHING DES INGRÉDIENTS DANS LES ÉTAPES
+#
+#  Une « variable » d'étape est un ingrédient mentionné dans le texte, marqué
+#  par des crochets [ainsi]. Les fonctions ci-dessous servent à la fois à
+#  DÉTECTER ces mentions (auto-marquage à l'enregistrement) et à RÉSOUDRE un
+#  marqueur vers le bon ingrédient (au rendu). Elles partagent la même
+#  normalisation pour rester cohérentes.
+# ─────────────────────────────────────────────────────────────────────────────
+def _plier(s):
+    """Minuscule + sans accents, longueur préservée (é→e). Permet de repérer une
+    sous-chaîne dans un texte tout en gardant les positions d'origine."""
+    out = []
+    for ch in str(s or ""):
+        d = unicodedata.normalize("NFD", ch)
+        out.append((d[0] if d else ch).lower())
+    return "".join(out)
+
+
+def _mots_ing(nom):
+    """Mots significatifs d'un nom d'ingrédient : sans accents ni casse, les
+    qualificatifs entre parenthèses et la ponctuation retirés.
+    « Beurre non salé (fondu) » → ['beurre', 'non', 'sale']."""
+    s = re.sub(r"\([^)]*\)", " ", _plier(nom))     # retire « (fondu) » etc.
+    s = re.sub(r"[^a-z0-9]+", " ", s)
+    return s.split()
+
+
+def _phrases_ing(nom):
+    """Préfixes de mots d'un ingrédient, du plus long au plus court.
+    « Beurre non salé (fondu) » → ['beurre non sale', 'beurre non', 'beurre'].
+    Le préfixe court capte les mentions abrégées (« beurre ») dans les étapes."""
+    mots = _mots_ing(nom)
+    return [" ".join(mots[:n]) for n in range(len(mots), 0, -1)]
+
+
+def index_marqueurs(ingredients):
+    """Map « phrase-clé → ingrédient », en ne gardant que les clés NON ambiguës
+    (une phrase qui désignerait deux ingrédients est écartée). Sert à résoudre
+    un marqueur [texte] ou une mention détectée vers le bon ingrédient."""
+    par_phrase, ing_par_id = {}, {}
+    for ing in ingredients:
+        if not ing.get("nom"):
+            continue
+        ing_par_id[id(ing)] = ing
+        for ph in set(_phrases_ing(ing["nom"])):
+            par_phrase.setdefault(ph, set()).add(id(ing))
+    return {ph: ing_par_id[next(iter(ids))]
+            for ph, ids in par_phrase.items() if ph and len(ids) == 1}
+
+
+def resoudre_marqueur(texte, idx):
+    """Ingrédient désigné par le contenu d'un marqueur [texte] : on teste les
+    préfixes de mots décroissants (pluriel toléré)."""
+    mots = _mots_ing(texte)
+    for n in range(len(mots), 0, -1):
+        cle = " ".join(mots[:n])
+        ing = idx.get(cle) or (idx.get(cle[:-1]) if cle.endswith("s") else None)
+        if ing:
+            return ing
+    return None
+
+
+def detecter_mentions(texte, ingredients, idx):
+    """Repère dans `texte` les mentions d'ingrédients pas encore entre crochets.
+    Renvoie une liste (start, end, ingrédient) non chevauchante : une seule
+    occurrence par ingrédient (la 1re), phrase la plus longue prioritaire."""
+    folded = _plier(texte)
+    exclus = [(m.start(), m.end()) for m in re.finditer(r"\[[^\[\]]*\]", texte)]
+
+    def chevauche(a, b, spans):
+        return any(a < j and i < b for i, j in spans)
+
+    trouves = []
+    for ing in ingredients:
+        if not ing.get("nom") or ing.get("qte") is None:   # ignore « au goût »
+            continue
+        for ph in _phrases_ing(ing["nom"]):
+            if idx.get(ph) is not ing:            # phrase ambiguë ou d'un autre
+                continue
+            motif = (r"(?<![a-z0-9])"
+                     + r"[^a-z0-9]+".join(map(re.escape, ph.split()))
+                     + r"(?![a-z0-9])")
+            m = re.search(motif, folded)
+            if m and not chevauche(m.start(), m.end(), exclus):
+                trouves.append((m.start(), m.end(), ing))
+                break                             # 1re phrase (la + longue) suffit
+    # Chevauchements entre ingrédients : garder la plus longue puis la 1re.
+    trouves.sort(key=lambda t: (t[0], -(t[1] - t[0])))
+    retenus, occup = [], []
+    for a, b, ing in trouves:
+        if not chevauche(a, b, occup):
+            occup.append((a, b))
+            retenus.append((a, b, ing))
+    retenus.sort()
+    return retenus
+
+
+def marquer_etape(texte, ingredients, idx):
+    """Enveloppe de crochets les mentions détectées dans une étape.
+    Renvoie (texte_marqué, [noms d'ingrédients nouvellement marqués])."""
+    retenus = detecter_mentions(texte, ingredients, idx)
+    if not retenus:
+        return texte, []
+    morceaux, prev, noms = [], 0, []
+    for a, b, ing in retenus:
+        morceaux.append(texte[prev:a])
+        morceaux.append("[" + texte[a:b] + "]")
+        noms.append(ing["nom"])
+        prev = b
+    morceaux.append(texte[prev:])
+    return "".join(morceaux), noms
+
+
+def auto_marquer(etapes, ingredients):
+    """Applique `marquer_etape` à chaque étape. Idempotent : n'ajoute des
+    crochets qu'aux mentions pas encore marquées.
+    Renvoie (étapes_marquées, [noms d'ingrédients marqués, sans doublon])."""
+    idx = index_marqueurs(ingredients)
+    resultat, noms = [], []
+    for e in etapes:
+        t, ns = marquer_etape(e, ingredients, idx)
+        resultat.append(t)
+        for n in ns:
+            if n not in noms:
+                noms.append(n)
+    return resultat, noms
+
+
+def injecter_quantites(texte, idx, facteur):
+    """Remplace les [ingrédient] d'une étape par « nom (quantité) », la quantité
+    étant mise à l'échelle et surlignée. Le texte est déjà échappé HTML ; les
+    crochets survivent. `idx` provient de index_marqueurs()."""
     def repl(m):
-        cle = m.group(1).strip().lower()
-        ing = index_ing.get(cle)
+        brut = m.group(1)                          # nom tel qu'écrit (échappé)
+        ing = resoudre_marqueur(brut, idx)
         if not ing:
-            return m.group(1)                      # nom seul si non trouvé
+            return brut                            # nom seul si non résolu
         q = echelle(ing, facteur)
         if q is None:
             val = "au goût"
         else:
             unite = html_escape(ing.get("unite") or "")
             val = f"{jolie_qte(q)} {unite}".strip()
-        return f'<span class="inq">{val}</span>'
+        return (f'<span class="inqnom">{brut}</span>'
+                f' <span class="inq">({val})</span>')
     return re.sub(r"\[([^\[\]]+)\]", repl, texte)
 
 
@@ -1304,8 +1436,7 @@ with onglet_cuisine:
             + chips_tags_html(recette["tags"]))
 
     # Index des ingrédients pour l'auto-ajustement dans les étapes
-    index_ing = {ing["nom"].strip().lower(): ing
-                 for ing in recette["ingredients"] if ing.get("nom")}
+    index_ing = index_marqueurs(recette["ingredients"])
 
     # Section INGRÉDIENTS — on ouvre par une ligne « rendement » : l'étiquette
     # de base et sa valeur de référence, mise à l'échelle comme les ingrédients
@@ -1480,9 +1611,13 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .step .num{font-family:'JetBrains Mono',monospace;font-weight:700;color:#ffb454;
   flex:0 0 auto;font-size:.95rem;line-height:1.5}
 .step .nom{font-weight:400;line-height:1.5}
+/* Nom d'ingrédient « variable » : souligné pointillé discret pour dire
+   « ce mot est dynamique », suivi de sa quantité en pastille (.inq). */
+.inqnom{border-bottom:1px dotted rgba(255,180,84,.55);color:#ffd9a6}
 .inq{font-family:'JetBrains Mono',monospace;color:#ffb454;font-weight:700;
   background:rgba(255,180,84,.1);padding:1px 6px;border-radius:5px;white-space:nowrap;
   text-shadow:0 0 10px rgba(255,180,84,.35)}
+.ing.done .inqnom{opacity:.4;border-bottom-color:transparent;color:inherit}
 .ing.done .inq{opacity:.4;text-shadow:none}
 
 /* Overlay de victoire — apparaît quand tout est coché */
