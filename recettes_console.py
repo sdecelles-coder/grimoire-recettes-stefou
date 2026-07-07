@@ -979,43 +979,38 @@ st.set_page_config(page_title="grimoire de recettes", page_icon="🛰️",
                    layout="centered", initial_sidebar_state="collapsed")
 
 
-def toast_enregistre():
-    """Petit pop-up « Enregistré » (coin bas-droit) qui apparaît une fois après
-    une sauvegarde, s'anime puis disparaît. Déclenché par le drapeau de session
-    posé au moment du 💾 (il survit au st.rerun())."""
-    if not st.session_state.pop("_toast_enregistre", False):
+def toast_enregistre(cle):
+    """Petit pop-up « Enregistré » qui apparaît juste SOUS le bouton d'où on
+    l'appelle, tient ~2 s puis se replie et disparaît. Déclenché par le drapeau
+    de session `cle` posé au moment du 💾 (il survit au st.rerun())."""
+    if not st.session_state.pop(cle, False):
         return
     st.markdown("""
     <style>
-    @keyframes toast-pop{
-      0%{opacity:0;transform:translateY(14px) scale(.94)}
-      10%{opacity:1;transform:translateY(0) scale(1)}
-      82%{opacity:1;transform:translateY(0) scale(1)}
-      100%{opacity:0;transform:translateY(-8px) scale(.98)}
+    @keyframes toast-sb{
+      0%  {opacity:0;transform:translateY(-8px);max-height:0;padding-top:0;padding-bottom:0}
+      12% {opacity:1;transform:translateY(0);max-height:64px;padding-top:10px;padding-bottom:10px}
+      70% {opacity:1;transform:translateY(0);max-height:64px}
+      100%{opacity:0;transform:translateY(-4px);max-height:0;margin-top:0;
+           padding-top:0;padding-bottom:0}
     }
-    @keyframes toast-glow{
-      0%,100%{box-shadow:0 0 22px rgba(77,243,227,.35),inset 0 1px 0 rgba(255,255,255,.06)}
-      50%{box-shadow:0 0 34px rgba(77,243,227,.6),inset 0 1px 0 rgba(255,255,255,.08)}
-    }
-    .toast-save{
-      position:fixed;bottom:30px;right:30px;z-index:99999;pointer-events:none;
-      display:flex;align-items:center;gap:11px;padding:13px 22px;border-radius:13px;
+    .toast-sb{
+      overflow:hidden;box-sizing:border-box;
+      display:flex;align-items:center;justify-content:center;gap:9px;
+      width:fit-content;margin:8px auto 0;padding:10px 18px;border-radius:11px;
       background:linear-gradient(135deg,#0b1120,#141a2b);
       border:1px solid rgba(77,243,227,.55);
       color:#7ff5ea;font-family:'JetBrains Mono',monospace;font-weight:700;
-      letter-spacing:.04em;
-      animation:toast-pop 2.6s ease forwards,toast-glow 1.3s ease-in-out infinite;
+      letter-spacing:.04em;box-shadow:0 0 20px rgba(77,243,227,.35);
+      animation:toast-sb 2s ease forwards;
     }
-    .toast-save .ts-ico{
+    .toast-sb .ts-ico{
       display:inline-flex;align-items:center;justify-content:center;
-      width:22px;height:22px;border-radius:50%;
-      background:rgba(77,243,227,.18);color:#4df3e3;font-size:.9rem}
+      width:21px;height:21px;border-radius:50%;
+      background:rgba(77,243,227,.18);color:#4df3e3;font-size:.85rem}
     </style>
-    <div class="toast-save"><span class="ts-ico">✓</span> Enregistré</div>
+    <div class="toast-sb"><span class="ts-ico">✓</span> Enregistré</div>
     """, unsafe_allow_html=True)
-
-
-toast_enregistre()
 
 st.markdown("""
 <style>
@@ -2071,8 +2066,9 @@ with onglet_edition:
                         _renommer_tag_partout(ancien, nv)
                     st.session_state.tags = trier_tags(nouveau_cat)
                     if persister(RECETTES):
-                        st.session_state["_toast_enregistre"] = True
+                        st.session_state["_toast_tags"] = True
                         st.rerun()
+            toast_enregistre("_toast_tags")       # pop-up juste sous le bouton
 
     if recette is None:
         st.markdown(CHOIX_RECETTE, unsafe_allow_html=True)
@@ -2372,8 +2368,9 @@ with onglet_edition:
                         "k": k, "brut": etapes, "noms": noms_marques}
                 else:
                     st.session_state.pop("flash_marquage", None)
-                st.session_state["_toast_enregistre"] = True
+                st.session_state["_toast_recette"] = True
                 st.rerun()
+    toast_enregistre("_toast_recette")            # pop-up juste sous le bouton
 
     st.divider()
 
