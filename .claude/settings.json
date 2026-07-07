@@ -8,7 +8,8 @@
       "Bash(pkill -f \"streamlit run\")",
       "Bash(déplacement capture *)",
       "Bash('léditeur concerné \\(nonce dans la clé\\) pour éviter les décalages de rang. *)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('recettes.json',encoding='utf-8'\\)\\); print\\('JSON OK,',len\\(d['recettes']\\),'recettes'\\)\")"
     ]
   }
 }
