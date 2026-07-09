@@ -149,76 +149,6 @@
       ]
     },
     {
-      "titre": "Marinade BBQ maison",
-      "sous_titre": "Exemple modifiable",
-      "base": {
-        "label": "Poids de viande",
-        "unite": "g",
-        "valeur": 750.0,
-        "personnes": 4,
-        "max_personnes": 20,
-        "multiples": false
-      },
-      "ingredients": [
-        {
-          "nom": "Ketchup",
-          "qte": 4.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "Cassonade",
-          "qte": 2.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "Sauce Worcestershire",
-          "qte": 2.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "Vinaigre de cidre",
-          "qte": 1.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "Paprika fumé",
-          "qte": 2.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "Poudre d'ail",
-          "qte": 1.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "Sel et poivre",
-          "qte": null,
-          "unite": "au goût",
-          "palier": null,
-          "section": ""
-        }
-      ],
-      "temps_prep": 0,
-      "temps_cuisson": 0,
-      "preparation": [],
-      "tags": [
-        "Stefou",
-        "Marinade"
-      ]
-    },
-    {
       "titre": "Cuisses de poulet braisées au vin blanc et au romarin",
       "sous_titre": "Style RICARDO — La cuisine d'Isabelle et Ricardo",
       "base": {
@@ -731,6 +661,10 @@
       "couleur": "#f7406d"
     },
     {
+      "nom": "BBQ",
+      "couleur": "#7d8cb5"
+    },
+    {
       "nom": "Casserole",
       "couleur": "#7d8cb5"
     },
@@ -775,6 +709,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Saumon",
+      "couleur": "#7d8cb5"
+    },
+    {
       "nom": "Stefou",
       "couleur": "#007cfb"
     },
@@ -785,6 +723,10 @@
     {
       "nom": "Vinaigrette",
       "couleur": "#c084fc"
+    },
+    {
+      "nom": "Érable",
+      "couleur": "#7d8cb5"
     }
   ]
 }
