@@ -649,6 +649,33 @@
         "Fêtes",
         "Québécois"
       ]
+    },
+    {
+      "titre": "Nouvelle recette",
+      "sous_titre": "À personnaliser",
+      "temps_prep": 0,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "Premier ingrédient",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Première étape — cite un ingrédient et sa quantité s'insérera toute seule à l'enregistrement."
+      ],
+      "tags": []
     }
   ],
   "tags": [
