@@ -11,6 +11,8 @@ env/
 # Secrets Streamlit (ne jamais committer les tokens)
 .streamlit/secrets.toml
 
+# Claude
+.claude/setting*.json
 # OS
 .DS_Store
 Thumbs.db

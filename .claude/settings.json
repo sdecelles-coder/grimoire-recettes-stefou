@@ -9,7 +9,20 @@
       "Bash(déplacement capture *)",
       "Bash('léditeur concerné \\(nonce dans la clé\\) pour éviter les décalages de rang. *)",
       "Bash(python -c ' *)",
-      "Bash(python -c \"import json; d=json.load\\(open\\('recettes.json',encoding='utf-8'\\)\\); print\\('JSON OK,',len\\(d['recettes']\\),'recettes'\\)\")"
+      "Bash(python -c \"import json; d=json.load\\(open\\('recettes.json',encoding='utf-8'\\)\\); print\\('JSON OK,',len\\(d['recettes']\\),'recettes'\\)\")",
+      "Read(//c/Users/sdecelles/Documents/grimoire-recettes-stefou//**)",
+      "Bash(ls \"C:/Users/sdecelles/.claude/projects/c--Users-sdecelles-Documents-grimoire-recettes-stefou/memory/\")",
+      "Bash(cat \"C:/Users/sdecelles/.claude/projects/c--Users-sdecelles-Documents-grimoire-recettes-stefou/memory/MEMORY.md\")",
+      "Bash(git rev-list *)",
+      "Bash(git switch *)",
+      "Bash(python -c \"import requests; print\\('requests', requests.__version__\\)\")",
+      "Bash(python -c \"import anthropic; print\\('anthropic', anthropic.__version__\\)\")",
+      "Bash(python -c \"import requests; r=requests.get\\('https://api.anthropic.com', timeout=8\\); print\\('reseau OK, status', r.status_code\\)\")",
+      "Bash(python -m pip install --quiet anthropic)",
+      "Bash(python \"C:/Users/SDECEL~1/AppData/Local/Temp/claude/c--Users-sdecelles-Documents-grimoire-recettes-stefou/698c43f0-fc12-40ae-a8f2-9b5cf314c1ca/scratchpad/test_extraction.py\")",
+      "Bash(python \"C:/Users/SDECEL~1/AppData/Local/Temp/claude/c--Users-sdecelles-Documents-grimoire-recettes-stefou/698c43f0-fc12-40ae-a8f2-9b5cf314c1ca/scratchpad/test_conversion.py\")",
+      "Bash(python -c \"import json;d=json.load\\(open\\('recettes.json',encoding='utf-8'\\)\\);print\\('JSON OK,',len\\(d['recettes']\\),'recettes'\\)\")",
+      "Bash(python -m py_compile conversion_web.py recettes_console.py)"
     ]
   }
 }
