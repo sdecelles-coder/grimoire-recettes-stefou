@@ -838,6 +838,101 @@
         "Chocolat",
         "Brownies"
       ]
+    },
+    {
+      "titre": "Brownies maison ultra fondants",
+      "sous_titre": "Épais, denses et intensément chocolatés",
+      "temps_prep": 10,
+      "temps_cuisson": 30,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 16,
+        "personnes": 16,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "Beurre non salé, coupé en morceaux",
+          "qte": 170,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Chocolat mi-sucré, haché grossièrement (divisé en deux)",
+          "qte": 113,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Sucre granulé",
+          "qte": 333,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Œufs, à température ambiante",
+          "qte": 3,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Extrait de vanille pure",
+          "qte": 2,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Poudre de cacao non sucrée (naturelle ou Dutch)",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Farine tout usage",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sel",
+          "qte": 0.75,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Pépites de chocolat mi-sucré",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Préchauffer le four à 177 °C (350 °F). Tapisser un moule carré en métal de 23 cm (9 po) de papier parchemin, en laissant un débord sur deux côtés opposés pour faciliter le démoulage.",
+        "Dans un bol allant au micro-ondes, combiner le beurre et la moitié du chocolat haché (56 g). Faire fondre par intervalles de 30 secondes, en remuant entre chaque, jusqu'à ce que le mélange soit lisse. Laisser tiédir légèrement.",
+        "Dans un grand bol, à l'aide d'un batteur électrique muni du fouet, battre le sucre et les œufs à vitesse moyenne-élevée pendant environ 3 minutes, jusqu'à ce que le sucre soit dissous et que le mélange soit pâle et rubanné.",
+        "Verser le mélange beurre-chocolat fondu dans le bol sucre-œufs, ajouter la vanille et mélanger pour combiner.",
+        "Tamiser la poudre de cacao et la farine dans la préparation à l'aide d'un tamis fin. Ajouter le sel, puis incorporer à basse vitesse. Plier ensuite les 57 g restants de chocolat haché et les pépites de chocolat. La pâte sera très épaisse. L'étaler uniformément dans le moule préparé.",
+        "Cuire au four de 28 à 30 minutes. Vérifier la cuisson en insérant un cure-dent au centre : s'il ressort avec quelques miettes humides (mais pas de pâte liquide), les brownies sont cuits. Continuer à vérifier toutes les 2 minutes si nécessaire. Mieux vaut sous-cuire légèrement, car les brownies continuent de se raffermir en refroidissant.",
+        "Retirer du four et déposer sur une grille de refroidissement. Laisser refroidir complètement dans le moule.",
+        "Une fois refroidis, soulever les brownies en tirant sur le papier parchemin et les transférer sur une planche à découper. Couper en carrés à l'aide d'un couteau bien aiguisé.",
+        "Conserver les brownies dans un contenant hermétique à température ambiante jusqu'à 1 semaine."
+      ],
+      "tags": [
+        "Brownies",
+        "Chocolat",
+        "Dessert"
+      ]
     }
   ],
   "tags": [
