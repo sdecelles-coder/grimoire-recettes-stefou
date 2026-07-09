@@ -685,7 +685,7 @@
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 4,
+        "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
         "multiples": false
@@ -693,10 +693,17 @@
       "ingredients": [
         {
           "nom": "Premier ingrédient",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
+        },
+        {
+          "nom": "gdfsgs",
+          "qte": 2.0,
+          "unite": "patapouiche",
+          "palier": 1.0,
+          "section": "patente"
         }
       ],
       "preparation": [
