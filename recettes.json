@@ -737,6 +737,107 @@
         "Première étape — cite un ingrédient et sa quantité s'insérera toute seule à l'enregistrement."
       ],
       "tags": []
+    },
+    {
+      "titre": "Meilleurs brownies maison",
+      "sous_titre": "Bords croustillants, centre fondant et riche saveur chocolatée",
+      "temps_prep": 5,
+      "temps_cuisson": 45,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 16,
+        "personnes": 16,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "Sucre granulé",
+          "qte": 1.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Farine tout usage",
+          "qte": 0.75,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Poudre de cacao non sucrée, tamisée si grumeleuse",
+          "qte": 0.666,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sucre en poudre (sucre glace), tamisé si grumeleux",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Pépites de chocolat noir",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sel de mer",
+          "qte": 0.75,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Œufs",
+          "qte": 2,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Huile de canola ou huile d'olive extra vierge",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Eau",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Extrait de vanille",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Préchauffer le four à 325 °F (165 °C). Vaporiser légèrement un moule carré de 20 cm (8 po) avec de l'huile en aérosol et le tapisser de papier parchemin. Vaporiser également le papier parchemin.",
+        "Dans un bol moyen, mélanger le sucre granulé, la farine, la poudre de cacao, le sucre en poudre, les pépites de chocolat et le sel.",
+        "Dans un grand bol, fouetter ensemble les œufs, l'huile, l'eau et l'extrait de vanille.",
+        "Saupoudrer le mélange d'ingrédients secs sur le mélange humide et mélanger jusqu'à ce que la préparation soit tout juste combinée. La pâte sera épaisse, c'est normal.",
+        "Verser la pâte dans le moule préparé et lisser le dessus à l'aide d'une spatule.",
+        "Cuire de 40 à 48 minutes, ou jusqu'à ce qu'un cure-dent inséré au centre en ressorte avec seulement quelques miettes. Il vaut mieux sortir les brownies un peu tôt que trop tard.",
+        "Laisser refroidir complètement (environ 2 heures) avant de couper en carrés. Les brownies continueront à se raffermir en refroidissant.",
+        "Conserver dans un contenant hermétique à température ambiante jusqu'à 3 jours, ou congeler jusqu'à 1 mois."
+      ],
+      "tags": [
+        "Dessert",
+        "Chocolat",
+        "Brownies"
+      ]
     }
   ],
   "tags": [
@@ -753,7 +854,15 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Brownies",
+      "couleur": "#7d8cb5"
+    },
+    {
       "nom": "Casserole",
+      "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Chocolat",
       "couleur": "#7d8cb5"
     },
     {
