@@ -238,9 +238,9 @@
         "Sur une assiette, saler et poivrer les cuisses de poulet.",
         "Dans une cocotte ou une grande casserole allant au four à feu moyen-élevé, dorer les cuisses de poulet de chaque côté dans 15 ml (1 c. à soupe) du beurre. Parsemer le poulet du romarin ciselé. Réserver sur une autre assiette.",
         "Dans la même cocotte à feu moyen, dorer les [oignons] de chaque côté dans le reste du beurre. Réserver dans la même assiette que le poulet.",
-        "Dans la même cocotte, saupoudrer la [farine] sur le gras de cuisson chaud et poursuivre la cuisson 1 minute en remuant au fouet. Déglacer avec le [vin]. Ajouter le [bouillon], la [moutarde] et les [gousses d'ail] en remuant au fouet jusqu'à ce que la sauce soit homogène. Remettre les cuisses de poulet et les [oignons] dans la cocotte. Ajouter les [branches de romarin]. Porter à ébullition. Couvrir et cuire au four 1 heure.",
+        "Dans la même cocotte, saupoudrer la [farine] sur le gras de cuisson chaud et poursuivre la cuisson 1 minute en remuant au fouet. Déglacer avec le [vin]. Ajouter le [bouillon], la [moutarde] et les [gousses d'ail] en remuant au fouet jusqu'à ce que la sauce soit homogène. Remettre les cuisses de poulet et les oignons dans la cocotte. Ajouter les [branches de romarin]. Porter à ébullition. Couvrir et cuire au four 1 heure.",
         "Retirer le couvercle de la cocotte. Poursuivre la cuisson au four, sans couvrir, 30 minutes ou jusqu'à ce que les cuisses de poulet soient cuites et bien dorées.",
-        "Retirer les [branches de romarin] et les [gousses d'ail] de la cocotte, puis les composter. Accompagner les cuisses de poulet et les [oignons] d'un gratin de pommes de terre aux poireaux et au thym, si désiré."
+        "Retirer les branches de romarin et les gousses d'ail de la cocotte, puis les composter. Accompagner les cuisses de poulet et les oignons d'un gratin de pommes de terre aux poireaux et au thym, si désiré."
       ],
       "tags": [
         "plat principal"
@@ -737,6 +737,202 @@
         "Première étape — cite un ingrédient et sa quantité s'insérera toute seule à l'enregistrement."
       ],
       "tags": []
+    },
+    {
+      "titre": "Meilleurs brownies maison",
+      "sous_titre": "Bords croustillants, centre fondant et riche saveur chocolatée",
+      "temps_prep": 5,
+      "temps_cuisson": 45,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 16,
+        "personnes": 16,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "Sucre granulé",
+          "qte": 1.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Farine tout usage",
+          "qte": 0.75,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Poudre de cacao non sucrée, tamisée si grumeleuse",
+          "qte": 0.666,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sucre en poudre (sucre glace), tamisé si grumeleux",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Pépites de chocolat noir",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sel de mer",
+          "qte": 0.75,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Œufs",
+          "qte": 2,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Huile de canola ou huile d'olive extra vierge",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Eau",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Extrait de vanille",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Préchauffer le four à 325 °F (165 °C). Vaporiser légèrement un moule carré de 20 cm (8 po) avec de l'huile en aérosol et le tapisser de papier parchemin. Vaporiser également le papier parchemin.",
+        "Dans un bol moyen, mélanger le sucre granulé, la farine, la poudre de cacao, le sucre en poudre, les pépites de chocolat et le sel.",
+        "Dans un grand bol, fouetter ensemble les œufs, l'huile, l'eau et l'extrait de vanille.",
+        "Saupoudrer le mélange d'ingrédients secs sur le mélange humide et mélanger jusqu'à ce que la préparation soit tout juste combinée. La pâte sera épaisse, c'est normal.",
+        "Verser la pâte dans le moule préparé et lisser le dessus à l'aide d'une spatule.",
+        "Cuire de 40 à 48 minutes, ou jusqu'à ce qu'un cure-dent inséré au centre en ressorte avec seulement quelques miettes. Il vaut mieux sortir les brownies un peu tôt que trop tard.",
+        "Laisser refroidir complètement (environ 2 heures) avant de couper en carrés. Les brownies continueront à se raffermir en refroidissant.",
+        "Conserver dans un contenant hermétique à température ambiante jusqu'à 3 jours, ou congeler jusqu'à 1 mois."
+      ],
+      "tags": [
+        "Dessert",
+        "Chocolat",
+        "Brownies"
+      ]
+    },
+    {
+      "titre": "Brownies maison ultra fondants",
+      "sous_titre": "Épais, denses et intensément chocolatés",
+      "temps_prep": 10,
+      "temps_cuisson": 30,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 16,
+        "personnes": 16,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "Beurre non salé, coupé en morceaux",
+          "qte": 170,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Chocolat mi-sucré, haché grossièrement (divisé en deux)",
+          "qte": 113,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Sucre granulé",
+          "qte": 333,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Œufs, à température ambiante",
+          "qte": 3,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Extrait de vanille pure",
+          "qte": 2,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Poudre de cacao non sucrée (naturelle ou Dutch)",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Farine tout usage",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sel",
+          "qte": 0.75,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Pépites de chocolat mi-sucré",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Préchauffer le four à 177 °C (350 °F). Tapisser un moule carré en métal de 23 cm (9 po) de papier parchemin, en laissant un débord sur deux côtés opposés pour faciliter le démoulage.",
+        "Dans un bol allant au micro-ondes, combiner le beurre et la moitié du chocolat haché (56 g). Faire fondre par intervalles de 30 secondes, en remuant entre chaque, jusqu'à ce que le mélange soit lisse. Laisser tiédir légèrement.",
+        "Dans un grand bol, à l'aide d'un batteur électrique muni du fouet, battre le sucre et les œufs à vitesse moyenne-élevée pendant environ 3 minutes, jusqu'à ce que le sucre soit dissous et que le mélange soit pâle et rubanné.",
+        "Verser le mélange beurre-chocolat fondu dans le bol sucre-œufs, ajouter la vanille et mélanger pour combiner.",
+        "Tamiser la poudre de cacao et la farine dans la préparation à l'aide d'un tamis fin. Ajouter le sel, puis incorporer à basse vitesse. Plier ensuite les 57 g restants de chocolat haché et les pépites de chocolat. La pâte sera très épaisse. L'étaler uniformément dans le moule préparé.",
+        "Cuire au four de 28 à 30 minutes. Vérifier la cuisson en insérant un cure-dent au centre : s'il ressort avec quelques miettes humides (mais pas de pâte liquide), les brownies sont cuits. Continuer à vérifier toutes les 2 minutes si nécessaire. Mieux vaut sous-cuire légèrement, car les brownies continuent de se raffermir en refroidissant.",
+        "Retirer du four et déposer sur une grille de refroidissement. Laisser refroidir complètement dans le moule.",
+        "Une fois refroidis, soulever les brownies en tirant sur le papier parchemin et les transférer sur une planche à découper. Couper en carrés à l'aide d'un couteau bien aiguisé.",
+        "Conserver les brownies dans un contenant hermétique à température ambiante jusqu'à 1 semaine."
+      ],
+      "tags": [
+        "Brownies",
+        "Chocolat",
+        "Dessert"
+      ]
     }
   ],
   "tags": [
@@ -753,7 +949,15 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Brownies",
+      "couleur": "#7d8cb5"
+    },
+    {
       "nom": "Casserole",
+      "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Chocolat",
       "couleur": "#7d8cb5"
     },
     {
