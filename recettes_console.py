@@ -436,6 +436,50 @@ def _plier(s):
     return "".join(out)
 
 
+def _norm_titre(titre):
+    """Clé de comparaison d'un titre de recette : sans casse ni accents, espaces
+    condensés. « Crème brûlée » et « creme  brulee » donnent la même clé."""
+    return re.sub(r"\s+", " ", _plier(titre)).strip()
+
+
+def _titre_duplique(titre, recettes, sauf=None):
+    """Vrai si `titre` (comparé sans casse ni accents) coïncide avec une AUTRE
+    recette du menu. `sauf` = index de la recette en cours d'édition à ignorer."""
+    cle = _norm_titre(titre)
+    if not cle:
+        return False
+    for i, r in enumerate(recettes):
+        if i == sauf:
+            continue
+        if _norm_titre(r.get("titre", "")) == cle:
+            return True
+    return False
+
+
+def _ingredients_cle(ingredients):
+    """Ensemble des noms d'ingrédients normalisés (sans casse ni accents) d'une
+    recette. Sert à repérer deux recettes au contenu identique malgré un titre
+    différent. Quantités, unités, paliers et sections sont ignorés."""
+    return frozenset(
+        cle for ing in (ingredients or [])
+        if (cle := _norm_titre(ing.get("nom", "")))
+    )
+
+
+def _recette_jumelle_ingredients(ingredients, recettes, sauf=None):
+    """Titre d'une AUTRE recette dont l'ensemble des noms d'ingrédients coïncide
+    exactement, ou None. `sauf` = index de la recette éditée à ignorer."""
+    cle = _ingredients_cle(ingredients)
+    if not cle:
+        return None
+    for i, r in enumerate(recettes):
+        if i == sauf:
+            continue
+        if _ingredients_cle(r.get("ingredients")) == cle:
+            return r.get("titre", "")
+    return None
+
+
 def _mots_ing(nom):
     """Mots significatifs d'un nom d'ingrédient : sans accents ni casse, les
     qualificatifs entre parenthèses et la ponctuation retirés.
@@ -722,6 +766,20 @@ def persister(recettes, tags=None):
     return ok
 
 
+def _palier_txt(p):
+    """Rend un palier sous forme de chaîne pour l'éditeur (menu déroulant). La
+    colonne Palier reste ainsi textuelle : sans ça, streamlit-aggrid l'infère
+    numérique et affiche « Invalid Number » sur une valeur de menu ou une ligne
+    neuve. Le float est reconstruit à l'enregistrement."""
+    if p is None or p == "" or (isinstance(p, float) and pd.isna(p)):
+        return ""
+    p = float(p)
+    for v in ("0.25", "0.5", "1.0"):
+        if abs(p - float(v)) < 1e-9:
+            return v
+    return f"{p:g}"
+
+
 def _ingredients_depuis_editeur(df):
     """Convertit le tableau édité (data_editor) en liste d'ingrédients propre,
     en ignorant les lignes sans nom. Sert à l'enregistrement ET au
@@ -946,9 +1004,21 @@ def chips_tags_html(noms, taille="normal"):
             'margin-top:4px;">' + "".join(puces) + "</div>")
 
 
-def recette_vierge(n_total):
+def _titre_vierge_unique(recettes):
+    """Titre par défaut d'une recette vierge qui ne double aucun titre existant :
+    « Nouvelle recette », puis « Nouvelle recette 2 », « … 3 »…"""
+    base = "Nouvelle recette"
+    if not _titre_duplique(base, recettes):
+        return base
+    n = 2
+    while _titre_duplique(f"{base} {n}", recettes):
+        n += 1
+    return f"{base} {n}"
+
+
+def recette_vierge(recettes):
     return {
-        "titre": f"Nouvelle recette {n_total}" if n_total > 1 else "Nouvelle recette",
+        "titre": _titre_vierge_unique(recettes),
         "sous_titre": "À personnaliser",
         "temps_prep": 0,
         "temps_cuisson": 0,
@@ -972,7 +1042,7 @@ def _creer_recette():
     """Callback : ajoute une recette vierge, l'affiche et efface les filtres.
     Exécuté avant l'instanciation des widgets, donc peut écrire leurs clés."""
     recettes = st.session_state.recettes
-    recettes.append(recette_vierge(len(recettes) + 1))
+    recettes.append(recette_vierge(recettes))
     st.session_state.recherche_titre = ""
     st.session_state.recherche_ingredient = ""
     st.session_state.recette_select = len(recettes) - 1
@@ -997,6 +1067,17 @@ def _ajouter_recette_convertie(rec):
     """Callback : ajoute au menu une recette convertie du web, l'affiche et la
     sélectionne. Intègre ses nouveaux tags au catalogue global."""
     normaliser_recette(rec)
+    recettes = st.session_state.recettes
+    # Anti-doublon : on refuse d'ajouter une recette dont le titre existe déjà
+    # (sans casse ni accents). Le message est affiché au rerun.
+    if _titre_duplique(rec.get("titre", ""), recettes):
+        st.session_state["_conv_doublon"] = rec.get("titre", "")
+        return
+    jumelle = _recette_jumelle_ingredients(rec.get("ingredients"), recettes)
+    if jumelle:
+        st.session_state["_conv_doublon_ing"] = (rec.get("titre", ""), jumelle)
+        return
+
     connus = {_norm_tag(t["nom"]) for t in st.session_state.tags}
     for nom in rec.get("tags", []):
         if nom and _norm_tag(nom) not in connus:
@@ -1005,7 +1086,6 @@ def _ajouter_recette_convertie(rec):
             connus.add(_norm_tag(nom))
     st.session_state.tags = trier_tags(st.session_state.tags)
 
-    recettes = st.session_state.recettes
     recettes.append(rec)
     st.session_state.recherche_titre = ""
     st.session_state.recherche_ingredient = ""
@@ -2077,6 +2157,18 @@ with onglet_conversion:
     if titre_ajoute:
         st.success(f"✅ « {titre_ajoute} » ajoutée au menu ! Ouvre l'onglet "
                    "⚙ ÉDITION pour la peaufiner.")
+    # Bandeau d'échec si le titre double une recette existante (anti-doublon).
+    titre_doublon = st.session_state.pop("_conv_doublon", None)
+    if titre_doublon:
+        st.error(f"⛔ « {titre_doublon} » n'a pas été ajoutée : une recette porte "
+                 "déjà ce titre (comparaison sans casse ni accents). Renomme la "
+                 "recette existante ou modifie le titre avant de l'ajouter.")
+    doublon_ing = st.session_state.pop("_conv_doublon_ing", None)
+    if doublon_ing:
+        titre_conv, jumelle = doublon_ing
+        st.error(f"⛔ « {titre_conv} » n'a pas été ajoutée : la recette "
+                 f"« {jumelle} » a exactement la même liste d'ingrédients "
+                 "(probable doublon). Vérifie avant de l'ajouter.")
 
     cfg = _anthropic_cfg()
     if cfg is None:
@@ -2363,7 +2455,7 @@ with onglet_edition:
                     "Section": ing.get("section", ""),
                     "Quantité": ing.get("qte"),
                     "Unité": ing.get("unite", ""),
-                    "Palier": ing.get("palier"),
+                    "Palier": _palier_txt(ing.get("palier")),
                     "_rowid": str(i),
                 }
                 for i, ing in enumerate(recette["ingredients"])
@@ -2396,7 +2488,7 @@ with onglet_edition:
             st.session_state[ss_ing] = pd.concat(
                 [edite, pd.DataFrame([{"Ingrédient": "", "Section": "",
                                        "Quantité": None, "Unité": "",
-                                       "Palier": None, "_rowid": f"n{seq}"}])],
+                                       "Palier": "", "_rowid": f"n{seq}"}])],
                 ignore_index=True)
             st.session_state[f"{ss_ing}_nonce"] = \
                 st.session_state.get(f"{ss_ing}_nonce", 0) + 1
@@ -2514,6 +2606,16 @@ with onglet_edition:
         # obligatoire pour chaque recette : c'est ce qui s'ajuste avec le nombre
         # de personnes en cuisine.
         erreurs = []
+        if _titre_duplique(titre, RECETTES, sauf=k):
+            erreurs.append(
+                f"Une autre recette porte déjà le titre « {titre.strip()} » "
+                "(comparaison sans casse ni accents). Choisis un titre différent.")
+        jumelle = _recette_jumelle_ingredients(nouveaux, RECETTES, sauf=k)
+        if jumelle:
+            erreurs.append(
+                f"La recette « {jumelle} » a exactement la même liste "
+                "d'ingrédients : c'est probablement un doublon. Modifie les "
+                "ingrédients, ou supprime la recette en trop.")
         if not nouveaux:
             erreurs.append("Il faut au moins un ingrédient avec un nom.")
         if not b_label.strip():
