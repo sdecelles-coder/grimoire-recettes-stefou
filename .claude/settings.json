@@ -22,7 +22,11 @@
       "Bash(python \"C:/Users/SDECEL~1/AppData/Local/Temp/claude/c--Users-sdecelles-Documents-grimoire-recettes-stefou/698c43f0-fc12-40ae-a8f2-9b5cf314c1ca/scratchpad/test_extraction.py\")",
       "Bash(python \"C:/Users/SDECEL~1/AppData/Local/Temp/claude/c--Users-sdecelles-Documents-grimoire-recettes-stefou/698c43f0-fc12-40ae-a8f2-9b5cf314c1ca/scratchpad/test_conversion.py\")",
       "Bash(python -c \"import json;d=json.load\\(open\\('recettes.json',encoding='utf-8'\\)\\);print\\('JSON OK,',len\\(d['recettes']\\),'recettes'\\)\")",
-      "Bash(python -m py_compile conversion_web.py recettes_console.py)"
+      "Bash(python -m py_compile conversion_web.py recettes_console.py)",
+      "Bash(python -c \"import streamlit as st; print\\('streamlit', st.__version__\\)\")",
+      "Bash(ls *.txt *.toml)",
+      "Bash(cat requirements.txt)",
+      "Bash(git remote *)"
     ]
   }
 }

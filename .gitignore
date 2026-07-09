@@ -12,7 +12,8 @@ env/
 .streamlit/secrets.toml
 
 # Claude
-.claude/setting*.json
+.claude/settings.json
+.claude/settings.local.json
 
 # OS
 .DS_Store
