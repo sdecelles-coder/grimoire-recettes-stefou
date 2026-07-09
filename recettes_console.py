@@ -11,12 +11,16 @@ Grimoire de recettes techno-futuriste
 • TAGS : catalogue global partagé par tous les utilisateurs (enregistré avec
   les recettes). Chaque tag a une couleur. Recherche par tags (ET), et affichage
   des tags dans les sommaires de cuisine et d'édition.
-• Dans une étape, les ingrédients cités sont marqués [ainsi] automatiquement
-  à l'enregistrement ; leur quantité mise à l'échelle s'affiche « nom (qté) ».
-  On peut aussi ajouter/retirer les crochets à la main.
+• Dans une étape, les ingrédients cités deviennent DYNAMIQUES quand ils sont
+  marqués [ainsi] : leur quantité mise à l'échelle s'affiche « nom (qté) ».
+  Le marquage se fait à la demande via « 🔍 Rescanner » : l'éditeur surligne
+  chaque occurrence citée et on bascule dynamique/non d'un clic, PAR OCCURRENCE
+  (un ingrédient cité plusieurs fois peut n'être dynamique qu'une seule fois).
+  On peut aussi éditer les crochets à la main. Aucun marquage automatique n'a
+  lieu à l'enregistrement.
 • Pour un ingrédient fractionné, une PORTION explicite : [beurre: 15 ml]
-  (le 15 s'échelonne) ou [beurre: reste] (le solde). L'auto-marquage ne pose
-  jamais le total sur une portion (« 15 ml … du beurre », « le reste du beurre »).
+  (le 15 s'échelonne) ou [beurre: reste] (le solde). Le rescan ne touche jamais
+  aux portions (« 15 ml … du beurre », « le reste du beurre »).
 • Sauvegarde vers GitHub (si secrets configurés) ou en local.
 
 Lancer avec :  streamlit run recettes_console.py
@@ -633,35 +637,108 @@ def detecter_mentions(texte, ingredients, idx):
     return retenus
 
 
-def marquer_etape(texte, ingredients, idx):
-    """Enveloppe de crochets les mentions détectées dans une étape.
-    Renvoie (texte_marqué, [noms d'ingrédients nouvellement marqués])."""
-    retenus = detecter_mentions(texte, ingredients, idx)
-    if not retenus:
-        return texte, []
-    morceaux, prev, noms = [], 0, []
-    for a, b, ing in retenus:
-        morceaux.append(texte[prev:a])
-        morceaux.append("[" + texte[a:b] + "]")
-        noms.append(ing["nom"])
-        prev = b
-    morceaux.append(texte[prev:])
-    return "".join(morceaux), noms
-
-
-def auto_marquer(etapes, ingredients):
-    """Applique `marquer_etape` à chaque étape. Idempotent : n'ajoute des
-    crochets qu'aux mentions pas encore marquées.
-    Renvoie (étapes_marquées, [noms d'ingrédients marqués, sans doublon])."""
+# ── Rescan à la demande : marquage DYNAMIQUE par OCCURRENCE ───────────────────
+#  Plutôt qu'un marquage automatique à l'enregistrement (imprévisible), l'auteur
+#  déclenche un « rescan » puis bascule dynamique/non CHAQUE occurrence d'un clic.
+#  C'est par occurrence : un ingrédient cité plusieurs fois peut n'être dynamique
+#  que là où c'est utile (souvent une seule fois), le reste restant du texte nu.
+def ingredients_deja_dynamiques(etapes, ingredients):
+    """Noms des ingrédients DÉJÀ entre crochets dans les étapes (ordre
+    d'apparition, sans doublon). Sert au rappel « pas encore dynamique »."""
     idx = index_marqueurs(ingredients)
-    resultat, noms = [], []
+    vus, noms = set(), []
     for e in etapes:
-        t, ns = marquer_etape(e, ingredients, idx)
-        resultat.append(t)
-        for n in ns:
-            if n not in noms:
-                noms.append(n)
-    return resultat, noms
+        for m in re.finditer(r"\[([^\[\]]+)\]", e):
+            nom = m.group(1).partition(":")[0].strip()
+            ing = resoudre_marqueur(nom, idx)
+            if ing and id(ing) not in vus:
+                vus.add(id(ing))
+                noms.append(ing["nom"])
+    return noms
+
+
+def candidats_dynamiques(etapes, ingredients):
+    """Noms des ingrédients cités dans les étapes mais dont AUCUNE occurrence
+    n'est encore entre crochets. Ordre d'apparition, sans doublon. Sert au
+    rappel qui incite à rendre ces ingrédients dynamiques."""
+    idx = index_marqueurs(ingredients)
+    vus, noms = set(), []
+    for e in etapes:
+        for _a, _b, ing in detecter_mentions(e, ingredients, idx):
+            if id(ing) in vus:
+                continue
+            vus.add(id(ing))
+            noms.append(ing["nom"])
+    return noms
+
+
+def detecter_mentions_toutes(texte, ingredients, idx):
+    """Comme `detecter_mentions`, mais renvoie TOUTES les occurrences propres de
+    chaque ingrédient (pas seulement la 1re) — (start, end, ingrédient), non
+    chevauchantes. Sert au marquage par occurrence."""
+    folded = _plier(texte)
+    exclus = [(m.start(), m.end()) for m in re.finditer(r"\[[^\[\]]*\]", texte)]
+
+    def chevauche(a, b, spans):
+        return any(a < j and i < b for i, j in spans)
+
+    trouves = []
+    for ing in ingredients:
+        if not ing.get("nom") or ing.get("qte") is None:   # ignore « au goût »
+            continue
+        for ph in _phrases_ing(ing["nom"]):
+            if idx.get(ph) is not ing:            # phrase ambiguë ou d'un autre
+                continue
+            motif = (r"(?<![a-z0-9])"
+                     + r"[^a-z0-9]+".join(map(re.escape, ph.split()))
+                     + r"(?![a-z0-9])")
+            for m in re.finditer(motif, folded):
+                if chevauche(m.start(), m.end(), exclus):
+                    continue
+                if _mention_est_portion(folded[max(0, m.start() - 40):m.start()]):
+                    continue
+                trouves.append((m.start(), m.end(), ing))
+            break                                 # 1re phrase (la plus longue)
+    trouves.sort(key=lambda t: (t[0], -(t[1] - t[0])))
+    retenus, occup = [], []
+    for a, b, ing in trouves:
+        if not chevauche(a, b, occup):
+            occup.append((a, b))
+            retenus.append((a, b, ing))
+    retenus.sort()
+    return retenus
+
+
+def occurrences_dynamiques(texte, ingredients, idx):
+    """Occurrences « basculables » d'une étape, pour le panneau interactif.
+    Renvoie une liste triée de tuples (a, b, etat, nom) où [a, b) est le span
+    dans `texte` :
+      • etat 'dyn'  → un marqueur simple [nom] (cliquer RETIRE les crochets) ;
+      • etat 'cand' → une mention non marquée (cliquer AJOUTE les crochets).
+    Les marqueurs de PORTION [nom: 15 ml] sont ignorés (édition manuelle)."""
+    occ = []
+    bornes_marqueurs = []
+    for m in re.finditer(r"\[([^\[\]]+)\]", texte):
+        bornes_marqueurs.append((m.start(), m.end()))
+        contenu = m.group(1)
+        nom, sep, _spec = contenu.partition(":")
+        if sep:                                    # portion → non basculable
+            continue
+        ing = resoudre_marqueur(nom.strip(), idx)
+        if ing:
+            occ.append((m.start(), m.end(), "dyn", ing["nom"]))
+    for a, b, ing in detecter_mentions_toutes(texte, ingredients, idx):
+        occ.append((a, b, "cand", ing["nom"]))
+    occ.sort()
+    return occ
+
+
+def basculer_marqueur(texte, a, b, etat):
+    """Ajoute ('cand') ou retire ('dyn') les crochets sur le span [a, b) d'une
+    étape. Pour 'dyn', [a, b) englobe les crochets. Renvoie le nouveau texte."""
+    if etat == "cand":
+        return texte[:a] + "[" + texte[a:b] + "]" + texte[b:]
+    return texte[:a] + texte[a + 1:b - 1] + texte[b:]   # 'dyn' : ôte [ et ]
 
 
 def _valeur_reste(ing, facteur, allocations):
@@ -728,6 +805,33 @@ def apercu_marqueurs(texte, idx):
         style = _MK_OK if resoudre_marqueur(nom, idx) else _MK_KO
         morceaux.append(f'<span style="{style}">[{html_escape(contenu)}]</span>')
         prev = m.end()
+    morceaux.append(html_escape(texte[prev:]))
+    return "".join(morceaux)
+
+
+# Panneau interactif de marquage : styles des occurrences (vert = dynamique,
+# ambre pointillé = candidat) et pastilles ①..⑨ pour numéroter les répétitions.
+_OCC_DYN = ("background:rgba(74,222,128,.15);color:#7ee787;"
+            "border-bottom:2px solid rgba(74,222,128,.6);border-radius:3px;padding:0 2px")
+_OCC_CAND = ("background:rgba(255,180,84,.13);color:#ffd9a6;"
+             "border-bottom:2px dashed rgba(255,180,84,.6);border-radius:3px;padding:0 2px")
+_CERCLES = {1: "①", 2: "②", 3: "③", 4: "④", 5: "⑤",
+            6: "⑥", 7: "⑦", 8: "⑧", 9: "⑨"}
+
+
+def apercu_occurrences(texte, occ):
+    """HTML d'une étape pour le panneau interactif : chaque occurrence 'dyn' est
+    surlignée vert, chaque 'cand' ambre pointillé. Le contenu d'un marqueur
+    [..] est montré SANS les crochets (pour voir le rendu final). `occ` provient
+    d'occurrences_dynamiques() ; le reste du texte est échappé."""
+    morceaux, prev = [], 0
+    for a, b, etat, _nom in occ:
+        morceaux.append(html_escape(texte[prev:a]))
+        brut = texte[a:b]
+        interne = brut[1:-1] if (etat == "dyn" and brut.startswith("[")) else brut
+        style = _OCC_DYN if etat == "dyn" else _OCC_CAND
+        morceaux.append(f'<span style="{style}">{html_escape(interne)}</span>')
+        prev = b
     morceaux.append(html_escape(texte[prev:]))
     return "".join(morceaux)
 
@@ -2510,27 +2614,13 @@ with onglet_edition:
                      f"{'s' if len(recette.get('preparation', [])) > 1 else ''})",
                      expanded=True):
         st.caption("Double-clique pour éditer l'étape · glisse la poignée ⠿ pour "
-                   "réordonner · coche + 🗑 pour retirer. À l'enregistrement, les "
-                   "ingrédients cités sont marqués [ainsi] et leur quantité "
-                   "s'insère automatiquement. Pour une PORTION, écris "
-                   "[beurre: 15 ml] (s'échelonne) ou [beurre: reste] (le solde) ; "
-                   "l'auto-marquage laisse ces cas-là de côté.")
+                   "réordonner · coche + 🗑 pour retirer. Pour rendre les "
+                   "ingrédients cités DYNAMIQUES (quantité insérée et mise à "
+                   "l'échelle en cuisine), clique sur « 🔍 Rescanner » ci-dessous "
+                   "et confirme-les d'un clic. Pour une PORTION, écris "
+                   "[beurre: 15 ml] (s'échelonne) ou [beurre: reste] (le solde).")
 
         ss_prep = f"agg_prep_{k}"
-
-        # Récap du dernier auto-marquage, avec possibilité de l'annuler.
-        flash = st.session_state.get("flash_marquage")
-        if flash and flash.get("k") == k:
-            liste = ", ".join(flash["noms"])
-            st.info(f"✨ Quantités insérées automatiquement pour : {liste}.")
-            if st.button("↩︎ Annuler le marquage automatique",
-                         key=f"annuler_marquage_{k}", use_container_width=True):
-                recette["preparation"] = flash["brut"]
-                if persister(RECETTES):
-                    for cle in (ss_prep, f"{ss_prep}_nonce", f"{ss_prep}_seq"):
-                        st.session_state.pop(cle, None)
-                    st.session_state.pop("flash_marquage", None)
-                    st.rerun()
 
         df_prep = pd.DataFrame(
             [{"Étape": e, "_rowid": str(i)}
@@ -2572,6 +2662,77 @@ with onglet_edition:
             else:
                 st.info("Coche d'abord au moins une étape (case à gauche), "
                         "puis clique 🗑.")
+
+        # ── Ingrédients dynamiques : rescan + marquage PAR OCCURRENCE ─────────
+        #  Les quantités ne s'insèrent en cuisine QUE pour les ingrédients entre
+        #  [crochets]. On scanne sur demande (grilles EN COURS d'édition) et on
+        #  bascule chaque occurrence d'un clic, SANS rechargement (session
+        #  préservée). Chaque occurrence est indépendante : un ingrédient cité
+        #  plusieurs fois peut n'être dynamique qu'une seule fois.
+        etapes_courantes = _etapes_depuis_editeur(edite_prep)
+        ings_courants = _ingredients_depuis_editeur(edite)
+        idx_dyn = index_marqueurs(ings_courants)
+
+        # Rappel « dans l'intérêt de l'auteur » : ingrédients cités dont AUCUNE
+        # occurrence n'est dynamique (leur quantité ne s'affichera pas en cuisine).
+        deja = {_norm_titre(n)
+                for n in ingredients_deja_dynamiques(etapes_courantes, ings_courants)}
+        candidats = [n for n in candidats_dynamiques(etapes_courantes, ings_courants)
+                     if _norm_titre(n) not in deja]
+        if candidats:
+            st.warning(
+                f"🔎 {len(candidats)} ingrédient(s) cité(s) ne sont dynamiques "
+                "nulle part : leur quantité ne s'affichera PAS en cuisine. Ouvre "
+                "« 🔍 Rescanner » et clique-les pour les rendre dynamiques — "
+                + ", ".join(candidats) + ".")
+
+        cle_rescan = f"rescan_actif_{k}"
+        actif = st.session_state.get(cle_rescan, False)
+        if st.button("🔍 Masquer le marquage dynamique" if actif
+                     else "🔍 Rescanner les ingrédients dynamiques",
+                     key=f"rescan_btn_{k}", use_container_width=True):
+            st.session_state[cle_rescan] = not actif
+            st.rerun()
+
+        if actif:
+            st.caption("Clique un mot ✅ pour RETIRER sa quantité dynamique, un "
+                       "mot ➕ pour l'AJOUTER. Chaque occurrence est indépendante : "
+                       "①②③ numérotent les répétitions d'un même ingrédient.")
+            rien = True
+            for si, etape in enumerate(etapes_courantes):
+                occ = occurrences_dynamiques(etape, ings_courants, idx_dyn)
+                if not occ:
+                    continue
+                rien = False
+                st.markdown(
+                    f'<div style="margin:.55rem 0 .2rem;line-height:1.55">'
+                    f'<b style="color:#ffb454">{si + 1}.</b> '
+                    f'{apercu_occurrences(etape, occ)}</div>',
+                    unsafe_allow_html=True)
+                totaux = {}
+                for *_x, nom in occ:
+                    totaux[nom] = totaux.get(nom, 0) + 1
+                rang = {}
+                cols = st.columns(min(3, len(occ)))
+                for j, (a, b, etat, nom) in enumerate(occ):
+                    rang[nom] = rang.get(nom, 0) + 1
+                    suffixe = (f" {_CERCLES.get(rang[nom], rang[nom])}"
+                               if totaux[nom] > 1 else "")
+                    icone = "✅" if etat == "dyn" else "➕"
+                    if cols[j % len(cols)].button(
+                            f"{icone} {nom}{suffixe}",
+                            key=f"occ_{k}_{si}_{a}_{b}", use_container_width=True):
+                        etapes_courantes[si] = basculer_marqueur(etape, a, b, etat)
+                        st.session_state[ss_prep] = pd.DataFrame(
+                            [{"Étape": e, "_rowid": str(i)}
+                             for i, e in enumerate(etapes_courantes)],
+                            columns=["Étape", "_rowid"])
+                        st.session_state[f"{ss_prep}_nonce"] = \
+                            st.session_state.get(f"{ss_prep}_nonce", 0) + 1
+                        st.rerun()
+            if rien:
+                st.caption("Aucun ingrédient reconnu dans les étapes. Vérifie "
+                           "l'orthographe ou les noms d'ingrédients.")
 
         # Aperçu live : montre les [marqueurs] surlignés (reconnu / introuvable),
         # calculés sur les ingrédients ET les étapes en cours d'édition.
@@ -2641,27 +2802,21 @@ with onglet_edition:
                                "max_personnes": max(int(b_maxpers), int(b_personnes)),
                                "multiples": bool(b_multiples)}
             recette["ingredients"] = nouveaux
-            # Auto-marquage : on enveloppe [ainsi] les ingrédients cités dans les
-            # étapes pour insérer leur quantité au rendu. Idempotent (ne touche
-            # pas aux crochets déjà présents). `etapes` reste la version brute,
-            # conservée pour l'annulation.
-            etapes_marquees, noms_marques = auto_marquer(etapes, nouveaux)
-            recette["preparation"] = etapes_marquees
+            # Les étapes sont enregistrées telles quelles : le marquage dynamique
+            # [ainsi] se fait à la demande via « 🔍 Rescanner » (aucun marquage
+            # automatique ici). Les crochets présents font foi.
+            recette["preparation"] = etapes
             # Tags : enregistre les nouveaux au catalogue global, applique les
             # noms canoniques à la recette.
             recette["tags"] = enregistrer_tags(tags_appliques)
             if persister(RECETTES):
                 # Repart des données sauvées : on vide les tables de travail
-                # (et leurs nonces/compteurs de remontage).
+                # (et leurs nonces/compteurs de remontage) ainsi que l'état du
+                # panneau de marquage dynamique.
                 for base in (f"agg_ing_{k}", f"agg_prep_{k}"):
                     for cle in (base, f"{base}_nonce", f"{base}_seq"):
                         st.session_state.pop(cle, None)
-                # Récap d'auto-marquage (survit au rerun) pour permettre l'annulation.
-                if noms_marques:
-                    st.session_state["flash_marquage"] = {
-                        "k": k, "brut": etapes, "noms": noms_marques}
-                else:
-                    st.session_state.pop("flash_marquage", None)
+                st.session_state.pop(f"rescan_actif_{k}", None)
                 st.session_state["_toast_recette"] = True
                 st.rerun()
     toast_enregistre("_toast_recette")            # pop-up juste sous le bouton
