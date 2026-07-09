@@ -13,6 +13,10 @@ env/
 
 # Claude
 .claude/setting*.json
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Autres
+notes.md
