@@ -2770,16 +2770,26 @@ if vue == VUE_EDITION:
                        + " par personne.")
 
         st.markdown("<div style='height:.3rem'></div>", unsafe_allow_html=True)
-        # Défaut = tags déjà appliqués ; on complète les options avec ces valeurs
-        # au cas (rare) où l'une ne serait pas dans le catalogue courant.
+        # Défaut = tags déjà appliqués, ramenés à leur forme canonique du
+        # catalogue (même casse/accents que les options) — sinon st.multiselect
+        # rejette un défaut qui ne correspond pas EXACTEMENT à une option (ex.
+        # recette convertie avec « Dessert » alors que le catalogue a « dessert »).
+        # On complète les options avec les tags réellement absents du catalogue.
         opts_tags = noms_tags()
+        canon = {_norm_tag(o): o for o in opts_tags}
+        defauts_tags, vus = [], set()
         for t in recette.get("tags", []):
-            if _norm_tag(t) not in {_norm_tag(o) for o in opts_tags}:
+            n = _norm_tag(t)
+            if n not in canon:
                 opts_tags.append(t)
+                canon[n] = t
+            if n not in vus:
+                vus.add(n)
+                defauts_tags.append(canon[n])
         tags_appliques = st.multiselect(
             "Tags de cette recette",
             options=sorted(opts_tags, key=_norm_tag),
-            default=list(recette.get("tags", [])),
+            default=defauts_tags,
             key=f"rtags_{k}", accept_new_options=True,
             placeholder="Écris un tag existant ou un nouveau…",
             help="Choisis des tags existants ou écris-en un nouveau (il sera "
