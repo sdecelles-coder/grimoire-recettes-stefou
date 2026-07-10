@@ -994,6 +994,9 @@ def _grille_aggrid(df_init, ss_key, configurer):
     options["animateRows"] = True
     options["suppressMoveWhenRowDragging"] = False
     options["domLayout"] = "autoHeight"   # la grille s'adapte au nombre de lignes
+    # Info-bulles natives du navigateur (attribut title) : la bulle maison
+    # d'AgGrid est tronquée dans l'iframe Streamlit et n'apparaît pas.
+    options["enableBrowserTooltips"] = True
 
     # Le nonce force un remontage propre après ajout/suppression (AgGrid recharge
     # alors les données serveur, sans conserver un état client périmé).
@@ -2718,6 +2721,9 @@ if vue == VUE_EDITION:
                    "glisse la poignée ⠿ (à gauche du nom) pour changer l'ordre · "
                    "coche des lignes puis 🗑 pour les retirer · quantité vide = "
                    "« au goût ». Pris en compte à l'enregistrement 💾.")
+        st.caption("💡 Astuce : passe la souris sur un titre de colonne "
+                   "(Palier, Unité…) et attends une seconde pour voir une "
+                   "petite explication.")
 
         ss_ing = f"agg_ing_{k}"
         df_ing = pd.DataFrame(
@@ -2736,6 +2742,14 @@ if vue == VUE_EDITION:
             columns=["Ingrédient", "Section", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
+        # Valeurs du menu déroulant Palier : les standards + tout palier déjà
+        # présent dans la recette (ex. 5, 25) pour ne pas le perdre à l'édition.
+        paliers_presents = {_palier_txt(ing.get("palier"))
+                            for ing in recette["ingredients"]}
+        paliers_menu = [""] + sorted(
+            (paliers_presents | {"0.25", "0.5", "1.0"}) - {""},
+            key=float)
+
         def _cfg_ing(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
             gb.configure_column("Ingrédient", rowDrag=True, editable=True, flex=3)
@@ -2743,11 +2757,24 @@ if vue == VUE_EDITION:
                                 headerTooltip="Groupe d'ingrédients (ex. Garniture, "
                                               "Bouillon). Laisser vide si aucun.")
             gb.configure_column("Quantité", editable=True, flex=1,
-                                type=["numericColumn"])
-            gb.configure_column("Unité", editable=True, flex=1)
+                                type=["numericColumn"],
+                                headerTooltip="Combien il en faut pour la recette de "
+                                              "base, avant d'ajuster le nombre de "
+                                              "personnes.")
+            gb.configure_column("Unité", editable=True, flex=1,
+                                headerTooltip="Dans quoi on mesure : c. à table, "
+                                              "c. à thé, ml, g, tasse…")
             gb.configure_column("Palier", editable=True, flex=1,
                                 cellEditor="agSelectCellEditor",
-                                cellEditorParams={"values": ["", "0.25", "0.5", "1.0"]})
+                                cellEditorParams={"values": paliers_menu},
+                                headerTooltip="Le palier indique simplement un "
+                                              "arrondi des quantités quand tu "
+                                              "cuisines pour tomber sur des chiffres "
+                                              "faciles à mesurer. Exemple: Palier 25, "
+                                              "on incrémente de 25 → 25, 50, 75, 100… "
+                                              "Palier 0.5 → des demies (½, 1, 1½…). "
+                                              "Comme ça, jamais de « 0,37 cuillère » "
+                                              "impossible à mesurer !")
 
         grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)
         edite = pd.DataFrame(grille_ing["data"])
