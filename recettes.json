@@ -933,6 +933,58 @@
         "Chocolat",
         "Dessert"
       ]
+    },
+    {
+      "titre": "RecetteTestABC",
+      "sous_titre": "",
+      "temps_prep": 5,
+      "temps_cuisson": 0,
+      "base": {
+        "personnes": 4,
+        "label": "Rendement",
+        "unite": "",
+        "valeur": 0,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "farine",
+          "qte": 100,
+          "unite": "g",
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Mélanger."
+      ],
+      "tags": []
+    },
+    {
+      "titre": "RecetteUnique74338",
+      "sous_titre": "",
+      "temps_prep": 5,
+      "temps_cuisson": 0,
+      "base": {
+        "personnes": 4,
+        "label": "Rendement",
+        "unite": "",
+        "valeur": 0,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "ingredientbizarre74338",
+          "qte": 7,
+          "unite": "g",
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Melanger."
+      ],
+      "tags": []
     }
   ],
   "tags": [
@@ -951,6 +1003,10 @@
     {
       "nom": "Brownies",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Cari",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Casserole",
@@ -1009,12 +1065,20 @@
       "couleur": "#007cfb"
     },
     {
+      "nom": "Tofu",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Tourtière",
       "couleur": "#7d8cb5"
     },
     {
       "nom": "Vinaigrette",
       "couleur": "#c084fc"
+    },
+    {
+      "nom": "Végétarien",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Érable",
