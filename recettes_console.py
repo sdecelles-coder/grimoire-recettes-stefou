@@ -31,6 +31,7 @@ import json
 import os
 import re
 import unicodedata
+from contextlib import nullcontext
 
 import pandas as pd
 import requests
@@ -80,6 +81,41 @@ def gif_src(nom_fichier):
         except OSError:
             pass
     return f"{GIF_BASE}/{nom_fichier}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ANIMATION — onglet CONVERSION WEB (GIF animé, dans images/) :
+#    • conversion.gif  — marmite qui mijote, jouée en boucle pendant l'appel IA.
+#  L'ajout et l'annulation utilisent, eux, le toast `_toast` (comme un « 💾 »).
+#  Si le fichier manque, l'app se rabat sans erreur sur le spinner texte.
+# ─────────────────────────────────────────────────────────────────────────────
+ANIM_FICHIERS = {
+    "conversion": "conversion.gif",
+}
+
+
+def _jouer_anim(nom, *, width=170):
+    """Affiche le GIF animé `nom` (centré). Renvoie True si joué, False si le
+    fichier manque — l'appelant peut alors se rabattre sur un texte.
+
+    On l'injecte en <img> base64 (via gif_src) plutôt qu'avec st.image : ça
+    garantit l'animation (st.image peut ré-encoder le GIF en image fixe)."""
+    fichier = ANIM_FICHIERS.get(nom)
+    if not fichier:
+        return False
+    if not os.path.exists(os.path.join(DOSSIER_IMAGES, fichier)):
+        return False
+    # Centrage fiable : colonnes [1,2,1] → le GIF est au milieu de la page,
+    # juste sous le bouton « Convertir ».
+    _, milieu, _ = st.columns([1, 2, 1])
+    with milieu:
+        st.markdown(
+            f'<img src="{gif_src(fichier)}" '
+            f'style="display:block;margin:0 auto;width:100%;max-width:{width}px;'
+            'border-radius:12px">',
+            unsafe_allow_html=True)
+    return True
+
 
 RECETTES_DEFAUT = [
     {
@@ -1212,7 +1248,15 @@ def _ajouter_recette_convertie(rec):
     ok, err = sauvegarder_recettes(recettes, st.session_state.tags)
     st.session_state.err_save = None if ok else err
 
-    st.session_state["_conv_ajoutee"] = rec.get("titre", "")
+    st.session_state["_conv_ajoutee"] = rec.get("titre", "")   # déclenche le toast
+    for cle in ("conv_resultat", "conv_source", "conv_erreur"):
+        st.session_state.pop(cle, None)
+
+
+def _annuler_recette_convertie():
+    """Callback : jette l'aperçu de la recette convertie sans l'ajouter au menu.
+    Pose un drapeau pour afficher le toast d'annulation au rerun."""
+    st.session_state["_conv_annulee"] = True             # déclenche le toast
     for cle in ("conv_resultat", "conv_source", "conv_erreur"):
         st.session_state.pop(cle, None)
 
@@ -1224,12 +1268,10 @@ st.set_page_config(page_title="grimoire de recettes", page_icon="🛰️",
                    layout="centered", initial_sidebar_state="collapsed")
 
 
-def toast_enregistre(cle):
-    """Petit pop-up « Enregistré » qui apparaît juste SOUS le bouton d'où on
-    l'appelle, tient ~2 s puis se replie et disparaît. Déclenché par le drapeau
-    de session `cle` posé au moment du 💾 (il survit au st.rerun())."""
-    if not st.session_state.pop(cle, False):
-        return
+def _toast(message="Enregistré", icone="✓"):
+    """Petit pop-up (façon « Enregistré ») qui apparaît juste SOUS le bouton
+    d'où on l'appelle, tient ~2 s puis se replie et disparaît. Rendu
+    inconditionnel : c'est l'appelant qui décide quand l'afficher."""
     st.markdown("""
     <style>
     @keyframes toast-sb{
@@ -1254,8 +1296,17 @@ def toast_enregistre(cle):
       width:21px;height:21px;border-radius:50%;
       background:rgba(77,243,227,.18);color:#4df3e3;font-size:.85rem}
     </style>
-    <div class="toast-sb"><span class="ts-ico">✓</span> Enregistré</div>
     """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="toast-sb"><span class="ts-ico">{icone}</span> {message}'
+        "</div>", unsafe_allow_html=True)
+
+
+def toast_enregistre(cle):
+    """Affiche le toast « Enregistré » si le drapeau de session `cle` est posé
+    (il survit au st.rerun() déclenché par le 💾)."""
+    if st.session_state.pop(cle, False):
+        _toast()
 
 st.markdown("""
 <style>
@@ -2427,11 +2478,13 @@ if vue == VUE_CONVERSION:
                "texte. L'IA la convertit au format du grimoire, en français. "
                "Tu pourras la peaufiner ensuite dans l'onglet ⚙ ÉDITION.")
 
-    # Bandeau de succès après un ajout au menu (survit au rerun du callback).
+    # Confirmation après un ajout au menu (survit au rerun du callback).
+    # Bandeau PERSISTANT (reste jusqu'à la prochaine action) : contrairement à un
+    # toast transitoire, impossible à manquer même si la page se raccourcit.
     titre_ajoute = st.session_state.pop("_conv_ajoutee", None)
     if titre_ajoute:
-        st.success(f"✅ « {titre_ajoute} » ajoutée au menu ! Ouvre l'onglet "
-                   "⚙ ÉDITION pour la peaufiner.")
+        st.success(f"✅ « {titre_ajoute} » ajoutée au menu ! "
+                   "Peaufine-la dans l'onglet ⚙ ÉDITION.")
     # Bandeau d'échec si le titre double une recette existante (anti-doublon).
     titre_doublon = st.session_state.pop("_conv_doublon", None)
     if titre_doublon:
@@ -2444,6 +2497,9 @@ if vue == VUE_CONVERSION:
         st.error(f"⛔ « {titre_conv} » n'a pas été ajoutée : la recette "
                  f"« {jumelle} » a exactement la même liste d'ingrédients "
                  "(probable doublon). Vérifie avant de l'ajouter.")
+    # Aperçu annulé : bandeau persistant, impossible à manquer.
+    if st.session_state.pop("_conv_annulee", False):
+        st.info("↩️ Aperçu annulé. Tu peux convertir une autre recette.")
 
     cfg = _anthropic_cfg()
     if cfg is None:
@@ -2469,21 +2525,33 @@ if vue == VUE_CONVERSION:
             for cle in ("conv_resultat", "conv_source", "conv_erreur"):
                 st.session_state.pop(cle, None)
             try:
-                with st.spinner("Conversion en cours… (quelques secondes)"):
-                    if mode == "Depuis une URL":
-                        rec, src = cw.convertir_url(
-                            entree_url, cfg["api_key"], cfg["model"])
-                    else:
-                        if len((entree_txt or "").strip()) < 40:
-                            raise cw.RecetteIntrouvable(
-                                "Colle au moins le titre, les ingrédients et les "
-                                "étapes de la recette.")
-                        rec = cw.convertir_texte(
-                            entree_txt, cfg["api_key"], cfg["model"])
-                        src = "texte"
-                    normaliser_recette(rec)
-                    st.session_state.conv_resultat = rec
-                    st.session_state.conv_source = src
+                # Marmite qui mijote pendant l'appel IA (animée côté navigateur).
+                # Repli sur le spinner texte si le fichier conversion.gif manque.
+                anim = st.empty()
+                with anim.container():
+                    marmite = _jouer_anim("conversion", width=200)
+                    if marmite:
+                        st.caption("Conversion en cours… (quelques secondes)")
+                attente = (nullcontext() if marmite else
+                           st.spinner("Conversion en cours… (quelques secondes)"))
+                try:
+                    with attente:
+                        if mode == "Depuis une URL":
+                            rec, src = cw.convertir_url(
+                                entree_url, cfg["api_key"], cfg["model"])
+                        else:
+                            if len((entree_txt or "").strip()) < 40:
+                                raise cw.RecetteIntrouvable(
+                                    "Colle au moins le titre, les ingrédients et "
+                                    "les étapes de la recette.")
+                            rec = cw.convertir_texte(
+                                entree_txt, cfg["api_key"], cfg["model"])
+                            src = "texte"
+                        normaliser_recette(rec)
+                        st.session_state.conv_resultat = rec
+                        st.session_state.conv_source = src
+                finally:
+                    anim.empty()
             except cw.CreditEpuise as e:
                 st.session_state.conv_erreur = f"🪫 {e}"
             except cw.SiteBloque as e:
@@ -2552,9 +2620,15 @@ if vue == VUE_CONVERSION:
                 st.write("🏷 " + " · ".join(rec["tags"]))
 
             st.divider()
-            st.button("➕ Ajouter au menu", type="primary",
-                      use_container_width=True, key="conv_add",
-                      on_click=_ajouter_recette_convertie, args=(rec,))
+            col_add, col_annul = st.columns(2)
+            with col_add:
+                st.button("➕ Ajouter au menu", type="primary",
+                          use_container_width=True, key="conv_add",
+                          on_click=_ajouter_recette_convertie, args=(rec,))
+            with col_annul:
+                st.button("❌ Annuler", use_container_width=True,
+                          key="conv_annuler",
+                          on_click=_annuler_recette_convertie)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
