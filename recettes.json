@@ -506,14 +506,14 @@
       ]
     },
     {
-      "titre": "Poulet Shish Taouk",
+      "titre": "Poulet Shish Taouk (à tester)",
       "sous_titre": "Poulet mariné à la libanaise",
       "temps_prep": 15,
       "temps_cuisson": 15,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 4,
+        "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
         "multiples": false
@@ -521,21 +521,14 @@
       "ingredients": [
         {
           "nom": "poitrines de poulet, coupées en cubes",
-          "qte": 900,
+          "qte": 900.0,
           "unite": "g",
           "palier": null,
           "section": ""
         },
         {
-          "nom": "jus de citron frais",
-          "qte": 0.5,
-          "unite": "tasse",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
           "nom": "gousses d'ail émincées",
-          "qte": 3,
+          "qte": 3.0,
           "unite": "unité",
           "palier": null,
           "section": ""
@@ -549,22 +542,29 @@
         },
         {
           "nom": "huile d'olive",
-          "qte": 6,
+          "qte": 6.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "vinaigre de cidre de pommes",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "poivre",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "jus de citron frais",
+          "qte": 0.5,
+          "unite": "tasse",
           "palier": 0.25,
           "section": ""
         },
@@ -591,14 +591,14 @@
         },
         {
           "nom": "sel",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
           "section": ""
         },
         {
           "nom": "pâte de tomates",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
           "section": ""
