@@ -382,7 +382,7 @@
       "temps_prep": 15,
       "temps_cuisson": 0,
       "base": {
-        "label": "Portions",
+        "label": "Bavette",
         "unite": "portions",
         "valeur": 2.0,
         "personnes": 2,
