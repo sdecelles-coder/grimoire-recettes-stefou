@@ -36,7 +36,19 @@
       "Bash(grep -rhoE \"color:\\\\s*#[0-9a-fA-F]{3,6}\" conversion_web.py)",
       "Bash(grep -oiE \"#[0-9a-fA-F]{3,6}\")",
       "Bash(grep -rhoE \"color:\\\\s*#[0-9a-fA-F]{3,6}\" recettes_console.py)",
-      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8501)"
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8501)",
+      "WebFetch(domain:lottiefiles.com)",
+      "Bash(curl -s -A 'Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) Chrome/120 Safari/537.36' -o /dev/null -w 'HTTP %{http_code}\\\\n' --max-time 15 https://example.com)",
+      "Bash(curl -s -A 'Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) Chrome/120 Safari/537.36' -o /dev/null -w 'HTTP %{http_code}\\\\n' --max-time 15 https://lottie.host)",
+      "Bash(curl -s -A 'Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) Chrome/120 Safari/537.36' -o /dev/null -w 'HTTP %{http_code}\\\\n' --max-time 15 https://assets-v2.lottiefiles.com)",
+      "Bash(python -c \"import PIL; print\\('Pillow', PIL.__version__\\)\")",
+      "Bash(cat)",
+      "Bash(python /tmp/gen_anim.py)",
+      "Bash(grep -n \"st.success\\(f\\\\\"✅ « {titre_ajoute}\\\\|st.info\\(\\\\\"↩️ Aperçu annulé\\\\|st.columns\\(\\\\[1, 2, 1\\\\]\\)\" recettes_console.py)",
+      "Bash(python _t.py)",
+      "Bash(python -m streamlit run recettes_console.py --server.headless true --server.port 8501)",
+      "Bash(python -m streamlit run recettes_console.py --server.headless true --server.port 8501 --server.runOnSave true)",
+      "Bash(echo \"--- exit=$? ---\")"
     ]
   }
 }
