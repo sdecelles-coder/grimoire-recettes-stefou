@@ -177,7 +177,7 @@ TAGS_DEFAUT = [
     {"nom": "Stefou",         "couleur": "#ffb454"},
 ]
 
-COULEUR_TAG_DEFAUT = "#7d8cb5"      # gris : tag sans couleur connue
+COULEUR_TAG_DEFAUT = "#d6ddf4"      # gris : tag sans couleur connue
 
 
 def _norm_tag(nom):
@@ -946,7 +946,7 @@ def _bloc_reordonner(recette, champ, items, labels, k):
         c_txt, c_up, c_down = st.columns([8, 1, 1])
         c_txt.markdown(
             "<div style=\"font-family:'JetBrains Mono',monospace;font-size:.8rem;"
-            "color:#9aa8cf;padding-top:.5rem;white-space:nowrap;overflow:hidden;"
+            "color:#d6ddf4;padding-top:.5rem;white-space:nowrap;overflow:hidden;"
             f"text-overflow:ellipsis;\">{i + 1}. {html_escape(labels[i])}</div>",
             unsafe_allow_html=True)
         if c_up.button("▲", key=f"ord_up_{champ}_{k}_{i}", disabled=(i == 0),
@@ -1250,7 +1250,7 @@ st.markdown("""
 :root{
   --bg:#04060d; --panel:#0b1120; --line:#1e2a45;
   --cyan:#4df3e3; --amber:#ffb454;
-  --text:#e9efff; --muted:#7d8cb5;
+  --text:#e9efff; --muted:#d6ddf4;
   /* Champs de saisie / sélection : fond navy un peu plus clair que --panel
      (meilleur confort de lecture) + bordure plus lisible + texte d'invite. */
   --field:#152036; --field-line:#31446b; --field-ph:#93a2c6;
@@ -1473,9 +1473,34 @@ div[data-baseweb="popover"]:has([role="listbox"]) div{
   font-family:'JetBrains Mono',monospace!important; font-size:.74rem!important;
   letter-spacing:.18em!important; text-transform:uppercase!important; color:var(--muted)!important;
 }
+/* ── Lisibilité : texte Streamlit « par défaut » ───────────
+   Aucun thème [dark] n'est configuré, donc Streamlit applique un
+   gris très foncé (#31333F) à TOUT texte sans couleur explicite :
+   titres markdown, libellés de widgets, options de radio, listes,
+   blocs d'aperçu… illisible sur le fond sombre. On force une
+   couleur claire. Les couleurs volontairement atténuées (captions,
+   sous-titres) sont réaffirmées juste après avec une spécificité
+   supérieure, donc elles restent atténuées mais lisibles. */
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] h1,
+[data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3,
+[data-testid="stMarkdownContainer"] h4,
+[data-testid="stMarkdownContainer"] h5,
+[data-testid="stMarkdownContainer"] h6,
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] label,
+[data-testid="stRadio"] label,
+[role="radiogroup"] label{
+  color:var(--text)!important;
+}
+[data-testid="stCaptionContainer"] [data-testid="stMarkdownContainer"] p,
 [data-testid="stCaptionContainer"] p{
   font-family:'JetBrains Mono',monospace!important; font-size:.8rem!important;
-  color:#9aa8cf!important; letter-spacing:.06em;
+  color:#d6ddf4!important; letter-spacing:.06em;
 }
 div[data-testid="stAlert"]{
   background:var(--panel)!important; border:1px solid var(--line)!important;
@@ -1555,13 +1580,13 @@ components.html(
   }
   #wl-btn .wl-state{
     font-size:.66rem;padding:.1rem .45rem;border-radius:999px;
-    background:#1c232a;color:#7c8b90;letter-spacing:.1em;
+    background:#1c232a;color:#d6ddf4;letter-spacing:.1em;
   }
   #wl-btn.on{border-color:#4df3e3;color:#e6fffb;box-shadow:0 0 0 1px rgba(77,243,227,.25);}
   #wl-btn.on .wl-dot{background:#4df3e3;box-shadow:0 0 10px 2px rgba(77,243,227,.6);}
   #wl-btn.on .wl-state{background:rgba(77,243,227,.15);color:#4df3e3;}
   #wl-btn:disabled{opacity:.5;cursor:not-allowed;}
-  #wl-note{margin:0;font-size:.62rem;color:#6b7a80;letter-spacing:.04em;}
+  #wl-note{margin:0;font-size:.62rem;color:#93a2c6;letter-spacing:.04em;}
 </style>
 <script>
   const btn   = document.getElementById('wl-btn');
@@ -1720,7 +1745,7 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
         if len(indices) < len(RECETTES):
             st.markdown(
                 f"<p style=\"font-family:'JetBrains Mono',monospace;font-size:.8rem;"
-                f"color:#7d8cb5;letter-spacing:.06em;margin:.35rem 0 0;\">"
+                f"color:#d6ddf4;letter-spacing:.06em;margin:.35rem 0 0;\">"
                 f"{len(indices)} recette{'s' if len(indices) > 1 else ''} "
                 f"sur {len(RECETTES)} affichée"
                 f"{'s' if len(indices) > 1 else ''}.</p>",
@@ -1930,7 +1955,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 @keyframes scan{from{left:-40%}to{left:100%}}
 @media (prefers-reduced-motion: reduce){.scan{animation:none;display:none}}
 .rtitle{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.32rem;letter-spacing:.03em}
-.rsub{color:#7d8cb5;font-size:.9rem;margin-top:3px}
+.rsub{color:#d6ddf4;font-size:.9rem;margin-top:3px}
 .meta{display:flex;gap:10px;flex-wrap:wrap}
 .chip{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#9fb0d8;
   border:1px solid #1e2a45;border-radius:999px;padding:5px 12px;background:rgba(77,243,227,.05)}
@@ -1943,11 +1968,11 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   background:rgba(77,243,227,.04)}
 .sommaire-rel b{color:#ffb454;font-weight:700}
 .tags-titre{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.2em;
-  text-transform:uppercase;color:#7d8cb5;margin:12px 0 2px}
+  text-transform:uppercase;color:#d6ddf4;margin:12px 0 2px}
 .prog{height:4px;background:#141d34;border-radius:999px;margin-top:15px;overflow:hidden}
 .progfill{height:100%;width:0;background:linear-gradient(90deg,#4df3e3,#ffb454);
   box-shadow:0 0 14px rgba(77,243,227,.6);transition:width .35s ease}
-.count{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#9aa8cf;margin-top:7px;letter-spacing:.12em}
+.count{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#d6ddf4;margin-top:7px;letter-spacing:.12em}
 
 .list{padding:8px 10px 4px}
 .ing{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:11px;
@@ -1960,12 +1985,12 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .ing.done .box::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;
   border:solid #04060d;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
 .nom{flex:1;font-size:1rem;font-weight:500;transition:all .18s;min-width:0;overflow-wrap:break-word}
-.ing.done .nom{color:#5a688f;text-decoration:line-through}
+.ing.done .nom{color:#7d8cb5;text-decoration:line-through}
 .qte{font-family:'JetBrains Mono',monospace;font-size:1rem;color:#9fb0d8;white-space:nowrap;
   padding:4px 11px;border-radius:8px;border:1px solid #26355c;background:rgba(255,180,84,.06)}
 .qte b{color:#ffb454;text-shadow:0 0 12px rgba(255,180,84,.45);font-weight:700}
-.qte.gout{color:#7d8cb5;background:transparent;border-color:transparent}
-.qte.gout b{color:#7d8cb5;text-shadow:none;font-weight:500}
+.qte.gout{color:#d6ddf4;background:transparent;border-color:transparent}
+.qte.gout b{color:#d6ddf4;text-shadow:none;font-weight:500}
 .ing.done .qte{opacity:.35}
 /* Sous-titre de groupe d'ingrédients (« Garniture », « Bouillon »…). */
 .ing-groupe{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
@@ -1983,7 +2008,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
    change : doré. */
 .rendement .nom{flex:1;font-family:'Inter',sans-serif;font-size:1rem;font-weight:500;
   color:#ffb454;transition:all .18s;min-width:0;overflow-wrap:break-word}
-.hint{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#5a688f;
+.hint{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#7d8cb5;
   letter-spacing:.22em;text-align:center;padding:8px 0 14px;text-transform:uppercase}
 
 /* Sections repliables (Sommaire, Ingrédients, Préparation) */
@@ -2055,7 +2080,7 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .v-titre{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.05rem;
   color:#4df3e3;letter-spacing:.16em;margin-top:14px;
   text-shadow:0 0 18px rgba(77,243,227,.7)}
-.v-sous{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#7d8cb5;
+.v-sous{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#d6ddf4;
   letter-spacing:.22em;margin-top:6px;text-transform:uppercase}
 /* Variante « préparation terminée » — teinte ambre (comme la section Préparation) */
 .victoire.prep .v-cadre img{border-color:#ffb454;box-shadow:0 0 34px rgba(255,180,84,.55)}
@@ -2754,7 +2779,8 @@ with onglet_edition:
                            "(corrige l'orthographe ou vérifie l'ingrédient)")
                 st.markdown(
                     '<div style="padding:.6rem .8rem;border:1px solid #2a2d36;'
-                    'border-radius:8px;background:#12141a;font-size:.92rem">'
+                    'border-radius:8px;background:#12141a;font-size:.92rem;'
+                    'color:#e9efff">'
                     + "".join(lignes_ape) + "</div>",
                     unsafe_allow_html=True)
 
