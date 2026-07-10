@@ -504,6 +504,119 @@
         "Boeuf",
         "Chef Michel"
       ]
+    },
+    {
+      "titre": "Poulet Shish Taouk",
+      "sous_titre": "Poulet mariné à la libanaise",
+      "temps_prep": 15,
+      "temps_cuisson": 15,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "poitrines de poulet, coupées en cubes",
+          "qte": 900,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "jus de citron frais",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "gousses d'ail émincées",
+          "qte": 3,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "yogourt grec sans gras",
+          "qte": 0.33,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 6,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "vinaigre de cidre de pommes",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "poivre",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "gingembre moulu",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "origan",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "paprika",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "pâte de tomates",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Mettre tous les ingrédients dans un grand sac ziplock et bien secouer pour enrober le poulet.",
+        "Laisser mariner au réfrigérateur pendant au moins 4 heures.",
+        "Si vous préparez des brochettes, faire tremper les pics en bois dans l'eau pendant la marinade.",
+        "Assembler les brochettes en enfilant les cubes de poulet marinés.",
+        "Faire cuire à broil (gril du four) pendant 15 à 18 minutes, ou sur le BBQ jusqu'à cuisson complète.",
+        "Servir avec du riz, une salade et une sauce à l'ail."
+      ],
+      "tags": [
+        "Poulet",
+        "Libanais",
+        "Brochettes"
+      ]
     }
   ],
   "tags": [
@@ -522,6 +635,10 @@
     {
       "nom": "Boeuf",
       "couleur": "#f4d35e"
+    },
+    {
+      "nom": "Brochettes",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Brownie",
@@ -576,6 +693,10 @@
       "couleur": "#00ff2c"
     },
     {
+      "nom": "Libanais",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "lunch",
       "couleur": "#28b9ac"
     },
@@ -586,6 +707,10 @@
     {
       "nom": "plat principal",
       "couleur": "#4df3e3"
+    },
+    {
+      "nom": "Poulet",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Québécois",
