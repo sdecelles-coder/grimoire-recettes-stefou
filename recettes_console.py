@@ -477,13 +477,23 @@ def normaliser_recette(r):
 #  marqueur vers le bon ingrédient (au rendu). Elles partagent la même
 #  normalisation pour rester cohérentes.
 # ─────────────────────────────────────────────────────────────────────────────
+_LIGATURES = {"œ": "o", "æ": "a"}   # 1 caractère → longueur préservée (cf. ci-dessous)
+
+
 def _plier(s):
     """Minuscule + sans accents, longueur préservée (é→e). Permet de repérer une
-    sous-chaîne dans un texte tout en gardant les positions d'origine."""
+    sous-chaîne dans un texte tout en gardant les positions d'origine.
+    Les ligatures œ/æ sont repliées sur un SEUL caractère (o/a) — pas « oe/ae » —
+    justement pour préserver les positions ; l'important est que texte et noms
+    d'ingrédients subissent la même transformation (« œufs » ↔ « oufs »)."""
     out = []
     for ch in str(s or ""):
-        d = unicodedata.normalize("NFD", ch)
-        out.append((d[0] if d else ch).lower())
+        c = ch.lower()
+        if c in _LIGATURES:
+            out.append(_LIGATURES[c])
+            continue
+        d = unicodedata.normalize("NFD", c)
+        out.append(d[0] if d else c)
     return "".join(out)
 
 
@@ -541,26 +551,50 @@ def _mots_ing(nom):
 
 
 def _phrases_ing(nom):
-    """Préfixes de mots d'un ingrédient, du plus long au plus court.
-    « Beurre non salé (fondu) » → ['beurre non sale', 'beurre non', 'beurre'].
-    Le préfixe court capte les mentions abrégées (« beurre ») dans les étapes."""
+    """Sous-suites de mots d'un ingrédient — préfixes ET suffixes — du plus long
+    au plus court, sans doublon.
+    « Beurre non salé (fondu) » → ['beurre non sale', 'beurre non', 'sale',
+    'beurre', 'non']. Le préfixe court capte les mentions abrégées (« beurre »)
+    et le suffixe capte les citations par le nom-clé final (« œufs » pour « Gros
+    œufs », « vanille » pour « Extrait de vanille »)."""
     mots = _mots_ing(nom)
-    return [" ".join(mots[:n]) for n in range(len(mots), 0, -1)]
+    phrases = [" ".join(mots[:n]) for n in range(len(mots), 0, -1)]   # préfixes
+    phrases += [" ".join(mots[i:]) for i in range(1, len(mots))]      # suffixes
+    vus, uniques = set(), []
+    for ph in phrases:
+        if ph and ph not in vus:
+            vus.add(ph)
+            uniques.append(ph)
+    uniques.sort(key=lambda p: -len(p.split()))     # plus long d'abord
+    return uniques
 
 
 def index_marqueurs(ingredients):
     """Map « phrase-clé → ingrédient », en ne gardant que les clés NON ambiguës
     (une phrase qui désignerait deux ingrédients est écartée). Sert à résoudre
-    un marqueur [texte] ou une mention détectée vers le bon ingrédient."""
-    par_phrase, ing_par_id = {}, {}
+    un marqueur [texte] ou une mention détectée vers le bon ingrédient.
+    Priorité au NOM COMPLET : une phrase qui est le nom entier d'un seul
+    ingrédient lui revient, même si elle est une sous-partie d'un autre (« œuf »
+    → « Oeuf » plutôt qu'ambigu avec « Jaune d'œuf »)."""
+    par_phrase, ing_par_id, noms_complets = {}, {}, {}
     for ing in ingredients:
         if not ing.get("nom"):
             continue
         ing_par_id[id(ing)] = ing
+        complet = " ".join(_mots_ing(ing["nom"]))
+        if complet:
+            noms_complets.setdefault(complet, set()).add(id(ing))
         for ph in set(_phrases_ing(ing["nom"])):
             par_phrase.setdefault(ph, set()).add(id(ing))
-    return {ph: ing_par_id[next(iter(ids))]
-            for ph, ids in par_phrase.items() if ph and len(ids) == 1}
+    idx = {}
+    for ph, ids in par_phrase.items():
+        if not ph:
+            continue
+        if ph in noms_complets and len(noms_complets[ph]) == 1:
+            idx[ph] = ing_par_id[next(iter(noms_complets[ph]))]
+        elif len(ids) == 1:
+            idx[ph] = ing_par_id[next(iter(ids))]
+    return idx
 
 
 def resoudre_marqueur(texte, idx):
@@ -739,13 +773,16 @@ def detecter_mentions_toutes(texte, ingredients, idx):
             motif = (r"(?<![a-z0-9])"
                      + r"[^a-z0-9]+".join(map(re.escape, ph.split()))
                      + r"(?![a-z0-9])")
+            trouve_ici = False
             for m in re.finditer(motif, folded):
                 if chevauche(m.start(), m.end(), exclus):
                     continue
                 if _mention_est_portion(folded[max(0, m.start() - 40):m.start()]):
                     continue
                 trouves.append((m.start(), m.end(), ing))
-            break                                 # 1re phrase (la plus longue)
+                trouve_ici = True
+            if trouve_ici:
+                break                             # 1re phrase (la + longue) présente
     trouves.sort(key=lambda t: (t[0], -(t[1] - t[0])))
     retenus, occup = [], []
     for a, b, ing in trouves:
