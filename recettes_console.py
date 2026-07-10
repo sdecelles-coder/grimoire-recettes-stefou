@@ -315,6 +315,17 @@ def sauvegarder_recettes(recettes, tags):
     """Écrit recettes + catalogue de tags (GitHub si configuré, sinon local).
     Retourne (ok, message_erreur)."""
     cfg = _github_cfg()
+    # SÉCURITÉ — protection de la référence git : si la lecture initiale de
+    # GitHub a échoué (ex. 502 transitoire), les recettes en session sont les
+    # VALEURS PAR DÉFAUT, pas le contenu du repo. Écrire ici écraserait la
+    # référence git avec ces défauts. On refuse donc toute écriture tant que la
+    # lecture n'a pas réussi (recharge la page une fois GitHub de nouveau joignable).
+    if cfg and st.session_state.get("erreur_chargement"):
+        return (False,
+                "sauvegarde bloquée — la lecture initiale de GitHub a échoué, "
+                "les recettes affichées sont les valeurs par défaut. Écrire "
+                "maintenant écraserait la référence git. Recharge la page une "
+                "fois GitHub de nouveau accessible.")
     contenu = json.dumps({"recettes": recettes, "tags": tags},
                          ensure_ascii=False, indent=2)
     if cfg:
@@ -1333,6 +1344,68 @@ st.markdown("""
   border-color:var(--cyan)!important; box-shadow:0 0 0 2px rgba(77,243,227,.22)!important;
 }
 
+/* ── Champ VEDETTE : « Recettes disponibles » ─────────────────────────
+   C'est LE point d'entrée du site : on le met très en évidence tout en
+   gardant l'esthétique techno-futuriste (néon cyan, coins HUD, halo). */
+.st-key-recette_hero{
+  position:relative;
+  margin:.5rem 0 .3rem;
+  padding:1.15rem 1.3rem 1.3rem;
+  border:1px solid rgba(77,243,227,.45)!important;
+  border-radius:16px;
+  background:
+    linear-gradient(180deg, rgba(77,243,227,.10), rgba(77,243,227,.02)),
+    var(--panel);
+  box-shadow:
+    0 0 0 1px rgba(77,243,227,.10),
+    0 0 30px rgba(77,243,227,.18),
+    inset 0 0 36px rgba(77,243,227,.06);
+  animation:heroPulse 3.6s ease-in-out infinite;
+}
+@keyframes heroPulse{
+  50%{box-shadow:
+    0 0 0 1px rgba(77,243,227,.20),
+    0 0 44px rgba(77,243,227,.32),
+    inset 0 0 36px rgba(77,243,227,.10);}
+}
+/* Coins « HUD » (crochets d'angle) */
+.st-key-recette_hero::before,
+.st-key-recette_hero::after{
+  content:""; position:absolute; width:16px; height:16px; pointer-events:none;
+  border:2px solid var(--cyan); opacity:.75;
+}
+.st-key-recette_hero::before{top:9px; left:9px; border-right:0; border-bottom:0;}
+.st-key-recette_hero::after{bottom:9px; right:9px; border-left:0; border-top:0;}
+
+/* Étiquette vedette : plus grande, Orbitron, néon cyan */
+.st-key-recette_hero .stSelectbox label{
+  font-family:'Orbitron',sans-serif!important; font-weight:700!important;
+  font-size:1rem!important; letter-spacing:.20em!important;
+  color:#8ff9ee!important; text-shadow:0 0 16px rgba(77,243,227,.45);
+  margin-bottom:.15rem!important;
+}
+.st-key-recette_hero .stSelectbox label::before{content:"▸ "; color:var(--cyan);}
+
+/* Boîte de sélection agrandie et lumineuse */
+.st-key-recette_hero div[data-baseweb="select"] > div{
+  background:var(--field)!important;
+  border:1.5px solid rgba(77,243,227,.55)!important;
+  border-radius:12px!important;
+  min-height:58px!important;
+  box-shadow:0 0 18px rgba(77,243,227,.12)!important;
+}
+.st-key-recette_hero [data-baseweb="select"] > div > div,
+.st-key-recette_hero [data-baseweb="select"] input{
+  font-family:'Inter',sans-serif!important;
+  font-size:1.15rem!important; font-weight:600!important;
+  color:#ffffff!important;
+}
+.st-key-recette_hero div[data-baseweb="select"] > div:focus-within{
+  border-color:var(--cyan)!important;
+  box-shadow:0 0 0 2px rgba(77,243,227,.30),0 0 26px rgba(77,243,227,.32)!important;
+}
+.st-key-recette_hero [data-baseweb="select"] svg{fill:var(--cyan)!important;}
+
 /* Puces de tags sélectionnées dans un multiselect — teinte cyan du thème.
    On force aussi le texte des enfants (span interne) pour qu'il ne soit pas
    grisé par la règle générale d'invite ci-dessus. */
@@ -1364,6 +1437,14 @@ div[data-baseweb="popover"]:has([role="listbox"]) div{
   background-color:transparent!important; color:var(--text)!important;
   font-family:'Inter',sans-serif!important;
 }
+/* Texte de la liste des recettes agrandi 1,30× (14px → 18,2px). Le menu du
+   selectbox est un <li role="option"> dans un stSelectboxVirtualDropdown : les
+   sélecteurs [role="listbox"]/[data-baseweb="menu"] ci-dessus ne l'atteignent
+   pas, on cible donc directement l'option. */
+[data-testid="stSelectboxVirtualDropdown"] li[role="option"],
+[role="option"]{
+  font-size:18.2px!important;
+}
 [role="listbox"] [role="option"]:hover,
 [role="listbox"] [role="option"][aria-selected="true"],
 [data-baseweb="menu"] li:hover,
@@ -1371,78 +1452,117 @@ div[data-baseweb="popover"]:has([role="listbox"]) div{
   background-color:rgba(77,243,227,.20)!important; color:#eaffff!important;
 }
 
-/* Onglets — pilules futuristes, une couleur par mode */
-/* overflow:visible + padding : la pastille surélevée au survol n'est pas rognée */
-.stTabs [data-baseweb="tab-list"]{
-  gap:14px; border-bottom:none; margin-bottom:.5rem;
-  padding:6px 2px 4px!important; overflow:visible!important;
+/* ── Barre de modes — pilules futuristes (remplace les onglets) ────────
+   st.radio horizontal, scopé au conteneur .st-key-mode_nav pour ne PAS
+   toucher au radio « Source » interne de l'onglet Conversion. Avantage clé :
+   le serveur connaît le mode actif, donc passer en « Conversion web » peut
+   réinitialiser la recette sélectionnée (impossible avec st.tabs). */
+.st-key-mode_nav{margin:.2rem 0 .6rem;}
+.st-key-mode_nav [role="radiogroup"]{
+  gap:14px!important; flex-wrap:wrap!important; align-items:stretch!important;
+  padding:6px 2px 4px!important;
 }
-.stTabs [data-baseweb="tab"]{overflow:visible!important;}
-.stTabs [data-baseweb="tab"]{
-  font-family:'Orbitron',sans-serif!important; font-size:1rem!important;
-  font-weight:700!important; letter-spacing:.16em!important;
-  border-radius:12px!important; padding:14px 32px!important;
+/* Chaque option = une pilule ; on masque le cercle radio natif */
+.st-key-mode_nav [role="radiogroup"] > label{
+  margin:0!important; padding:14px 32px!important; border-radius:12px!important;
   border:1px solid var(--line)!important; background:var(--panel)!important;
-  transition:all .2s!important;
+  cursor:pointer!important; transition:all .2s!important;
+  display:flex!important; align-items:center!important;
 }
-.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{
-  display:none!important;
+.st-key-mode_nav [role="radiogroup"] > label > div:first-of-type{display:none!important;}
+.st-key-mode_nav [role="radiogroup"] > label p,
+.st-key-mode_nav [role="radiogroup"] > label div{
+  font-family:'Orbitron',sans-serif!important; font-size:1rem!important;
+  font-weight:700!important; letter-spacing:.16em!important; margin:0!important;
 }
 
-/* Onglet CUISINE — cyan.
-   Au repos : pastille remplie et en relief (look bouton) sans en être une. */
-.stTabs button[id$="-tab-0"]{
-  color:var(--cyan)!important; border:1px solid rgba(77,243,227,.6)!important;
+/* Mode CUISINE — cyan (1re pilule) */
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(1){
+  border-color:rgba(77,243,227,.6)!important;
   background:linear-gradient(135deg, rgba(77,243,227,.16), rgba(77,243,227,.05))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),
-             0 0 0 1px rgba(77,243,227,.10),
-             0 6px 16px rgba(0,0,0,.4)!important;
-  text-shadow:0 0 12px rgba(77,243,227,.4)!important;
+             0 0 0 1px rgba(77,243,227,.10), 0 6px 16px rgba(0,0,0,.4)!important;
 }
-.stTabs button[id$="-tab-0"]:hover{
-  border-color:var(--cyan)!important; transform:translateY(-1px)!important;
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(1) p{
+  color:var(--cyan)!important; text-shadow:0 0 12px rgba(77,243,227,.4)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(1):hover{
+  transform:translateY(-1px)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
              0 0 20px rgba(77,243,227,.45), 0 8px 20px rgba(0,0,0,.45)!important;
 }
-.stTabs button[id$="-tab-0"][aria-selected="true"]{
-  color:#04060d!important; border-color:var(--cyan)!important; transform:none!important;
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(1):has(input:checked){
+  border-color:var(--cyan)!important; transform:none!important;
   background:linear-gradient(135deg,#4df3e3,#2bd3c4)!important;
-  box-shadow:0 0 28px rgba(77,243,227,.7)!important; text-shadow:none!important;
+  box-shadow:0 0 28px rgba(77,243,227,.7)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(1):has(input:checked) p{
+  color:#04060d!important; text-shadow:none!important;
 }
 
-/* Onglet ÉDITION — ambre. */
-.stTabs button[id$="-tab-1"]{
-  color:var(--amber)!important; border:1px solid rgba(255,180,84,.6)!important;
+/* Mode ÉDITION — ambre (2e pilule) */
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(2){
+  border-color:rgba(255,180,84,.6)!important;
   background:linear-gradient(135deg, rgba(255,180,84,.16), rgba(255,180,84,.05))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),
-             0 0 0 1px rgba(255,180,84,.10),
-             0 6px 16px rgba(0,0,0,.4)!important;
-  text-shadow:0 0 12px rgba(255,180,84,.4)!important;
+             0 0 0 1px rgba(255,180,84,.10), 0 6px 16px rgba(0,0,0,.4)!important;
 }
-.stTabs button[id$="-tab-1"]:hover{
-  border-color:var(--amber)!important; transform:translateY(-1px)!important;
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(2) p{
+  color:var(--amber)!important; text-shadow:0 0 12px rgba(255,180,84,.4)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(2):hover{
+  transform:translateY(-1px)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
              0 0 20px rgba(255,180,84,.45), 0 8px 20px rgba(0,0,0,.45)!important;
 }
-.stTabs button[id$="-tab-1"][aria-selected="true"]{
-  color:#04060d!important; border-color:var(--amber)!important; transform:none!important;
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(2):has(input:checked){
+  border-color:var(--amber)!important; transform:none!important;
   background:linear-gradient(135deg,#ffb454,#ff9d2e)!important;
-  box-shadow:0 0 28px rgba(255,180,84,.65)!important; text-shadow:none!important;
+  box-shadow:0 0 28px rgba(255,180,84,.65)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(2):has(input:checked) p{
+  color:#04060d!important; text-shadow:none!important;
 }
 
-/* Fond teinté selon le mode actif — repère cuisine / édition bien marqué.
-   Teal profond en cuisine, ambre profond en édition (dégradé + halo interne). */
-.stApp:has(button[id$="-tab-0"][aria-selected="true"]){
-  --bg:#03181a;
-  --accent-glow:rgba(77,243,227,.14);
+/* Mode CONVERSION WEB — magenta (3e pilule) */
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(3){
+  border-color:rgba(255,122,224,.6)!important;
+  background:linear-gradient(135deg, rgba(255,122,224,.16), rgba(255,122,224,.05))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),
+             0 0 0 1px rgba(255,122,224,.10), 0 6px 16px rgba(0,0,0,.4)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(3) p{
+  color:#ff9ee9!important; text-shadow:0 0 12px rgba(255,122,224,.4)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(3):hover{
+  transform:translateY(-1px)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
+             0 0 20px rgba(255,122,224,.45), 0 8px 20px rgba(0,0,0,.45)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(3):has(input:checked){
+  border-color:#ff7ae0!important; transform:none!important;
+  background:linear-gradient(135deg,#ff7ae0,#e24fc0)!important;
+  box-shadow:0 0 28px rgba(255,122,224,.7)!important;
+}
+.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(3):has(input:checked) p{
+  color:#1a0a1e!important; text-shadow:none!important;
+}
+
+/* Fond teinté selon le mode actif — repère bien marqué (halo + dégradé). */
+.stApp:has(.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(1) input:checked){
+  --bg:#03181a; --accent-glow:rgba(77,243,227,.14);
   box-shadow:inset 0 0 320px rgba(77,243,227,.20),
              inset 0 140px 260px -160px rgba(77,243,227,.28)!important;
 }
-.stApp:has(button[id$="-tab-1"][aria-selected="true"]){
-  --bg:#1a1204;
-  --accent-glow:rgba(255,180,84,.12);
+.stApp:has(.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(2) input:checked){
+  --bg:#1a1204; --accent-glow:rgba(255,180,84,.12);
   box-shadow:inset 0 0 320px rgba(255,180,84,.18),
              inset 0 140px 260px -160px rgba(255,180,84,.24)!important;
+}
+.stApp:has(.st-key-mode_nav [role="radiogroup"] > label:nth-of-type(3) input:checked){
+  --bg:#1a0a1e; --accent-glow:rgba(255,122,224,.12);
+  box-shadow:inset 0 0 320px rgba(255,122,224,.16),
+             inset 0 140px 260px -160px rgba(255,122,224,.22)!important;
 }
 
 /* Boutons */
@@ -1648,8 +1768,10 @@ components.html(
 
 if st.session_state.erreur_chargement:
     st.error(f"⚠ {st.session_state.erreur_chargement} Les recettes affichées sont "
-             "les valeurs par défaut ; les sauvegardes échoueront tant que le "
-             "problème n'est pas réglé.")
+             "les valeurs par défaut. Par sécurité, les sauvegardes sont "
+             "BLOQUÉES tant que la lecture n'a pas réussi, pour ne pas écraser "
+             "la référence git. Recharge la page une fois GitHub de nouveau "
+             "accessible.")
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  SÉLECTION DE RECETTE + NOUVELLE RECETTE
@@ -1733,11 +1855,14 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
                 or (st.session_state.recette_select != VIDE
                     and st.session_state.recette_select not in indices)):
             st.session_state.recette_select = VIDE
-        idx = st.selectbox(
-            "Recettes disponibles", options=[VIDE] + indices,
-            format_func=lambda i: "" if i == VIDE else RECETTES[i]["titre"],
-            key="recette_select",
-        )
+        # Conteneur « vedette » : ce sélecteur est LE point d'entrée du site,
+        # on le met très en évidence via le CSS ciblé sur .st-key-recette_hero.
+        with st.container(key="recette_hero"):
+            idx = st.selectbox(
+                "Recettes disponibles", options=[VIDE] + indices,
+                format_func=lambda i: "" if i == VIDE else RECETTES[i]["titre"],
+                key="recette_select",
+            )
         sel = None if idx == VIDE else idx
         if sel != st.session_state.sel:
             st.session_state.sel = sel
@@ -1754,13 +1879,31 @@ with st.expander("🔍  Choisir ou rechercher une recette (mode cuisine ou édit
 recette = RECETTES[st.session_state.sel] if st.session_state.sel is not None else None
 base = recette["base"] if recette else None
 
-onglet_cuisine, onglet_edition, onglet_conversion = st.tabs(
-    ["◈  CUISINE", "⚙  ÉDITION", "🌐  CONVERSION WEB"])
+VUE_CUISINE = "◈  CUISINE"
+VUE_EDITION = "⚙  ÉDITION"
+VUE_CONVERSION = "🌐  CONVERSION WEB"
+
+def _on_vue_change():
+    # « Conversion web » crée une NOUVELLE recette : on repart d'une sélection
+    # vide pour éviter toute confusion avec la recette précédemment ouverte.
+    # (Ce reset côté serveur est la raison d'être du st.radio ci-dessous : avec
+    #  st.tabs, le changement d'onglet est purement côté navigateur, invisible
+    #  du serveur, donc impossible à intercepter.)
+    if st.session_state.get("vue_active") == VUE_CONVERSION:
+        st.session_state.recette_select = ""    # VIDE
+        st.session_state.sel = None
+
+with st.container(key="mode_nav"):
+    vue = st.radio(
+        "Mode", [VUE_CUISINE, VUE_EDITION, VUE_CONVERSION],
+        key="vue_active", horizontal=True, label_visibility="collapsed",
+        on_change=_on_vue_change,
+    )
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET CUISINE — mise à l'échelle + checklist
 # ═════════════════════════════════════════════════════════════════════════════
-with onglet_cuisine:
+if vue == VUE_CUISINE:
   if recette is None:
     st.markdown(CHOIX_RECETTE, unsafe_allow_html=True)
   else:
@@ -2275,7 +2418,7 @@ positionVictoire();
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET CONVERSION WEB — importer une recette depuis une URL ou du texte collé
 # ═════════════════════════════════════════════════════════════════════════════
-with onglet_conversion:
+if vue == VUE_CONVERSION:
     st.markdown("#### 🌐 Convertir une recette du web")
     st.caption("Colle l'adresse (URL) d'une recette OU colle directement son "
                "texte. L'IA la convertit au format du grimoire, en français. "
@@ -2414,7 +2557,7 @@ with onglet_conversion:
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET ÉDITION — modifier / ajouter / retirer / supprimer
 # ═════════════════════════════════════════════════════════════════════════════
-with onglet_edition:
+if vue == VUE_EDITION:
     st.button("＋ Nouvelle recette", use_container_width=True,
               key="nouvelle_edition", on_click=_creer_recette,
               help="Ajouter une recette vierge au menu")
