@@ -933,6 +933,155 @@
         "Chocolat",
         "Dessert"
       ]
+    },
+    {
+      "titre": "Plaque de tofu croustillant et de nouilles au cari rouge",
+      "sous_titre": "Plat d'inspiration asiatique végétarien",
+      "temps_prep": 25,
+      "temps_cuisson": 20,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "Nouilles de riz moyennes",
+          "qte": 200,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Tofu ferme, épongé et émietté grossièrement",
+          "qte": 450,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Fécule de maïs",
+          "qte": 0.333,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Huile végétale",
+          "qte": 3,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Eau",
+          "qte": 75,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Huile de coco",
+          "qte": 3,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Pâte de cari rouge",
+          "qte": 3,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Beurre d'arachide",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Sauce de poisson",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Sauce soya réduite en sodium",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Jus de lime",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Gingembre frais râpé finement",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Sucre",
+          "qte": 2,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Gousse d'ail, râpée finement",
+          "qte": 1,
+          "unite": "unité",
+          "palier": null,
+          "section": "Sauce"
+        },
+        {
+          "nom": "Pois sucrés ou pois mange-tout, parés et émincés",
+          "qte": 225,
+          "unite": "g",
+          "palier": null,
+          "section": "Garniture"
+        },
+        {
+          "nom": "Poivron rouge, épépiné et émincé",
+          "qte": 1,
+          "unite": "unité",
+          "palier": null,
+          "section": "Garniture"
+        },
+        {
+          "nom": "Feuilles de basilic thaï ou de coriandre",
+          "qte": 1,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Garniture"
+        }
+      ],
+      "preparation": [
+        "Placer la grille au centre du four. Préchauffer le four à 230 °C (450 °F).",
+        "Dans un grand bol, placer les nouilles. Couvrir d'eau chaude et laisser tremper au moins 20 minutes.",
+        "Sur une plaque de cuisson antiadhésive ou dans un grand plat de cuisson, enrober le tofu de la fécule de maïs. Verser l'huile végétale sur le tofu. Saler, poivrer et bien mélanger. Cuire au four 15 minutes.",
+        "Dans une tasse à mesurer ou un bol en verre, mélanger au fouet tous les ingrédients de la sauce. Cuire au micro-ondes 1 minute ou jusqu'à ce que la sauce soit lisse et homogène, en remuant à mi-cuisson.",
+        "Bien égoutter les nouilles et les remettre dans le même bol. Y verser la sauce et mélanger pour bien enrober les nouilles.",
+        "Retirer la plaque du four. Répartir les nouilles sur le tofu. Répartir les pois sucrés et le poivron sur les nouilles. Poursuivre la cuisson au four 5 minutes ou jusqu'à ce que les nouilles soient tendres et les légumes al dente.",
+        "Retirer la plaque du four. Bien remuer les nouilles. Ajouter un peu d'eau pour détendre la sauce, au besoin. Rectifier l'assaisonnement. Garnir du basilic thaï et servir aussitôt."
+      ],
+      "tags": [
+        "Végétarien",
+        "Tofu",
+        "Cari"
+      ]
     }
   ],
   "tags": [
@@ -951,6 +1100,10 @@
     {
       "nom": "Brownies",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Cari",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Casserole",
@@ -1009,12 +1162,20 @@
       "couleur": "#007cfb"
     },
     {
+      "nom": "Tofu",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Tourtière",
       "couleur": "#7d8cb5"
     },
     {
       "nom": "Vinaigrette",
       "couleur": "#c084fc"
+    },
+    {
+      "nom": "Végétarien",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Érable",
