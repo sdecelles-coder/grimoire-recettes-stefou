@@ -2950,7 +2950,14 @@ if vue == VUE_EDITION:
             gb.configure_column("Étape", rowDrag=True, editable=True, flex=1,
                                 wrapText=True, autoHeight=True,
                                 cellEditor="agLargeTextCellEditor",
-                                cellEditorPopup=True)
+                                cellEditorPopup=True,
+                                # agLargeTextCellEditor impose maxLength=200 par
+                                # défaut : la textarea (attribut HTML maxlength)
+                                # BLOQUE toute frappe dès qu'une étape atteint
+                                # 200 caractères. On relève la limite pour que les
+                                # longues étapes restent éditables.
+                                cellEditorParams={"maxLength": 5000, "rows": 6,
+                                                  "cols": 60})
 
         grille_prep = _grille_aggrid(df_prep, ss_prep, _cfg_prep)
         edite_prep = pd.DataFrame(grille_prep["data"])
