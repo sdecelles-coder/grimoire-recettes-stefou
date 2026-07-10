@@ -284,7 +284,7 @@
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 16,
+        "valeur": 16.0,
         "personnes": 16,
         "max_personnes": 20,
         "multiples": false
@@ -334,7 +334,7 @@
         },
         {
           "nom": "Gros œufs",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "unité",
           "palier": null,
           "section": ""
@@ -348,7 +348,7 @@
         },
         {
           "nom": "Eau",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
@@ -362,16 +362,16 @@
         }
       ],
       "preparation": [
-        "Préchauffer le four à 165 °C (325 °F). Vaporiser légèrement un moule carré de 20 cm (8 po) avec de l'huile en vaporisateur et le tapisser de papier parchemin. Vaporiser le papier parchemin.",
-        "Dans un bol moyen, mélanger le sucre granulé, la farine, la poudre de cacao, le sucre en poudre, les pépites de chocolat et le sel.",
-        "Dans un grand bol, fouetter ensemble les œufs, l'huile, l'eau et la vanille.",
+        "Préchauffer le four à 165 °C (325 °F). Vaporiser légèrement un moule carré de 20 cm (8 po) avec de l'[huile] en vaporisateur et le tapisser de papier parchemin. Vaporiser le papier parchemin.",
+        "Dans un bol moyen, mélanger le [sucre granulé], la [farine], la [poudre de cacao], le [sucre en poudre], les [pépites de chocolat] et le [sel].",
+        "Dans un grand bol, fouetter ensemble les [œufs], l'[huile], l'[eau] et la [vanille].",
         "Saupoudrer le mélange sec sur le mélange humide et mélanger jusqu'à ce que le tout soit juste combiné. La pâte sera épaisse, c'est normal.",
         "Verser la pâte dans le moule préparé et étaler uniformément à l'aide d'une spatule.",
         "Cuire au four de 40 à 48 minutes, ou jusqu'à ce qu'un cure-dent inséré au centre en ressorte avec seulement quelques miettes. Il vaut mieux les sortir un peu tôt que trop tard.",
         "Laisser refroidir complètement (environ 2 heures) avant de couper en carrés. Conserver dans un contenant hermétique à température ambiante jusqu'à 3 jours, ou congeler jusqu'à 1 mois."
       ],
       "tags": [
-        "Dessert",
+        "dessert",
         "Chocolat",
         "Brownie"
       ]
