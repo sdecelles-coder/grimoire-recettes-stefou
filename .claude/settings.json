@@ -26,7 +26,17 @@
       "Bash(python -c \"import streamlit as st; print\\('streamlit', st.__version__\\)\")",
       "Bash(ls *.txt *.toml)",
       "Bash(cat requirements.txt)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(sort -t'#' -k2)",
+      "Bash(uniq -c -f1)",
+      "Bash(python -c \"import streamlit, st_aggrid\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8501)",
+      "Bash(python -m streamlit run recettes_console.py --server.headless true --server.port 8501 --browser.gatherUsageStats false)",
+      "Bash(grep -rhoE \"color:\\\\s*#[0-9a-fA-F]{3,6}\" conversion_web.py)",
+      "Bash(grep -oiE \"#[0-9a-fA-F]{3,6}\")",
+      "Bash(grep -rhoE \"color:\\\\s*#[0-9a-fA-F]{3,6}\" recettes_console.py)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8501)"
     ]
   }
 }
