@@ -87,68 +87,6 @@
       ]
     },
     {
-      "titre": "Vinaigrette balsamique",
-      "sous_titre": "Classique 3 pour 1 — à éditer selon ton goût",
-      "base": {
-        "label": "Volume",
-        "unite": "ml",
-        "valeur": 250.0,
-        "personnes": 4,
-        "max_personnes": 20,
-        "multiples": false
-      },
-      "ingredients": [
-        {
-          "nom": "Huile d'olive",
-          "qte": 6.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "Vinaigre balsamique",
-          "qte": 2.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "Moutarde de Dijon",
-          "qte": 1.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "Miel",
-          "qte": 1.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "Ail haché",
-          "qte": 0.5,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "Sel et poivre",
-          "qte": null,
-          "unite": "au goût",
-          "palier": null,
-          "section": ""
-        }
-      ],
-      "temps_prep": 0,
-      "temps_cuisson": 0,
-      "preparation": [],
-      "tags": [
-        "Vinaigrette"
-      ]
-    },
-    {
       "titre": "Cuisses de poulet braisées au vin blanc et au romarin",
       "sous_titre": "Style RICARDO — La cuisine d'Isabelle et Ricardo",
       "base": {
@@ -337,7 +275,7 @@
         "Amélie",
         "dessert"
       ]
-    },
+    }
   ],
   "tags": [
     {
