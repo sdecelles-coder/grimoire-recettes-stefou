@@ -845,32 +845,6 @@
         "Chocolat",
         "Dessert"
       ]
-    },
-    {
-      "titre": "RecetteUnique74338",
-      "sous_titre": "",
-      "temps_prep": 5,
-      "temps_cuisson": 0,
-      "base": {
-        "personnes": 4,
-        "label": "Rendement",
-        "unite": "",
-        "valeur": 0,
-        "max_personnes": 20,
-        "multiples": false
-      },
-      "ingredients": [
-        {
-          "nom": "ingredientbizarre74338",
-          "qte": 7,
-          "unite": "g",
-          "section": ""
-        }
-      ],
-      "preparation": [
-        "Melanger."
-      ],
-      "tags": []
     }
   ],
   "tags": [
