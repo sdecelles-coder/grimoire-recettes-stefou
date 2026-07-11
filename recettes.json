@@ -617,6 +617,91 @@
         "Libanais",
         "Brochettes"
       ]
+    },
+    {
+      "titre": "Guimauve Maison",
+      "sous_titre": "Recette traditionnelle et fondante",
+      "temps_prep": 30,
+      "temps_cuisson": 10,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 6,
+        "personnes": 6,
+        "max_personnes": 20,
+        "multiples": false
+      },
+      "ingredients": [
+        {
+          "nom": "sucre",
+          "qte": 200,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "eau",
+          "qte": 40,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "blanc d'œuf",
+          "qte": 1,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sucre glace",
+          "qte": 25,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "maïzena",
+          "qte": 25,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "colorant alimentaire",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "arôme au choix",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "gélatine",
+          "qte": 10,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Mettre la gélatine à tremper dans de l'eau bien froide.",
+        "Verser l'eau et le sucre dans une casserole et porter à ébullition. Plonger un thermomètre dans le sirop et cuire jusqu'à ce que la température atteigne 130 °C.",
+        "Commencer à battre le blanc d'œuf en neige. Dès que le sirop est à température, le verser en filet sur le bord du bol du robot tout en continuant de battre à vitesse moyenne.",
+        "Après avoir versé le sirop, ajouter la gélatine essorée, l'arôme et le colorant. Continuer de battre jusqu'à ce que le mélange tiédisse.",
+        "Mélanger la maïzena avec le sucre glace. Saupoudrer ce mélange sur une plaque en silicone ou dans un plat.",
+        "À l'aide d'une poche à douille, pocher la forme souhaitée. Saupoudrer les guimauves du mélange maïzena et sucre glace, puis réfrigérer 2 à 3 heures avant de servir."
+      ],
+      "tags": [
+        "Confiserie",
+        "Guimauve",
+        "Sucre"
+      ]
     }
   ],
   "tags": [
@@ -673,6 +758,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Confiserie",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "dessert",
       "couleur": "#ff8f5e"
     },
@@ -687,6 +776,10 @@
     {
       "nom": "Fêtes",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Guimauve",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Juju",
@@ -723,6 +816,10 @@
     {
       "nom": "Stefou",
       "couleur": "#007cfb"
+    },
+    {
+      "nom": "Sucre",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Tofu",
