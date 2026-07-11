@@ -920,6 +920,148 @@
         "Avoine",
         "Sans cuisson"
       ]
+    },
+    {
+      "titre": "Flocons d'avoine de nuit",
+      "sous_titre": "5 variantes savoureuses pour le déjeuner",
+      "temps_prep": 5,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 1,
+        "personnes": 1,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 1
+      },
+      "ingredients": [
+        {
+          "nom": "Lait (entier, d'avoine, d'amande ou de coco réfrigéré)",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Base"
+        },
+        {
+          "nom": "Yogourt grec nature",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Base"
+        },
+        {
+          "nom": "Sirop d'érable ou miel",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Base"
+        },
+        {
+          "nom": "Graines de chia",
+          "qte": 2,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Base"
+        },
+        {
+          "nom": "Flocons d'avoine à l'ancienne",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Base"
+        },
+        {
+          "nom": "Petits fruits frais",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Base"
+        },
+        {
+          "nom": "Beurre d'arachide croquant ou crémeux",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Variante beurre d'arachide et fraise"
+        },
+        {
+          "nom": "Confiture de fraises",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Variante beurre d'arachide et fraise"
+        },
+        {
+          "nom": "Arachides rôties hachées",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Variante beurre d'arachide et fraise"
+        },
+        {
+          "nom": "Ananas frais, surgelé ou en conserve, haché",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Variante ananas et coco"
+        },
+        {
+          "nom": "Copeaux de noix de coco grillés",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Variante ananas et coco"
+        },
+        {
+          "nom": "Purée de citrouille",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Variante citrouille"
+        },
+        {
+          "nom": "Épices à tarte à la citrouille",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Variante citrouille"
+        },
+        {
+          "nom": "Mangue fraîche ou surgelée, hachée",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Variante mangue et lait condensé"
+        },
+        {
+          "nom": "Lait condensé sucré",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Variante mangue et lait condensé"
+        },
+        {
+          "nom": "Graines de sésame grillées",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Variante mangue et lait condensé"
+        }
+      ],
+      "preparation": [
+        "Dans un pot de 250 à 375 ml, mélanger le lait, le yogourt grec, le sirop d'érable et les graines de chia. Incorporer les flocons d'avoine en s'assurant qu'ils sont bien immergés dans le lait.",
+        "Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de petits fruits frais.",
+        "Variante beurre d'arachide et fraise : incorporer le beurre d'arachide à la préparation de base jusqu'à ce qu'il soit bien réparti sans être complètement mélangé. Déposer la confiture de fraises sur le dessus. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni d'arachides rôties hachées.",
+        "Variante ananas et coco : préparer la recette de base en utilisant du lait de coco réfrigéré. Incorporer l'ananas à la préparation. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de copeaux de noix de coco grillés.",
+        "Variante citrouille : préparer la recette de base sans le yogourt. Incorporer la purée de citrouille et les épices à tarte à la citrouille. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de yogourt et d'un peu d'épices à tarte à la citrouille.",
+        "Variante mangue et lait condensé : préparer la recette de base avec du lait de coco réfrigéré. Déposer la mangue sur le dessus de la préparation et arroser de lait condensé sucré. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de graines de sésame grillées."
+      ],
+      "tags": [
+        "Déjeuner",
+        "Avoine",
+        "Sans cuisson"
+      ]
     }
   ],
   "tags": [
