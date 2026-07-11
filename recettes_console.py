@@ -464,7 +464,8 @@ def normaliser_recette(r):
     b.setdefault("valeur", 0)
     b.setdefault("personnes", 4)          # personnes servies par la valeur de réf.
     b.setdefault("max_personnes", 20)     # borne haute du curseur en cuisine
-    b.setdefault("multiples", False)      # ajuster seulement par multiples entiers
+    b.setdefault("multiples", False)      # ajuster seulement par paliers fixes
+    b.setdefault("pas_personnes", b.get("personnes") or 4)  # taille du palier
     return r
 
 
@@ -1231,7 +1232,8 @@ def recette_vierge(recettes):
         "temps_prep": 0,
         "temps_cuisson": 0,
         "base": {"label": "Portions", "unite": "portions", "valeur": 4,
-                 "personnes": 4, "max_personnes": 20, "multiples": False},
+                 "personnes": 4, "max_personnes": 20, "multiples": False,
+                 "pas_personnes": 4},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5, "section": ""}],
         "preparation": ["Première étape — cite un ingrédient et sa quantité "
@@ -2025,6 +2027,9 @@ if vue == VUE_CUISINE:
     if max_pers < personnes_ref:
         max_pers = max(personnes_ref, 20)
     par_multiples = bool(base.get("multiples", False))
+    pas_pers = int(base.get("pas_personnes") or personnes_ref)
+    if pas_pers < 1:
+        pas_pers = 1
 
     rendement_ref = float(base.get("valeur") or 0)      # pour personnes_ref pers.
     tp = int(recette.get("temps_prep", 0) or 0)
@@ -2038,30 +2043,34 @@ if vue == VUE_CUISINE:
     c_pers, _ = st.columns([1, 1.3])
     with c_pers:
         if par_multiples:
-            # Ajustement par multiples entiers : le champ ne saute que par
-            # paliers de personnes_ref (ex. 4 → 8 → 12), jamais 5 ou 6.
-            max_mult_pers = (max_pers // personnes_ref) * personnes_ref
+            # Ajustement par paliers fixes : le champ ne saute que par pas de
+            # pas_pers (ex. personnes_ref=4, pas_pers=2 → 4 → 6 → 8…), jamais
+            # une personne à la fois. pas_pers peut différer de personnes_ref
+            # (ex. +2 personnes plutôt que de doubler direct de 4 à 8).
+            nb_paliers_max = (max_pers - personnes_ref) // pas_pers
+            max_mult_pers = personnes_ref + nb_paliers_max * pas_pers
             if max_mult_pers < personnes_ref:
                 max_mult_pers = personnes_ref
             cible_pers = st.number_input(
                 "🍽️  Nombre de personnes",
                 min_value=personnes_ref, max_value=max_mult_pers,
-                value=personnes_ref, step=personnes_ref,
+                value=personnes_ref, step=pas_pers,
                 key=f"cible_{st.session_state.sel}",
-                help=f"Recette ajustée par multiples : par paliers de "
-                     f"{personnes_ref} personne{'s' if personnes_ref > 1 else ''} "
-                     f"(×1, ×2, ×3…).")
-            # On garantit un multiple exact même si une valeur est saisie à la main.
-            cible_pers = int(round(cible_pers / personnes_ref)) * personnes_ref
+                help=f"Recette ajustée par paliers de {pas_pers} "
+                     f"personne{'s' if pas_pers > 1 else ''} "
+                     f"(à partir de {personnes_ref}).")
+            # On garantit un palier exact même si une valeur est saisie à la main.
+            nb_paliers = int(round((cible_pers - personnes_ref) / pas_pers))
+            cible_pers = personnes_ref + nb_paliers * pas_pers
             cible_pers = max(personnes_ref, min(cible_pers, max_mult_pers))
             # Note à .8rem, bien claire (couleur --text plutôt que muted).
             st.markdown(
                 f"<div style=\"font-family:'JetBrains Mono',monospace;"
                 f"font-size:.8rem;font-weight:600;color:var(--text);"
                 f"letter-spacing:.06em;margin-top:-.35rem;\">"
-                f"⏫ Ajusté par paliers de {personnes_ref} "
-                f"personne{'s' if personnes_ref > 1 else ''} "
-                f"(×{cible_pers // personnes_ref}).</div>",
+                f"⏫ Ajusté par paliers de {pas_pers} "
+                f"personne{'s' if pas_pers > 1 else ''} "
+                f"(+{nb_paliers * pas_pers} par rapport à {personnes_ref}).</div>",
                 unsafe_allow_html=True)
         else:
             cible_pers = st.number_input(
@@ -2079,8 +2088,8 @@ if vue == VUE_CUISINE:
     # Récapitulatif « sommaire » — rendu DANS la carte (classes .meta / .chip).
     chips = [f'<span class="chip chip-ref">Personnes · <b>{cible_pers:g}</b></span>']
     if par_multiples:
-        chips.append(f'<span class="chip">Multiple · '
-                     f'<b>×{cible_pers // personnes_ref}</b></span>')
+        chips.append(f'<span class="chip">Palier · '
+                     f'<b>+{pas_pers}</b></span>')
     if rendement_ref > 0:
         chips.append(f'<span class="chip">{label} · <b>{rendement:g} {unite}</b></span>')
         chips.append(f'<span class="chip">Portion/pers · <b>{portion:g} {unite}</b></span>')
@@ -2168,7 +2177,7 @@ if vue == VUE_CUISINE:
                 f'<span class="sec-chevron">▾</span></div>'
                 f'<div class="sec-body{cache}">{body}</div>')
 
-    somm_count = (f'×{cible_pers // personnes_ref}' if par_multiples
+    somm_count = (f'+{pas_pers} · {cible_pers:g} pers.' if par_multiples
                   else f'{cible_pers:g} pers.')
     rows = section_block("sec-som", "◈", "Sommaire et configuration de la recette",
                          somm_count, somm_body, collapsed=False)
@@ -2793,11 +2802,23 @@ if vue == VUE_EDITION:
                 value=int(base.get("max_personnes", 20) or 20), key=f"bmp_{k}",
                 help="Borne haute du curseur « Nombre de personnes » en cuisine.")
         b_multiples = st.checkbox(
-            "Ajuster uniquement par multiples de la recette",
+            "Ajuster uniquement par paliers fixes",
             value=bool(base.get("multiples", False)), key=f"bmul_{k}",
             help="Utile en pâtisserie : en cuisine, le nombre de personnes ne "
-                 "saute que par paliers de la valeur de référence (ex. 4 → 8 → 12), "
-                 "jamais 5 ou 6, pour garder des proportions exactes.")
+                 "saute que par paliers réguliers, pour garder des proportions "
+                 "exactes (ex. 4 → 8 → 12, ou 4 → 6 → 8 si le palier est de 2).")
+        if b_multiples:
+            b_pas_personnes = st.number_input(
+                "Taille du palier (nombre de personnes par saut)",
+                min_value=1, step=1,
+                value=int(base.get("pas_personnes") or b_personnes),
+                key=f"bpas_{k}",
+                help="Ex. avec une référence à 4 personnes et un palier de 2 : "
+                     "en cuisine on peut choisir 4, 6, 8, 10… (et non doubler "
+                     "directement à 8). Laisser égal au nombre de personnes de "
+                     "référence pour retrouver l'ancien comportement (×1, ×2, ×3…).")
+        else:
+            b_pas_personnes = int(base.get("pas_personnes") or b_personnes)
         st.caption("L'élément de base ci-dessous est obligatoire : chaque recette "
                    "doit avoir une étiquette de rendement, une valeur de référence "
                    "(> 0) et une unité — c'est ce qui s'ajuste avec le nombre de "
@@ -3144,7 +3165,8 @@ if vue == VUE_EDITION:
                                "valeur": float(b_val),
                                "personnes": int(b_personnes),
                                "max_personnes": max(int(b_maxpers), int(b_personnes)),
-                               "multiples": bool(b_multiples)}
+                               "multiples": bool(b_multiples),
+                               "pas_personnes": int(b_pas_personnes)}
             recette["ingredients"] = nouveaux
             # Les étapes sont enregistrées telles quelles : le marquage dynamique
             # [ainsi] se fait à la demande via « 🔍 Rescanner » (aucun marquage

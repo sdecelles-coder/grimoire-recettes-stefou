@@ -9,7 +9,8 @@
         "valeur": 700.0,
         "personnes": 4,
         "max_personnes": 20,
-        "multiples": false
+        "multiples": false,
+        "pas_personnes": 4
       },
       "ingredients": [
         {
@@ -95,7 +96,8 @@
         "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
-        "multiples": false
+        "multiples": false,
+        "pas_personnes": 4
       },
       "ingredients": [
         {
@@ -193,7 +195,8 @@
         "valeur": 16.0,
         "personnes": 4,
         "max_personnes": 48,
-        "multiples": true
+        "multiples": true,
+        "pas_personnes": 4
       },
       "ingredients": [
         {
@@ -287,7 +290,8 @@
         "valeur": 16.0,
         "personnes": 16,
         "max_personnes": 20,
-        "multiples": false
+        "multiples": false,
+        "pas_personnes": 16
       },
       "ingredients": [
         {
@@ -387,7 +391,8 @@
         "valeur": 2.0,
         "personnes": 2,
         "max_personnes": 20,
-        "multiples": true
+        "multiples": true,
+        "pas_personnes": 2
       },
       "ingredients": [
         {
@@ -516,7 +521,8 @@
         "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
-        "multiples": false
+        "multiples": false,
+        "pas_personnes": 4
       },
       "ingredients": [
         {
@@ -629,7 +635,8 @@
         "valeur": 6.0,
         "personnes": 6,
         "max_personnes": 20,
-        "multiples": false
+        "multiples": true,
+        "pas_personnes": 6
       },
       "ingredients": [
         {
