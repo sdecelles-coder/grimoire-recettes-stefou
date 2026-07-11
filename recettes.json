@@ -389,109 +389,109 @@
         "label": "Bavette",
         "unite": "portions",
         "valeur": 2.0,
-        "personnes": 2,
+        "personnes": 4,
         "max_personnes": 20,
         "multiples": true,
         "pas_personnes": 2
       },
       "ingredients": [
         {
-          "nom": "bavette (ou hampe)",
+          "nom": "bavette ou steak",
           "qte": 800.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "viandes"
         },
         {
           "nom": "vin rouge sec",
           "qte": 180.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "huile d'olive",
           "qte": 60.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "moutarde de Dijon",
           "qte": 30.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "sauce Worcestershire",
           "qte": 30.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "sauce soja (optionnel)",
           "qte": 20.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "sirop d'érable ou miel",
           "qte": 15.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "vinaigre de vin rouge (optionnel)",
           "qte": 10.0,
           "unite": "ml",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "sel",
           "qte": 12.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "poivre noir concassé",
           "qte": 2.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "ail haché finement",
           "qte": 12.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "oignon ou échalotes",
           "qte": 80.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "thym frais (ou 1 c. à thé de thym sec)",
           "qte": 5.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         },
         {
           "nom": "romarin frais (ou 1/2 c. à thé sec)",
           "qte": 2.0,
           "unite": "g",
           "palier": null,
-          "section": ""
+          "section": "marinade"
         }
       ],
       "preparation": [
