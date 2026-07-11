@@ -389,7 +389,7 @@
         "label": "Viande",
         "unite": "portions",
         "valeur": 2.0,
-        "personnes": 4,
+        "personnes": 2,
         "max_personnes": 20,
         "multiples": true,
         "pas_personnes": 2
