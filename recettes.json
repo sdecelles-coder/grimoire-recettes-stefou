@@ -726,58 +726,6 @@
         "Guimauve",
         "Bonbon"
       ]
-    },
-    {
-      "titre": "Meringue",
-      "sous_titre": "Légère et parfaite pour garnir les tartes et desserts",
-      "temps_prep": 10,
-      "temps_cuisson": 10,
-      "base": {
-        "label": "Portions",
-        "unite": "portions",
-        "valeur": 8,
-        "personnes": 8,
-        "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 8
-      },
-      "ingredients": [
-        {
-          "nom": "blancs d'œufs",
-          "qte": 4,
-          "unite": "unité",
-          "palier": 1,
-          "section": ""
-        },
-        {
-          "nom": "crème de tartre",
-          "qte": 0.25,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "sucre",
-          "qte": 0.25,
-          "unite": "tasse",
-          "palier": 0.25,
-          "section": ""
-        }
-      ],
-      "preparation": [
-        "Sortir les œufs du réfrigérateur et séparer les blancs des jaunes ; ils se séparent mieux lorsqu'ils sont froids.",
-        "Laisser les blancs d'œufs atteindre la température ambiante afin qu'ils puissent monter au maximum.",
-        "Préchauffer le four à 180 °C (350 °F).",
-        "Verser les blancs d'œufs dans un bol parfaitement propre et sans trace de gras.",
-        "Fouetter les blancs jusqu'à ce qu'ils soient brillants et lisses, puis ajouter la crème de tartre pour les aider à tenir leur forme.",
-        "Ajouter le sucre graduellement, environ une cuillère à table à la fois, en battant après chaque ajout jusqu'à ce qu'il soit bien incorporé. Continuer à battre jusqu'à la formation de pics fermes.",
-        "Étaler la meringue sur le dessert déjà cuit ou sans cuisson, placer à environ 10 cm (4 po) de l'élément chauffant et cuire environ 10 minutes, jusqu'à ce qu'elle soit dorée."
-      ],
-      "tags": [
-        "Dessert",
-        "Meringue",
-        "Sans gluten"
-      ]
     }
   ],
   "tags": [
