@@ -482,7 +482,7 @@
           "section": ""
         },
         {
-          "nom": "romarin frais (ou ½ c. à thé sec)",
+          "nom": "romarin frais (ou 1/2 c. à thé sec)",
           "qte": 2.0,
           "unite": "g",
           "palier": null,
@@ -629,7 +629,7 @@
         "valeur": 6.0,
         "personnes": 6,
         "max_personnes": 20,
-        "multiples": true
+        "multiples": false
       },
       "ingredients": [
         {
@@ -650,7 +650,7 @@
           "nom": "sirop de maïs",
           "qte": 0.667,
           "unite": "tasse",
-          "palier": 0.25,
+          "palier": 0.3333333333333333,
           "section": ""
         },
         {
@@ -704,12 +704,12 @@
         }
       ],
       "preparation": [
-        "Mélanger le sucre en poudre et la fécule de maïs dans un bol. Réserver.",
+        "Mélanger le [sucre en poudre] et la [fécule de maïs] dans un bol. Réserver.",
         "Recouvrir un moule à gâteau rectangulaire d'un papier parchemin ou utiliser un moule non adhésif en silicone. Vaporiser le moule ou le recouvrir avec de l'huile. Enduire ses mains et un pinceau à pâtisserie d'huile. La surface entière ainsi que les mains et les outils doivent être recouverts d'un corps gras, car le mélange à guimauve sera extrêmement collant.",
-        "Verser le mélange de sucre en poudre et de [fécule de maïs] sur le moule huilé. Laisser la substance adhérer au moule et remettre l'excès de sucre et fécule dans un bol pour utilisation ultérieure.",
-        "Déposer la gélatine dans un bol à mélangeur électrique. Verser 1/2 tasse d'eau froide dans le bol avec la gélatine et laisser reposer 10 minutes.",
-        "Dans une petite casserole, mélanger 1/4 de tasse d'eau, 2/3 de tasse de sirop de maïs et 2 tasses de sucre blanc granulé. Porter à ébullition jusqu'à ce que la température atteigne exactement 244 °F. Une fois la température atteinte, verser le mélange bouillant dans le bol contenant la gélatine et l'eau.",
-        "Mélanger immédiatement à haute vitesse à l'aide du mélangeur électrique. Ajouter le sel et continuer à battre le mélange pendant 15 minutes. Ajouter ensuite l'extrait de vanille ou d'amande ainsi que le colorant alimentaire, si désiré.",
+        "Verser le mélange de [sucre en poudre] et de [fécule de maïs] sur le moule huilé. Laisser la substance adhérer au moule et remettre l'excès de sucre et fécule dans un bol pour utilisation ultérieure.",
+        "Déposer la [gélatine] dans un bol à mélangeur électrique. Verser l'[eau froide] dans le bol avec la gélatine et laisser reposer 10 minutes.",
+        "Dans une petite casserole, mélanger eau, [sirop de maïs] et [sucre blanc granulé]. Porter à ébullition jusqu'à ce que la température atteigne exactement 244 °F. Une fois la température atteinte, verser le mélange bouillant dans le bol contenant la gélatine et l'eau.",
+        "Mélanger immédiatement à haute vitesse à l'aide du mélangeur électrique. Ajouter le [sel] et continuer à battre le mélange pendant 15 minutes. Ajouter ensuite l'[extrait de vanille ou d'amande] ainsi que le colorant alimentaire, si désiré.",
         "Verser le mélange dans le moule à gâteau. Saupoudrer du mélange de fécule de maïs. Pour plus de consistance, couvrir d'un second papier parchemin et condenser le mélange au fond du moule. Laisser reposer environ 4 heures à température ambiante.",
         "Pour tailler les morceaux, retirer la pièce de guimauve obtenue et la placer sur une planche à découper enduite du mélange de sucre en poudre et de fécule de maïs. S'assurer d'enduire également les côtés de la pièce de guimauve avec ce même mélange.",
         "Couper à la grosseur souhaitée à l'aide d'un couteau de cuisine ou utiliser des emporte-pièces pour des formes originales. Plonger les morceaux obtenus dans le mélange de sucre et fécule afin d'éviter qu'ils adhèrent entre eux."

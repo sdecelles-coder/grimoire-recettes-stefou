@@ -403,7 +403,7 @@ def sauvegarder_recettes(recettes, tags):
 # ─────────────────────────────────────────────────────────────────────────────
 #  LOGIQUE DE MISE À L'ÉCHELLE
 # ─────────────────────────────────────────────────────────────────────────────
-FRACTIONS = {0.0: "", 0.25: "¼", 0.5: "½", 0.75: "¾"}
+FRACTIONS = {0.0: "", 0.25: "1/4", 0.5: "1/2", 0.75: "3/4", 0.33: "1/3", 0.67: "2/3"}
 
 
 def echelle(ing, facteur):
@@ -418,7 +418,7 @@ def echelle(ing, facteur):
 
 
 def jolie_qte(x):
-    """0.5 -> '½', 3.5 -> '3 ½', 3.0 -> '3'."""
+    """0.5 -> '1/2', 3.5 -> '3 1/2', 3.0 -> '3', 0.6667 -> '2/3' (palier 1/3)."""
     if x is None:
         return "au goût"
     entier = int(x)
@@ -958,14 +958,31 @@ def _palier_txt(p):
     """Rend un palier sous forme de chaîne pour l'éditeur (menu déroulant). La
     colonne Palier reste ainsi textuelle : sans ça, streamlit-aggrid l'infère
     numérique et affiche « Invalid Number » sur une valeur de menu ou une ligne
-    neuve. Le float est reconstruit à l'enregistrement."""
+    neuve. Le float est reconstruit à l'enregistrement.
+    Le tiers (1/3) n'est pas représentable exactement en décimal : on le
+    reconnaît explicitement pour l'afficher « 1/3 » plutôt que « 0.333333 »."""
     if p is None or p == "" or (isinstance(p, float) and pd.isna(p)):
         return ""
     p = float(p)
     for v in ("0.25", "0.5", "1.0"):
         if abs(p - float(v)) < 1e-9:
             return v
+    if abs(p - 1 / 3) < 1e-9:
+        return "1/3"
     return f"{p:g}"
+
+
+def _palier_val(txt):
+    """Convertit le texte d'un palier (« 0.5 », « 1/3 ») en float ; None si vide.
+    Symétrique de _palier_txt — accepte en plus la notation fractionnaire pour
+    que les paliers comme 1/3 survivent à l'aller-retour éditeur ↔ données."""
+    txt = (txt or "").strip()
+    if not txt:
+        return None
+    if "/" in txt:
+        n, d = txt.split("/", 1)
+        return float(n) / float(d)
+    return float(txt)
 
 
 def _ingredients_depuis_editeur(df):
@@ -988,7 +1005,7 @@ def _ingredients_depuis_editeur(df):
             "nom": nom,
             "qte": None if au_gout else float(qte),
             "unite": unite or ("au goût" if au_gout else ""),
-            "palier": None if (palier is None or palier == "" or pd.isna(palier)) else float(palier),
+            "palier": _palier_val(None if (palier is None or pd.isna(palier)) else str(palier)),
             "section": section,
         })
     return nouveaux
@@ -2644,7 +2661,7 @@ if vue == VUE_CONVERSION:
                 if q in (None, ""):
                     detail = u or "au goût"
                 elif isinstance(q, (int, float)):
-                    detail = f"{q:g} {u}".strip()
+                    detail = f"{jolie_qte(q)} {u}".strip()
                 else:
                     detail = f"{q} {u}".strip()
                 st.write(f"- **{ing.get('nom', '')}** — {detail}")
@@ -2863,13 +2880,14 @@ if vue == VUE_EDITION:
             columns=["Ingrédient", "Section", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
-        # Valeurs du menu déroulant Palier : les standards + tout palier déjà
-        # présent dans la recette (ex. 5, 25) pour ne pas le perdre à l'édition.
+        # Valeurs du menu déroulant Palier : les standards (dont le tiers, pour
+        # les mesures en 1/3 / 2/3) + tout palier déjà présent dans la recette
+        # (ex. 5, 25) pour ne pas le perdre à l'édition.
         paliers_presents = {_palier_txt(ing.get("palier"))
                             for ing in recette["ingredients"]}
         paliers_menu = [""] + sorted(
-            (paliers_presents | {"0.25", "0.5", "1.0"}) - {""},
-            key=float)
+            (paliers_presents | {"0.25", "0.5", "1.0", "1/3"}) - {""},
+            key=_palier_val)
 
         def _cfg_ing(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
@@ -2893,8 +2911,10 @@ if vue == VUE_EDITION:
                                               "cuisines pour tomber sur des chiffres "
                                               "faciles à mesurer. Exemple: Palier 25, "
                                               "on incrémente de 25 → 25, 50, 75, 100… "
-                                              "Palier 0.5 → des demies (½, 1, 1½…). "
-                                              "Comme ça, jamais de « 0,37 cuillère » "
+                                              "Palier 0.5 → des demies (1/2, 1, 1 1/2…). "
+                                              "Palier 1/3 → des tiers (1/3, 2/3, 1, "
+                                              "1 1/3…), pour ne jamais arrondir un 2/3 "
+                                              "à 1. Comme ça, jamais de « 0,37 cuillère » "
                                               "impossible à mesurer !")
 
         grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)

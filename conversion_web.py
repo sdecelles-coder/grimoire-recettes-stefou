@@ -327,9 +327,13 @@ UNITÉS (privilégie ces formes québécoises) :
 - sel, poivre et assaisonnements « au goût » -> qte:null, unite:"au goût", palier:null
 
 RÈGLES qte / palier :
-- "qte" est un nombre décimal ; convertis les fractions (1/2 -> 0.5, ¼ -> 0.25).
+- "qte" est un nombre décimal ; convertis les fractions (1/2 -> 0.5, 1/4 -> 0.25).
 - "palier" = pas d'ajustement : 0.5 pour "c. à table", 0.25 pour "c. à thé" et \
 "tasse", null pour g/ml/l et pour tout ingrédient "au goût" (qte null).
+- Si la quantité source est un tiers ou un multiple de tiers (1/3, 2/3, 1 1/3, \
+etc., quelle que soit l'unité), mets "palier": 0.3333333333333333 pour cet \
+ingrédient — sinon la mise à l'échelle arrondirait un 2/3 à l'entier le plus \
+proche.
 - Si un ingrédient a une portion entre parenthèses (ex. « 1 boîte (796 ml) »), \
 garde le plus utile pour cuisiner.
 
