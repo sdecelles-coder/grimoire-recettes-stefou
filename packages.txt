@@ -2,7 +2,6 @@ xvfb
 libnss3
 libatk-bridge2.0-0
 libatk1.0-0
-libcups2
 libdrm2
 libxkbcommon0
 libxcomposite1
@@ -14,7 +13,6 @@ libasound2
 libpango-1.0-0
 libcairo2
 libxss1
-libgtk-3-0
 fonts-liberation
 libu2f-udev
 libvulkan1
