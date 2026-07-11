@@ -2570,18 +2570,10 @@ if vue == VUE_CONVERSION:
                    "(api_key) dans les secrets Streamlit pour activer la "
                    "conversion.")
     else:
-        mode = st.radio("Source", ["Depuis une URL", "Coller le texte"],
-                        horizontal=True, key="conv_mode")
-        if mode == "Depuis une URL":
-            entree_url = st.text_input(
-                "Adresse de la recette", key="conv_url",
-                placeholder="https://www.ricardocuisine.com/recettes/…")
-            entree_txt = ""
-        else:
-            entree_url = ""
-            entree_txt = st.text_area(
-                "Texte de la recette", key="conv_txt", height=220,
-                placeholder="Colle ici le titre, les ingrédients et les étapes…")
+        entree = st.text_area(
+            "Recette à convertir", key="conv_entree", height=220,
+            placeholder="Colle une adresse web (https://…) ou le texte complet "
+                        "de la recette — la détection est automatique.")
 
         if st.button("✨ Convertir", type="primary", use_container_width=True,
                      key="conv_go"):
@@ -2599,17 +2591,8 @@ if vue == VUE_CONVERSION:
                            st.spinner("Conversion en cours… (quelques secondes)"))
                 try:
                     with attente:
-                        if mode == "Depuis une URL":
-                            rec, src = cw.convertir_url(
-                                entree_url, cfg["api_key"], cfg["model"])
-                        else:
-                            if len((entree_txt or "").strip()) < 40:
-                                raise cw.RecetteIntrouvable(
-                                    "Colle au moins le titre, les ingrédients et "
-                                    "les étapes de la recette.")
-                            rec = cw.convertir_texte(
-                                entree_txt, cfg["api_key"], cfg["model"])
-                            src = "texte"
+                        rec, src = cw.convertir(
+                            entree, cfg["api_key"], cfg["model"])
                         normaliser_recette(rec)
                         st.session_state.conv_resultat = rec
                         st.session_state.conv_source = src
@@ -2638,7 +2621,10 @@ if vue == VUE_CONVERSION:
             src = st.session_state.get("conv_source", "")
             libelle = {"jsonld": "données structurées du site",
                        "html": "texte de la page",
-                       "texte": "texte collé"}.get(src, src)
+                       "texte": "texte collé",
+                       "ia_fetch": "page récupérée directement par l'IA",
+                       "navigateur": "page récupérée via un navigateur automatisé "
+                                     "(dernier recours)"}.get(src, src)
             st.success(f"Recette détectée (via {libelle}). Vérifie l'aperçu, "
                        "puis ajoute-la au menu.")
 

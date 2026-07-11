@@ -1,4 +1,6 @@
 streamlit==1.58.0
 requests>=2.31
 streamlit-aggrid==1.2.1.post2
-anthropic>=0.40
+anthropic>=0.68
+playwright>=1.40
+pyvirtualdisplay>=3.0
