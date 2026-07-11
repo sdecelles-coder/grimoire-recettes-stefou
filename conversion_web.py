@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
+import sys
 
 import requests
 
@@ -504,15 +506,23 @@ def convertir_url_via_ia(url: str, api_key: str,
     return _reponse_vers_recette(resp), "ia_fetch"
 
 
-# ── 4. Dernier repli : navigateur automatisé ─────────────────────────────────
+# ── 4. Dernier repli : navigateur automatisé (isolé dans un sous-processus) ──
+# Lancer un vrai navigateur peut planter au niveau natif (segfault) sur
+# certains environnements de déploiement contraints — un crash natif tue tout
+# le processus qui l'a lancé, sans passer par un except Python. On isole donc
+# ce palier dans un vrai sous-processus OS (subprocess.run sur
+# _navigateur_repli.py, un script autonome) : s'il plante, seul ce
+# sous-processus meurt, jamais le serveur Streamlit principal.
+_SCRIPT_NAVIGATEUR_REPLI = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "_navigateur_repli.py")
+
+
 def _assurer_chromium_installe():
     """S'assure que le binaire Chromium de Playwright est présent. En
     déploiement (Streamlit Cloud), `playwright install chromium` n'est pas
     exécuté automatiquement après `pip install` — on le tente ici, une seule
     fois par processus, avant le premier lancement du navigateur de repli.
-    Échec silencieux : si l'installation rate, convertir_url_via_navigateur
-    échouera proprement à l'étape suivante (lancement du navigateur)."""
-    import os
+    Échec silencieux : si l'installation rate, la suite échouera proprement."""
     import subprocess
 
     from playwright.sync_api import sync_playwright
@@ -521,76 +531,59 @@ def _assurer_chromium_installe():
         if os.path.exists(p.chromium.executable_path):
             return
     subprocess.run(
-        ["python", "-m", "playwright", "install", "chromium"],
+        [sys.executable, "-m", "playwright", "install", "chromium"],
         check=False, capture_output=True, timeout=180)
-
-
-def _ecran_virtuel():
-    """Sur un serveur Linux sans écran (déploiement), ouvre un écran virtuel
-    (Xvfb, via pyvirtualdisplay) pour permettre de lancer Chrome en mode
-    « visible ». Sans effet sur Windows (pas nécessaire en local). Renvoie
-    l'objet Display à fermer après usage, ou None si non applicable/échoué."""
-    import sys
-    if not sys.platform.startswith("linux"):
-        return None
-    try:
-        from pyvirtualdisplay import Display
-        ecran = Display(visible=False, size=(1280, 800))
-        ecran.start()
-        return ecran
-    except Exception:
-        return None
 
 
 def convertir_url_via_navigateur(url: str, api_key: str,
                                  model: str = "claude-sonnet-4-6") -> tuple[dict, str]:
     """Dernier repli, après convertir_url et convertir_url_via_ia : ouvre un
-    vrai navigateur (Chromium via Playwright) en mode VISIBLE pour récupérer
-    la page, puis envoie le texte obtenu à Claude.
+    vrai navigateur (Chromium via Playwright) en mode VISIBLE, DANS UN VRAI
+    SOUS-PROCESSUS OS ISOLÉ (_navigateur_repli.py), pour récupérer la page,
+    puis envoie le texte obtenu à Claude.
 
     Constat empirique : certains sites bloquent les requêtes HTTP classiques
     (les nôtres et celle de l'outil web_fetch de Claude) mais pas un
     navigateur complet en mode visible — probablement une détection du mode
     « headless » plutôt qu'un blocage par IP. Nettement plus lourd/lent
     (plusieurs secondes, lance un vrai navigateur), donc réservé au dernier
-    recours. Nécessite `playwright` (+ `python -m playwright install
-    chromium` ; tenté automatiquement si le binaire est absent).
+    recours. L'isolation en sous-processus protège le serveur principal d'un
+    crash natif du navigateur (ex. segfault), fréquent sur les environnements
+    de déploiement contraints.
 
-    Renvoie (recette, "navigateur"). Lève RecetteIntrouvable si Playwright
-    n'est pas disponible, si la page ne charge pas, ou si aucune recette n'y
-    est trouvée ; les mêmes exceptions que convertir_texte sinon."""
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError as e:
-        raise RecetteIntrouvable(
-            "Le navigateur de repli n'est pas installé sur ce serveur.") from e
+    Renvoie (recette, "navigateur"). Lève RecetteIntrouvable si le
+    sous-processus plante/dépasse le délai/ne renvoie rien d'exploitable ;
+    les mêmes exceptions que convertir_texte sinon."""
+    import subprocess
+    import tempfile
 
     try:
         _assurer_chromium_installe()
     except Exception:
-        pass  # best-effort ; un binaire manquant fera échouer le lancement plus bas
+        pass  # best-effort ; un binaire manquant fera échouer le sous-processus plus bas
 
-    ecran = _ecran_virtuel()
+    fd, fichier_sortie = tempfile.mkstemp(suffix=".html")
+    os.close(fd)
     try:
-        with sync_playwright() as p:
-            try:
-                navigateur = p.chromium.launch(headless=False)
-            except Exception as e:
-                raise RecetteIntrouvable(
-                    f"Impossible de lancer le navigateur de repli : {e}") from e
-            try:
-                page = navigateur.new_page(locale="fr-CA")
-                page.goto(url, timeout=25000, wait_until="domcontentloaded")
-                page.wait_for_timeout(2500)
-                html_text = page.content()
-            except Exception as e:
-                raise RecetteIntrouvable(
-                    f"Le navigateur de repli n'a pas pu charger cette page : {e}") from e
-            finally:
-                navigateur.close()
+        try:
+            resultat = subprocess.run(
+                [sys.executable, _SCRIPT_NAVIGATEUR_REPLI, url, fichier_sortie],
+                capture_output=True, text=True, timeout=50)
+        except subprocess.TimeoutExpired:
+            raise RecetteIntrouvable(
+                "Le navigateur de repli a mis trop de temps à répondre.")
+        if resultat.returncode != 0:
+            detail = (resultat.stderr or "erreur inconnue").strip().splitlines()
+            raise RecetteIntrouvable(
+                f"Le navigateur de repli a échoué (code {resultat.returncode}) : "
+                f"{detail[-1] if detail else 'erreur inconnue'}")
+        with open(fichier_sortie, encoding="utf-8") as f:
+            html_text = f.read()
     finally:
-        if ecran:
-            ecran.stop()
+        try:
+            os.unlink(fichier_sortie)
+        except OSError:
+            pass
 
     source_texte, _ = _texte_source_depuis_html(html_text)
     if len(source_texte) < 40:
