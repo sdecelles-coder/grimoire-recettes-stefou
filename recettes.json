@@ -920,6 +920,135 @@
         "Avoine",
         "Juju"
       ]
+    },
+    {
+      "titre": "Marinade au vin rouge pour steak",
+      "sous_titre": "Style bistrot — tendre, parfumée, parfaite au BBQ ou à la poêle",
+      "temps_prep": 15,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2,
+        "personnes": 2,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "bavette (ou hampe)",
+          "qte": 800,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "vin rouge sec",
+          "qte": 180,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 60,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "moutarde de Dijon",
+          "qte": 30,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sauce Worcestershire",
+          "qte": 30,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sauce soja (optionnel)",
+          "qte": 20,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sirop d'érable ou miel",
+          "qte": 15,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "vinaigre de vin rouge (optionnel)",
+          "qte": 10,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": 12,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "poivre noir concassé",
+          "qte": 2,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "ail haché finement",
+          "qte": 12,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "oignon (ou 2 échalotes) haché finement",
+          "qte": 80,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "thym frais (ou 1 c. à thé de thym sec)",
+          "qte": 5,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "romarin frais (ou ½ c. à thé sec)",
+          "qte": 2,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        "Préparer la marinade : dans un bol, mélanger le vin rouge, l'huile d'olive, la moutarde de Dijon, la sauce Worcestershire, le sirop d'érable (ou miel), le sel, le poivre, l'ail, l'oignon ou les échalotes, le thym, le romarin, et si désiré, le vinaigre de vin rouge.",
+        "Mettre le steak dans un sac hermétique ou un plat creux. Verser la marinade et bien enrober la viande.",
+        "Réfrigérer : 1 à 4 h pour les steaks fins, ou 4 à 12 h pour la bavette, l'onglet ou la hampe.",
+        "Avant la cuisson, sortir la viande du réfrigérateur et bien l'éponger avec du papier absorbant. Laisser reposer 20 minutes à température ambiante.",
+        "Cuisson au BBQ : saisir à feu vif, 2 à 5 minutes par côté selon l'épaisseur.",
+        "Cuisson à la poêle : chauffer la poêle à feu très vif et saisir 2 à 5 minutes par côté.",
+        "Laisser reposer la viande quelques minutes, puis trancher contre les fibres avant de servir."
+      ],
+      "tags": [
+        "Bœuf",
+        "Marinade",
+        "BBQ"
+      ]
     }
   ],
   "tags": [
