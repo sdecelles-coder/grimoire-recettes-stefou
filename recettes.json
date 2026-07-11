@@ -183,7 +183,7 @@
         "Retirer les branches de romarin et les gousses d'ail de la cocotte, puis les composter. Accompagner les cuisses de poulet et les oignons d'un gratin de pommes de terre aux poireaux et au thym, si désiré."
       ],
       "tags": [
-        "plat principal"
+        "Plat principal"
       ]
     },
     {
@@ -276,7 +276,7 @@
       ],
       "tags": [
         "Amélie",
-        "dessert"
+        "Dessert"
       ]
     },
     {
@@ -375,7 +375,7 @@
         "Laisser refroidir complètement (environ 2 heures) avant de couper en carrés. Conserver dans un contenant hermétique à température ambiante jusqu'à 3 jours, ou congeler jusqu'à 1 mois."
       ],
       "tags": [
-        "dessert",
+        "Dessert",
         "Chocolat",
         "Brownie"
       ]
@@ -774,7 +774,7 @@
         "Étaler la meringue sur le dessert déjà cuit ou sans cuisson, placer à environ 10 cm (4 po) de l'élément chauffant et cuire environ 10 minutes, jusqu'à ce qu'elle soit dorée."
       ],
       "tags": [
-        "dessert",
+        "Dessert",
         "Meringue",
         "Tarte"
       ]
@@ -916,7 +916,7 @@
         "Variante [mangue] et [lait] condensé : préparer la recette de base avec du [lait] de coco réfrigéré. Déposer la mangue sur le dessus de la préparation et arroser de [lait condensé sucré]. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de graines de sésame grillées."
       ],
       "tags": [
-        "déjeuner",
+        "Déjeuner",
         "Avoine",
         "Juju"
       ]
@@ -996,11 +996,11 @@
       "couleur": "#d6ddf4"
     },
     {
-      "nom": "dessert",
+      "nom": "Dessert",
       "couleur": "#ff8f5e"
     },
     {
-      "nom": "déjeuner",
+      "nom": "Déjeuner",
       "couleur": "#f4d35e"
     },
     {
@@ -1024,7 +1024,7 @@
       "couleur": "#d6ddf4"
     },
     {
-      "nom": "lunch",
+      "nom": "Lunch",
       "couleur": "#28b9ac"
     },
     {
@@ -1040,7 +1040,7 @@
       "couleur": "#d6ddf4"
     },
     {
-      "nom": "plat principal",
+      "nom": "Plat principal",
       "couleur": "#4df3e3"
     },
     {
