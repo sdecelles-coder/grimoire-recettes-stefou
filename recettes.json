@@ -626,10 +626,10 @@
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 6,
+        "valeur": 6.0,
         "personnes": 6,
         "max_personnes": 20,
-        "multiples": false
+        "multiples": true
       },
       "ingredients": [
         {
@@ -641,7 +641,7 @@
         },
         {
           "nom": "gélatine non aromatisée",
-          "qte": 3,
+          "qte": 3.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
@@ -655,7 +655,7 @@
         },
         {
           "nom": "sucre blanc granulé",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "tasse",
           "palier": 0.25,
           "section": ""
@@ -676,21 +676,21 @@
         },
         {
           "nom": "extrait de vanille ou d'amande",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "fécule de maïs",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "tasse",
           "palier": 0.25,
           "section": ""
         },
         {
           "nom": "sucre en poudre",
-          "qte": 1,
+          "qte": 1.0,
           "unite": "tasse",
           "palier": 0.25,
           "section": ""
@@ -706,7 +706,7 @@
       "preparation": [
         "Mélanger le sucre en poudre et la fécule de maïs dans un bol. Réserver.",
         "Recouvrir un moule à gâteau rectangulaire d'un papier parchemin ou utiliser un moule non adhésif en silicone. Vaporiser le moule ou le recouvrir avec de l'huile. Enduire ses mains et un pinceau à pâtisserie d'huile. La surface entière ainsi que les mains et les outils doivent être recouverts d'un corps gras, car le mélange à guimauve sera extrêmement collant.",
-        "Verser le mélange de sucre en poudre et de fécule de maïs sur le moule huilé. Laisser la substance adhérer au moule et remettre l'excès de sucre et fécule dans un bol pour utilisation ultérieure.",
+        "Verser le mélange de sucre en poudre et de [fécule de maïs] sur le moule huilé. Laisser la substance adhérer au moule et remettre l'excès de sucre et fécule dans un bol pour utilisation ultérieure.",
         "Déposer la gélatine dans un bol à mélangeur électrique. Verser 1/2 tasse d'eau froide dans le bol avec la gélatine et laisser reposer 10 minutes.",
         "Dans une petite casserole, mélanger 1/4 de tasse d'eau, 2/3 de tasse de sirop de maïs et 2 tasses de sucre blanc granulé. Porter à ébullition jusqu'à ce que la température atteigne exactement 244 °F. Une fois la température atteinte, verser le mélange bouillant dans le bol contenant la gélatine et l'eau.",
         "Mélanger immédiatement à haute vitesse à l'aide du mélangeur électrique. Ajouter le sel et continuer à battre le mélange pendant 15 minutes. Ajouter ensuite l'extrait de vanille ou d'amande ainsi que le colorant alimentaire, si désiré.",
