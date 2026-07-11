@@ -739,7 +739,7 @@
         "personnes": 8,
         "max_personnes": 20,
         "multiples": true,
-        "pas_personnes": 4
+        "pas_personnes": 8
       },
       "ingredients": [
         {
