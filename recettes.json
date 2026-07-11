@@ -204,21 +204,21 @@
           "qte": 225.0,
           "unite": "g",
           "palier": 25.0,
-          "section": ""
+          "section": "Ingrédients sec"
         },
         {
           "nom": "Bicarbonate de soude",
           "qte": 2.5,
           "unite": "ml",
           "palier": 0.5,
-          "section": ""
+          "section": "Ingrédients sec"
         },
         {
           "nom": "Sel",
           "qte": 1.0,
           "unite": "pincée",
           "palier": null,
-          "section": ""
+          "section": "Ingrédients sec"
         },
         {
           "nom": "Beurre non salé (fondu)",
