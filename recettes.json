@@ -735,7 +735,7 @@
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 3,
+        "valeur": 3.0,
         "personnes": 3,
         "max_personnes": 20,
         "multiples": false,
@@ -744,9 +744,9 @@
       "ingredients": [
         {
           "nom": "pommes de terre moyennes",
-          "qte": 3,
+          "qte": 3.0,
           "unite": "unité",
-          "palier": 1,
+          "palier": 1.0,
           "section": ""
         },
         {
@@ -793,7 +793,7 @@
         },
         {
           "nom": "huile végétale",
-          "qte": 2,
+          "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": ""
