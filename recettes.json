@@ -1045,7 +1045,6 @@
         "Laisser reposer la viande quelques minutes, puis trancher contre les fibres avant de servir."
       ],
       "tags": [
-        "Bœuf",
         "Marinade",
         "BBQ"
       ]
@@ -1091,10 +1090,6 @@
     {
       "nom": "Brownies",
       "couleur": "#7d8cb5"
-    },
-    {
-      "nom": "Bœuf",
-      "couleur": "#d6ddf4"
     },
     {
       "nom": "Cari",
