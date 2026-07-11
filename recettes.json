@@ -397,7 +397,7 @@
       "ingredients": [
         {
           "nom": "bavette ou steak",
-          "qte": 800.0,
+          "qte": 400.0,
           "unite": "g",
           "palier": null,
           "section": "viandes"
