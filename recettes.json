@@ -920,6 +920,130 @@
         "Marinade",
         "Boeuf"
       ]
+    },
+    {
+      "titre": "Tatbila halabi épaisse et généreuse",
+      "sous_titre": "Bavettes de bœuf marinées à la pâte de piment d'Alep",
+      "temps_prep": 20,
+      "temps_cuisson": 10,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2,
+        "personnes": 2,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "bavettes de bœuf (150–200 g chacune)",
+          "qte": 2,
+          "unite": "unité",
+          "palier": 1,
+          "section": ""
+        },
+        {
+          "nom": "pâte de piment d'Alep (dabs felfel)",
+          "qte": 5,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "concentré de tomate",
+          "qte": 2,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "gousses d'ail, en pâte",
+          "qte": 6,
+          "unite": "unité",
+          "palier": 1,
+          "section": "Marinade"
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 4,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "mélasse de grenade",
+          "qte": 1,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Marinade"
+        },
+        {
+          "nom": "sept-épices (baharat halabi)",
+          "qte": 2,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "menthe séchée",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "cumin moulu",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "flocons de piment d'Alep",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "paprika",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "sel",
+          "qte": 1,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        },
+        {
+          "nom": "poivre noir",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Marinade"
+        }
+      ],
+      "preparation": [
+        "Écrase l'ail en pâte lisse avec une pincée de sel.",
+        "Mélange tous les ingrédients de la marinade (sauf la viande). Vise une pâte rouge épaisse, brillante et coulante-mais-nappante, comme un ketchup épais. Si trop raide, ajoute de l'huile 1 c. à thé à la fois ; si trop liquide, ajoute un peu de concentré de tomate.",
+        "Réserve environ le tiers de la marinade dans un bol à part pour servir en sauce — ne la mets jamais en contact avec la viande crue.",
+        "Assèche les bavettes. Enrobe-les généreusement avec les deux tiers restants de la marinade, des deux côtés. Couvre et réfrigère 2 à 4 heures (maximum 8 heures).",
+        "Sors la viande 20 à 30 minutes avant la cuisson.",
+        "Chauffe une poêle en fonte ou le BBQ à feu vif, sans huile ajoutée.",
+        "Saisis les bavettes 2 à 3 minutes par côté en gardant la couche de pâte dessus, jusqu'à une température interne de 52 à 54 °C. Une croûte rouge foncé caramélisée est recherchée.",
+        "Laisse reposer la viande 5 à 8 minutes sous une feuille d'aluminium.",
+        "Tranche finement contre le sens des fibres. Nappe avec la sauce réservée. Sers avec pain arabe, oignons au sumac et persil."
+      ],
+      "tags": [
+        "Bœuf",
+        "Marinade",
+        "Cuisine aleppine"
+      ]
     }
   ],
   "tags": [
@@ -964,6 +1088,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Bœuf",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Cari",
       "couleur": "#d6ddf4"
     },
@@ -985,6 +1113,10 @@
     },
     {
       "nom": "Confiserie",
+      "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "Cuisine aleppine",
       "couleur": "#d6ddf4"
     },
     {
