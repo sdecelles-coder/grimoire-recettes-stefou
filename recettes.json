@@ -1421,19 +1421,19 @@
         },
         {
           "texte": "BAVETTE : assèche les [bavettes] et enrobe-les de marinade des deux côtés. Laisse mariner 2 à 4 heures au frigo (maximum 8 h). Tempère 20 à 30 minutes avant la cuisson.",
-          "section": "Bavette"
+          "section": "Pour les Bavettes"
         },
         {
           "texte": "BAVETTE — Cuisson : chauffe une poêle en fonte ou le BBQ à feu très vif, sans huile ajoutée. Saisis les bavettes 2 à 3 minutes par côté. Température interne cible : 52 à 54 °C (saignant à médium-saignant). Laisse reposer 5 à 8 minutes sous une feuille d'aluminium. Tranche finement contre le sens des fibres.",
-          "section": "Bavette"
+          "section": "Pour les Bavettes"
         },
         {
           "texte": "FILET MIGNON : assèche les filets et enrobe-les de marinade. Laisse mariner 30 minutes à 1 heure seulement. Tempère 20 à 30 minutes avant la cuisson.",
-          "section": "Filet mignon"
+          "section": "Pour les Filets mignons"
         },
         {
           "texte": "FILET MIGNON — Cuisson : chauffe une poêle en fonte ou le BBQ à feu vif. Saisis toutes les faces 1 à 2 minutes pour former une croûte. Baisse le feu pour finir la cuisson à coeur. Température interne cible : 54 à 57 °C (médium-saignant). Laisse reposer 5 minutes sous aluminium. Tranche en médaillons ou sers entier.",
-          "section": "Filet mignon"
+          "section": "Pour les Filets mignons"
         },
         {
           "texte": "Pour le service, sors la SAUCE DE SERVICE réservée. Si tu la préfères tiède, réchauffe-la doucement 1 minute à la casserole avec un filet d'eau. Nappe la viande tranchée et sers avec du pain pita grillé et une salade arménienne (concombre, poivron, oignon, persil, sumac).",
@@ -1441,8 +1441,6 @@
         }
       ],
       "tags": [
-        "Boeuf",
-        "Sauce tomate",
         "Marinade",
         "Stefou"
       ]
