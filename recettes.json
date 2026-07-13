@@ -1307,6 +1307,144 @@
         "Sauce tomate",
         "Grillé"
       ]
+    },
+    {
+      "titre": "Bavette ou filet mignon façon Terbialy",
+      "sous_titre": "Marinade et sauce tomate à l'ail, au piment d'Alep et au sumac",
+      "temps_prep": 30,
+      "temps_cuisson": 15,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2,
+        "personnes": 2,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "passata ou tomates broyées",
+          "qte": 375.0,
+          "unite": "ml",
+          "palier": null,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "concentré de tomate",
+          "qte": 1.5,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "pâte de piment doux d'Alep (fléflé)",
+          "qte": 3.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "gousses d'ail, en pâte",
+          "qte": 6.0,
+          "unite": "unité",
+          "palier": 1,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 3.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "sumac",
+          "qte": 1.5,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "cumin moulu",
+          "qte": 1.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "sel",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "jus de citron (optionnel)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "bavette OU filet mignon",
+          "qte": 300.0,
+          "unite": "g",
+          "palier": null,
+          "section": "Viande"
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Écrase les gousses d'ail en pâte avec une pincée de sel.",
+          "section": ""
+        },
+        {
+          "texte": "Dans une casserole, chauffe l'huile d'olive à feu moyen-doux. Fais revenir la pâte d'ail et la pâte de piment doux d'Alep 1 à 2 minutes sans laisser colorer.",
+          "section": ""
+        },
+        {
+          "texte": "Ajoute la passata, le concentré de tomate, le cumin et le sel. Laisse mijoter doucement 10 à 15 minutes jusqu'à obtenir une sauce nappante.",
+          "section": ""
+        },
+        {
+          "texte": "Hors du feu, incorpore le sumac et, si désiré, un trait de jus de citron. Goûte et ajuste l'assaisonnement. Laisse refroidir.",
+          "section": ""
+        },
+        {
+          "texte": "Avec une cuillère propre, prélève immédiatement le tiers de la sauce (~125 ml) dans un contenant propre : c'est la SAUCE DE SERVICE. Referme et réfrigère. Elle ne doit jamais entrer en contact avec la viande crue.",
+          "section": ""
+        },
+        {
+          "texte": "Les deux tiers restants (~250 ml) dans le bol constituent la MARINADE. Ce bol et ses ustensiles sont désormais réservés à la viande crue.",
+          "section": ""
+        },
+        {
+          "texte": "BAVETTE : assèche les bavettes et enrobe-les de marinade des deux côtés. Laisse mariner 2 à 4 heures au frigo (maximum 8 h). Tempère 20 à 30 minutes avant la cuisson.",
+          "section": ""
+        },
+        {
+          "texte": "BAVETTE — Cuisson : chauffe une poêle en fonte ou le BBQ à feu très vif, sans huile ajoutée. Saisis les bavettes 2 à 3 minutes par côté. Température interne cible : 52 à 54 °C (saignant à médium-saignant). Laisse reposer 5 à 8 minutes sous une feuille d'aluminium. Tranche finement contre le sens des fibres.",
+          "section": ""
+        },
+        {
+          "texte": "FILET MIGNON : assèche les filets et enrobe-les de marinade. Laisse mariner 30 minutes à 1 heure seulement. Tempère 20 à 30 minutes avant la cuisson.",
+          "section": ""
+        },
+        {
+          "texte": "FILET MIGNON — Cuisson : chauffe une poêle en fonte ou le BBQ à feu vif. Saisis toutes les faces 1 à 2 minutes pour former une croûte. Baisse le feu pour finir la cuisson à coeur. Température interne cible : 54 à 57 °C (médium-saignant). Laisse reposer 5 minutes sous aluminium. Tranche en médaillons ou sers entier.",
+          "section": ""
+        },
+        {
+          "texte": "Pour le service, sors la SAUCE DE SERVICE réservée. Si tu la préfères tiède, réchauffe-la doucement 1 minute à la casserole avec un filet d'eau. Nappe la viande tranchée et sers avec du pain pita grillé et une salade arménienne (concombre, poivron, oignon, persil, sumac).",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Boeuf",
+        "Sauce tomate",
+        "Marinade"
+      ]
     }
   ],
   "tags": [
