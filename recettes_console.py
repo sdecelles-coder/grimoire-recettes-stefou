@@ -695,8 +695,8 @@ def parse_qte(valeur):
       - les fractions unicode « ½ ¼ ¾ ⅓ ⅔ ⅛ » (seules ou après un entier) ;
       - la virgule décimale « 1,5 » → 1.5 ;
       - les espaces superflus ;
-      - une plage « 2 à 3 » ou « 2-3 » → BORNE INFÉRIEURE (2). Pour prendre la
-        moyenne à la place, lire aussi la borne haute et moyenner les deux.
+      - une plage « 3 à 4 » ou « 3-4 » → MOYENNE des bornes (3.5). Pour prendre
+        plutôt la borne inférieure, renvoyer `bas[0]` au lieu de la moyenne.
     Vide, None, ou texte non chiffré (« au goût », « une pincée ») → None."""
     if valeur is None or isinstance(valeur, bool):        # bool avant int !
         return None
@@ -705,10 +705,15 @@ def parse_qte(valeur):
     s = str(valeur).strip()
     if not s:
         return None
-    # Plage « 2 à 3 » / « 2-3 » / « 2–3 » : on ne garde que la borne inférieure.
-    m = re.match(r"(.+?)\s*(?:à|-|–|—)\s*.+", s)
+    # Plage « 3 à 4 » / « 3-4 » / « 3–4 » : moyenne des deux bornes lisibles.
+    m = re.match(r"(.+?)\s*(?:à|-|–|—)\s*(.+)", s)
     if m:
-        s = m.group(1).strip()
+        bas, haut = _lire_nombre(m.group(1).strip()), _lire_nombre(m.group(2).strip())
+        if bas and haut:
+            return (bas[0] + haut[0]) / 2
+        if bas or haut:                                   # une seule borne lisible
+            return (bas or haut)[0]
+        return None
     r = _lire_nombre(s)
     return r[0] if r else None
 
