@@ -1206,6 +1206,134 @@
         "Fines herbes",
         "BBQ"
       ]
+    },
+    {
+      "titre": "Shish Tawook",
+      "sous_titre": "Brochettes de poulet libanaises marinées au yogourt, citron et ail",
+      "temps_prep": 10,
+      "temps_cuisson": 18,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 6,
+        "personnes": 6,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 6
+      },
+      "ingredients": [
+        {
+          "nom": "poitrines de poulet désossées sans peau, coupées en gros cubes",
+          "qte": 900.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "yogourt nature entier",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "jus de citron",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "gousses d'ail écrasées",
+          "qte": 6.0,
+          "unite": "gousse",
+          "palier": 1,
+          "section": ""
+        },
+        {
+          "nom": "pâte de tomate",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "paprika",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "cannelle moulue",
+          "qte": 0.75,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "origan",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "gingembre moulu",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "poivre noir moulu",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : yogourt, jus de citron, huile d'olive, ail, pâte de tomate, épices, sel et poivre. Fouetter pour bien mélanger.",
+          "section": ""
+        },
+        {
+          "texte": "Ajouter les cubes de poulet dans le bol et bien les enrober de marinade. Couvrir et laisser mariner au réfrigérateur pendant au moins 4 heures.",
+          "section": ""
+        },
+        {
+          "texte": "Juste avant de griller, enfiler les morceaux de poulet sur des brochettes. Ajouter un quartier d'oignon par brochette si désiré.",
+          "section": ""
+        },
+        {
+          "texte": "Griller à feu moyen de 5 à 8 minutes par côté, jusqu'à ce que le poulet soit bien cuit.",
+          "section": ""
+        },
+        {
+          "texte": "Servir avec du pain pita, de la laitue et une sauce à l'ail si désiré.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Poulet",
+        "Grillades",
+        "Libanais"
+      ]
     }
   ],
   "tags": [
@@ -1300,6 +1428,10 @@
     {
       "nom": "Fêtes",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Grillades",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Grillé",
