@@ -80,7 +80,10 @@
       "temps_prep": 0,
       "temps_cuisson": 0,
       "preparation": [
-        "bien mélanger le tout"
+        {
+          "texte": "bien mélanger le tout",
+          "section": ""
+        }
       ],
       "tags": [
         "Stefou",
@@ -174,13 +177,34 @@
       "temps_prep": 30,
       "temps_cuisson": 110,
       "preparation": [
-        "Placer la grille au centre du four. Préchauffer le four à 180 °C (350 °F).",
-        "Sur une assiette, saler et poivrer les cuisses de poulet.",
-        "Dans une cocotte ou une grande casserole allant au four à feu moyen-élevé, dorer les cuisses de poulet de chaque côté dans 15 ml (1 c. à soupe) du beurre. Parsemer le poulet du romarin ciselé. Réserver sur une autre assiette.",
-        "Dans la même cocotte à feu moyen, dorer les [oignons] de chaque côté dans le reste du beurre. Réserver dans la même assiette que le poulet.",
-        "Dans la même cocotte, saupoudrer la [farine] sur le gras de cuisson chaud et poursuivre la cuisson 1 minute en remuant au fouet. Déglacer avec le [vin]. Ajouter le [bouillon], la [moutarde] et les [gousses d'ail] en remuant au fouet jusqu'à ce que la sauce soit homogène. Remettre les cuisses [de poulet] et les oignons dans la cocotte. Ajouter les [branches de romarin]. Porter à ébullition. Couvrir et cuire au four 1 heure.",
-        "Retirer le couvercle de la cocotte. Poursuivre la cuisson au four, sans couvrir, 30 minutes ou jusqu'à ce que les cuisses de poulet soient cuites et bien dorées.",
-        "Retirer les branches de romarin et les gousses d'ail de la cocotte, puis les composter. Accompagner les cuisses de poulet et les oignons d'un gratin de pommes de terre aux poireaux et au thym, si désiré."
+        {
+          "texte": "Placer la grille au centre du four. Préchauffer le four à 180 °C (350 °F).",
+          "section": ""
+        },
+        {
+          "texte": "Sur une assiette, saler et poivrer les cuisses de poulet.",
+          "section": ""
+        },
+        {
+          "texte": "Dans une cocotte ou une grande casserole allant au four à feu moyen-élevé, dorer les cuisses de poulet de chaque côté dans 15 ml (1 c. à soupe) du beurre. Parsemer le poulet du romarin ciselé. Réserver sur une autre assiette.",
+          "section": ""
+        },
+        {
+          "texte": "Dans la même cocotte à feu moyen, dorer les [oignons] de chaque côté dans le reste du beurre. Réserver dans la même assiette que le poulet.",
+          "section": ""
+        },
+        {
+          "texte": "Dans la même cocotte, saupoudrer la [farine] sur le gras de cuisson chaud et poursuivre la cuisson 1 minute en remuant au fouet. Déglacer avec le [vin]. Ajouter le [bouillon], la [moutarde] et les [gousses d'ail] en remuant au fouet jusqu'à ce que la sauce soit homogène. Remettre les cuisses [de poulet] et les oignons dans la cocotte. Ajouter les [branches de romarin]. Porter à ébullition. Couvrir et cuire au four 1 heure.",
+          "section": ""
+        },
+        {
+          "texte": "Retirer le couvercle de la cocotte. Poursuivre la cuisson au four, sans couvrir, 30 minutes ou jusqu'à ce que les cuisses de poulet soient cuites et bien dorées.",
+          "section": ""
+        },
+        {
+          "texte": "Retirer les branches de romarin et les gousses d'ail de la cocotte, puis les composter. Accompagner les cuisses de poulet et les oignons d'un gratin de pommes de terre aux poireaux et au thym, si désiré.",
+          "section": ""
+        }
       ],
       "tags": [
         "Plat principal"
@@ -266,14 +290,38 @@
       "temps_prep": 15,
       "temps_cuisson": 24,
       "preparation": [
-        "Préchauffer le four à 190 °C (375 °F).",
-        "Dans un bol, mélanger la [farine], le [bicarbonate] et le [sel].",
-        "Dans un autre bol, mélanger le [beurre] avec la [cassonade] et le [sucre] à la cuillère de bois. Ajouter l'[oeuf] et le [jaune d'oeuf]. Mélanger jusqu'à ce que la préparation soit homogène.",
-        "Incorporer les ingrédients secs et le 2e mélange + le [chocolat]. Couvrir et réfrigérer 1 heure ou toute une nuit.",
-        "À l'aide d'une cuillère à crème glacée d'environ 45 ml (3 c. à soupe), former des boules de pâte. Déposer 5 à 6 boules de pâte par plaque en les espaçant.",
-        "Placer la grille au centre du four. Tapisser deux plaques de cuisson de papier parchemin.",
-        "Cuire au four, une plaque à la fois, de 8 à 9 minutes ou jusqu'à ce que les biscuits soient légèrement dorés tout autour, mais encore très moelleux au centre. Laisser refroidir sur la plaque.",
-        "Attention : ne pas cuire plus d'une plaque à la fois, même en les inversant à la mi-cuisson."
+        {
+          "texte": "Préchauffer le four à 190 °C (375 °F).",
+          "section": ""
+        },
+        {
+          "texte": "Dans un bol, mélanger la [farine], le [bicarbonate] et le [sel].",
+          "section": ""
+        },
+        {
+          "texte": "Dans un autre bol, mélanger le [beurre] avec la [cassonade] et le [sucre] à la cuillère de bois. Ajouter l'[oeuf] et le [jaune d'oeuf]. Mélanger jusqu'à ce que la préparation soit homogène.",
+          "section": ""
+        },
+        {
+          "texte": "Incorporer les ingrédients secs et le 2e mélange + le [chocolat]. Couvrir et réfrigérer 1 heure ou toute une nuit.",
+          "section": ""
+        },
+        {
+          "texte": "À l'aide d'une cuillère à crème glacée d'environ 45 ml (3 c. à soupe), former des boules de pâte. Déposer 5 à 6 boules de pâte par plaque en les espaçant.",
+          "section": ""
+        },
+        {
+          "texte": "Placer la grille au centre du four. Tapisser deux plaques de cuisson de papier parchemin.",
+          "section": ""
+        },
+        {
+          "texte": "Cuire au four, une plaque à la fois, de 8 à 9 minutes ou jusqu'à ce que les biscuits soient légèrement dorés tout autour, mais encore très moelleux au centre. Laisser refroidir sur la plaque.",
+          "section": ""
+        },
+        {
+          "texte": "Attention : ne pas cuire plus d'une plaque à la fois, même en les inversant à la mi-cuisson.",
+          "section": ""
+        }
       ],
       "tags": [
         "Amélie",
@@ -367,13 +415,34 @@
         }
       ],
       "preparation": [
-        "Préchauffer le four à 165 °C (325 °F). Vaporiser légèrement un moule carré de 20 cm (8 po) avec de l'[huile] en vaporisateur et le tapisser de papier parchemin. Vaporiser le papier parchemin.",
-        "Dans un bol moyen, mélanger le [sucre granulé], la [farine], la [poudre de cacao], le [sucre en poudre], les [pépites de chocolat] et le [sel].",
-        "Dans un grand bol, fouetter ensemble les [oeufs], l'[huile], l'[eau] et la [vanille].",
-        "Saupoudrer le mélange sec sur le mélange humide et mélanger jusqu'à ce que le tout soit juste combiné. La pâte sera épaisse, c'est normal.",
-        "Verser la pâte dans le moule préparé et étaler uniformément à l'aide d'une spatule.",
-        "Cuire au four de 40 à 48 minutes, ou jusqu'à ce qu'un cure-dent inséré au centre en ressorte avec seulement quelques miettes. Il vaut mieux les sortir un peu tôt que trop tard.",
-        "Laisser refroidir complètement (environ 2 heures) avant de couper en carrés. Conserver dans un contenant hermétique à température ambiante jusqu'à 3 jours, ou congeler jusqu'à 1 mois."
+        {
+          "texte": "Préchauffer le four à 165 °C (325 °F). Vaporiser légèrement un moule carré de 20 cm (8 po) avec de l'[huile] en vaporisateur et le tapisser de papier parchemin. Vaporiser le papier parchemin.",
+          "section": ""
+        },
+        {
+          "texte": "Dans un bol moyen, mélanger le [sucre granulé], la [farine], la [poudre de cacao], le [sucre en poudre], les [pépites de chocolat] et le [sel].",
+          "section": ""
+        },
+        {
+          "texte": "Dans un grand bol, fouetter ensemble les [oeufs], l'[huile], l'[eau] et la [vanille].",
+          "section": ""
+        },
+        {
+          "texte": "Saupoudrer le mélange sec sur le mélange humide et mélanger jusqu'à ce que le tout soit juste combiné. La pâte sera épaisse, c'est normal.",
+          "section": ""
+        },
+        {
+          "texte": "Verser la pâte dans le moule préparé et étaler uniformément à l'aide d'une spatule.",
+          "section": ""
+        },
+        {
+          "texte": "Cuire au four de 40 à 48 minutes, ou jusqu'à ce qu'un cure-dent inséré au centre en ressorte avec seulement quelques miettes. Il vaut mieux les sortir un peu tôt que trop tard.",
+          "section": ""
+        },
+        {
+          "texte": "Laisser refroidir complètement (environ 2 heures) avant de couper en carrés. Conserver dans un contenant hermétique à température ambiante jusqu'à 3 jours, ou congeler jusqu'à 1 mois.",
+          "section": ""
+        }
       ],
       "tags": [
         "Dessert",
@@ -482,12 +551,30 @@
         }
       ],
       "preparation": [
-        "Mettre tous les ingrédients dans un grand sac ziplock et bien secouer pour enrober le poulet.",
-        "Laisser mariner au réfrigérateur pendant au moins 4 heures.",
-        "Si vous préparez des brochettes, faire tremper les pics en bois dans l'eau pendant la marinade.",
-        "Assembler les brochettes en enfilant les cubes de poulet marinés.",
-        "Faire cuire à broil (gril du four) pendant 15 à 18 minutes, ou sur le BBQ jusqu'à cuisson complète.",
-        "Servir avec du riz, une salade et une sauce à l'ail."
+        {
+          "texte": "Mettre tous les ingrédients dans un grand sac ziplock et bien secouer pour enrober le poulet.",
+          "section": ""
+        },
+        {
+          "texte": "Laisser mariner au réfrigérateur pendant au moins 4 heures.",
+          "section": ""
+        },
+        {
+          "texte": "Si vous préparez des brochettes, faire tremper les pics en bois dans l'eau pendant la marinade.",
+          "section": ""
+        },
+        {
+          "texte": "Assembler les brochettes en enfilant les cubes de poulet marinés.",
+          "section": ""
+        },
+        {
+          "texte": "Faire cuire à broil (gril du four) pendant 15 à 18 minutes, ou sur le BBQ jusqu'à cuisson complète.",
+          "section": ""
+        },
+        {
+          "texte": "Servir avec du riz, une salade et une sauce à l'ail.",
+          "section": ""
+        }
       ],
       "tags": [
         "Poulet",
@@ -582,15 +669,42 @@
         }
       ],
       "preparation": [
-        "Mélanger le [sucre en poudre] et la [fécule de maïs] dans un bol. Réserver.",
-        "Recouvrir un moule à gâteau rectangulaire d'un papier parchemin ou utiliser un moule non adhésif en silicone. Vaporiser le moule ou le recouvrir avec de l'huile. Enduire ses mains et un pinceau à pâtisserie d'huile. La surface entière ainsi que les mains et les outils doivent être recouverts d'un corps gras, car le mélange à guimauve sera extrêmement collant.",
-        "Verser le mélange de [sucre en poudre] et de [fécule de maïs] sur le moule huilé. Laisser la substance adhérer au moule et remettre l'excès de sucre et fécule dans un bol pour utilisation ultérieure.",
-        "Déposer la [gélatine] dans un bol à mélangeur électrique. Verser l'[eau froide] dans le bol avec la gélatine et laisser reposer 10 minutes.",
-        "Dans une petite casserole, mélanger eau, [sirop de maïs] et [sucre blanc granulé]. Porter à ébullition jusqu'à ce que la température atteigne exactement 244 °F. Une fois la température atteinte, verser le mélange bouillant dans le bol contenant la gélatine et l'eau.",
-        "Mélanger immédiatement à haute vitesse à l'aide du mélangeur électrique. Ajouter le [sel] et continuer à battre le mélange pendant 15 minutes. Ajouter ensuite l'[extrait de vanille ou d'amande] ainsi que le colorant alimentaire, si désiré.",
-        "Verser le mélange dans le moule à gâteau. Saupoudrer du mélange de fécule de maïs. Pour plus de consistance, couvrir d'un second papier parchemin et condenser le mélange au fond du moule. Laisser reposer environ 4 heures à température ambiante.",
-        "Pour tailler les morceaux, retirer la pièce de guimauve obtenue et la placer sur une planche à découper enduite du mélange de sucre en poudre et de fécule de maïs. S'assurer d'enduire également les côtés de la pièce de guimauve avec ce même mélange.",
-        "Couper à la grosseur souhaitée à l'aide d'un couteau de cuisine ou utiliser des emporte-pièces pour des formes originales. Plonger les morceaux obtenus dans le mélange de sucre et fécule afin d'éviter qu'ils adhèrent entre eux."
+        {
+          "texte": "Mélanger le [sucre en poudre] et la [fécule de maïs] dans un bol. Réserver.",
+          "section": ""
+        },
+        {
+          "texte": "Recouvrir un moule à gâteau rectangulaire d'un papier parchemin ou utiliser un moule non adhésif en silicone. Vaporiser le moule ou le recouvrir avec de l'huile. Enduire ses mains et un pinceau à pâtisserie d'huile. La surface entière ainsi que les mains et les outils doivent être recouverts d'un corps gras, car le mélange à guimauve sera extrêmement collant.",
+          "section": ""
+        },
+        {
+          "texte": "Verser le mélange de [sucre en poudre] et de [fécule de maïs] sur le moule huilé. Laisser la substance adhérer au moule et remettre l'excès de sucre et fécule dans un bol pour utilisation ultérieure.",
+          "section": ""
+        },
+        {
+          "texte": "Déposer la [gélatine] dans un bol à mélangeur électrique. Verser l'[eau froide] dans le bol avec la gélatine et laisser reposer 10 minutes.",
+          "section": ""
+        },
+        {
+          "texte": "Dans une petite casserole, mélanger eau, [sirop de maïs] et [sucre blanc granulé]. Porter à ébullition jusqu'à ce que la température atteigne exactement 244 °F. Une fois la température atteinte, verser le mélange bouillant dans le bol contenant la gélatine et l'eau.",
+          "section": ""
+        },
+        {
+          "texte": "Mélanger immédiatement à haute vitesse à l'aide du mélangeur électrique. Ajouter le [sel] et continuer à battre le mélange pendant 15 minutes. Ajouter ensuite l'[extrait de vanille ou d'amande] ainsi que le colorant alimentaire, si désiré.",
+          "section": ""
+        },
+        {
+          "texte": "Verser le mélange dans le moule à gâteau. Saupoudrer du mélange de fécule de maïs. Pour plus de consistance, couvrir d'un second papier parchemin et condenser le mélange au fond du moule. Laisser reposer environ 4 heures à température ambiante.",
+          "section": ""
+        },
+        {
+          "texte": "Pour tailler les morceaux, retirer la pièce de guimauve obtenue et la placer sur une planche à découper enduite du mélange de sucre en poudre et de fécule de maïs. S'assurer d'enduire également les côtés de la pièce de guimauve avec ce même mélange.",
+          "section": ""
+        },
+        {
+          "texte": "Couper à la grosseur souhaitée à l'aide d'un couteau de cuisine ou utiliser des emporte-pièces pour des formes originales. Plonger les morceaux obtenus dans le mélange de sucre et fécule afin d'éviter qu'ils adhèrent entre eux.",
+          "section": ""
+        }
       ],
       "tags": [
         "Confiserie",
@@ -636,13 +750,34 @@
         }
       ],
       "preparation": [
-        "Sortir les oeufs du réfrigérateur et séparer les [blancs] des jaunes ; ils se séparent mieux lorsqu'ils sont froids.",
-        "Laisser les blancs d'oeufs atteindre la température ambiante afin qu'ils puissent monter au maximum.",
-        "Préchauffer le four à 180 °C (350 °F).",
-        "Verser les blancs d'oeufs dans un bol parfaitement propre et sans trace de gras.",
-        "Fouetter les blancs jusqu'à ce qu'ils soient brillants et lisses, puis ajouter la [crème de tartre] pour les aider à tenir leur forme.",
-        "Ajouter le [sucre] graduellement, environ une cuillère à table à la fois, en battant après chaque ajout jusqu'à ce qu'il soit bien incorporé. Continuer à battre jusqu'à la formation de pics fermes.",
-        "Étaler la meringue sur le dessert déjà cuit ou sans cuisson, placer à environ 10 cm (4 po) de l'élément chauffant et cuire environ 10 minutes, jusqu'à ce qu'elle soit dorée."
+        {
+          "texte": "Sortir les oeufs du réfrigérateur et séparer les [blancs] des jaunes ; ils se séparent mieux lorsqu'ils sont froids.",
+          "section": ""
+        },
+        {
+          "texte": "Laisser les blancs d'oeufs atteindre la température ambiante afin qu'ils puissent monter au maximum.",
+          "section": ""
+        },
+        {
+          "texte": "Préchauffer le four à 180 °C (350 °F).",
+          "section": ""
+        },
+        {
+          "texte": "Verser les blancs d'oeufs dans un bol parfaitement propre et sans trace de gras.",
+          "section": ""
+        },
+        {
+          "texte": "Fouetter les blancs jusqu'à ce qu'ils soient brillants et lisses, puis ajouter la [crème de tartre] pour les aider à tenir leur forme.",
+          "section": ""
+        },
+        {
+          "texte": "Ajouter le [sucre] graduellement, environ une cuillère à table à la fois, en battant après chaque ajout jusqu'à ce qu'il soit bien incorporé. Continuer à battre jusqu'à la formation de pics fermes.",
+          "section": ""
+        },
+        {
+          "texte": "Étaler la meringue sur le dessert déjà cuit ou sans cuisson, placer à environ 10 cm (4 po) de l'élément chauffant et cuire environ 10 minutes, jusqu'à ce qu'elle soit dorée.",
+          "section": ""
+        }
       ],
       "tags": [
         "Dessert",
@@ -779,12 +914,30 @@
         }
       ],
       "preparation": [
-        "Dans un pot de 250 à 375 ml, mélanger le [lait], le [yogourt grec], le [sirop d'érable] et les [graines de chia]. Incorporer les flocons d'avoine en s'assurant qu'ils sont bien immergés dans le lait.",
-        "Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de petits [fruits frais].",
-        "Variante [beurre d'arachide] et fraise : incorporer le beurre d'arachide à la préparation de base jusqu'à ce qu'il soit bien réparti sans être complètement mélangé. Déposer la [confiture de fraises] sur le dessus. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni d'arachides rôties hachées.",
-        "Variante [ananas] et coco : préparer la recette de base en utilisant du [lait] de coco réfrigéré. Incorporer l'[ananas] à la préparation. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de copeaux de noix de coco grillés.",
-        "Variante citrouille : préparer la recette de base sans le [yogourt]. Incorporer la [purée de citrouille] et les [épices à tarte à la citrouille]. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de yogourt et d'un peu d'épices à tarte à la citrouille.",
-        "Variante [mangue] et [lait] condensé : préparer la recette de base avec du [lait] de coco réfrigéré. Déposer la mangue sur le dessus de la préparation et arroser de [lait condensé sucré]. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de graines de sésame grillées."
+        {
+          "texte": "Dans un pot de 250 à 375 ml, mélanger le [lait], le [yogourt grec], le [sirop d'érable] et les [graines de chia]. Incorporer les flocons d'avoine en s'assurant qu'ils sont bien immergés dans le lait.",
+          "section": ""
+        },
+        {
+          "texte": "Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de petits [fruits frais].",
+          "section": ""
+        },
+        {
+          "texte": "Variante [beurre d'arachide] et fraise : incorporer le beurre d'arachide à la préparation de base jusqu'à ce qu'il soit bien réparti sans être complètement mélangé. Déposer la [confiture de fraises] sur le dessus. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni d'arachides rôties hachées.",
+          "section": ""
+        },
+        {
+          "texte": "Variante [ananas] et coco : préparer la recette de base en utilisant du [lait] de coco réfrigéré. Incorporer l'[ananas] à la préparation. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de copeaux de noix de coco grillés.",
+          "section": ""
+        },
+        {
+          "texte": "Variante citrouille : préparer la recette de base sans le [yogourt]. Incorporer la [purée de citrouille] et les [épices à tarte à la citrouille]. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de yogourt et d'un peu d'épices à tarte à la citrouille.",
+          "section": ""
+        },
+        {
+          "texte": "Variante [mangue] et [lait] condensé : préparer la recette de base avec du [lait] de coco réfrigéré. Déposer la mangue sur le dessus de la préparation et arroser de [lait condensé sucré]. Couvrir et réfrigérer au moins 4 heures ou jusqu'à 3 jours. Servir froid, garni de graines de sésame grillées.",
+          "section": ""
+        }
       ],
       "tags": [
         "Déjeuner",
@@ -907,13 +1060,34 @@
         }
       ],
       "preparation": [
-        "Préparer la marinade : dans un bol, mélanger le [vin] rouge, l'[huile d'olive], la [moutarde de Dijon], la [sauce Worcestershire], le [sirop d'érable (ou miel]), le [sel], le [poivre], l'[ail], l'[oignon] ou les échalotes, le [thym], le [romarin], et si désiré, le [vinaigre de vin rouge].",
-        "Mettre la viande dans un sac hermétique ou un plat creux. Verser la marinade et bien enrober la viande.",
-        "Réfrigérer : 1 à 4 h pour les steaks fins, ou 4 à 12 h pour la bavette, l'onglet ou la hampe.",
-        "Avant la cuisson, sortir la viande du réfrigérateur et bien l'éponger avec du papier absorbant. Laisser reposer 20 minutes à température ambiante.",
-        "Cuisson au BBQ : saisir à feu vif, 2 à 5 minutes par côté selon l'épaisseur.",
-        "Cuisson à la poêle : chauffer la poêle à feu très vif et saisir 2 à 5 minutes par côté.",
-        "Laisser reposer la viande quelques minutes, puis trancher contre les fibres avant de servir."
+        {
+          "texte": "Préparer la marinade : dans un bol, mélanger le [vin] rouge, l'[huile d'olive], la [moutarde de Dijon], la [sauce Worcestershire], le [sirop d'érable (ou miel]), le [sel], le [poivre], l'[ail], l'[oignon] ou les échalotes, le [thym], le [romarin], et si désiré, le [vinaigre de vin rouge].",
+          "section": ""
+        },
+        {
+          "texte": "Mettre la viande dans un sac hermétique ou un plat creux. Verser la marinade et bien enrober la viande.",
+          "section": ""
+        },
+        {
+          "texte": "Réfrigérer : 1 à 4 h pour les steaks fins, ou 4 à 12 h pour la bavette, l'onglet ou la hampe.",
+          "section": ""
+        },
+        {
+          "texte": "Avant la cuisson, sortir la viande du réfrigérateur et bien l'éponger avec du papier absorbant. Laisser reposer 20 minutes à température ambiante.",
+          "section": ""
+        },
+        {
+          "texte": "Cuisson au BBQ : saisir à feu vif, 2 à 5 minutes par côté selon l'épaisseur.",
+          "section": ""
+        },
+        {
+          "texte": "Cuisson à la poêle : chauffer la poêle à feu très vif et saisir 2 à 5 minutes par côté.",
+          "section": ""
+        },
+        {
+          "texte": "Laisser reposer la viande quelques minutes, puis trancher contre les fibres avant de servir.",
+          "section": ""
+        }
       ],
       "tags": [
         "Chef Michel",
@@ -1071,25 +1245,209 @@
         }
       ],
       "preparation": [
-        "SAUCE TERBIALY — Écrase les [gousses d'ail en pâte] avec une pincée de sel.",
-        "Chauffe l'huile d'olive à feu moyen-doux dans une petite casserole. Fais revenir l'ail et la [pâte de piment] (fléflé) 1 à 2 minutes sans laisser colorer.",
-        "Ajoute la [passata], le [concentré de tomate], le [cumin] et le sel. Laisse mijoter doucement 10 à 15 minutes jusqu'à obtenir une sauce nappante.",
-        "Hors du feu, incorpore le sumac et un trait de jus de citron si désiré. Goûte et ajuste l'acidité (sumac), le piquant (fléflé) et l'ail selon ton goût. Laisse refroidir.",
-        "Réserve un tiers de la sauce dans un bol à part pour le service. Les deux tiers restants serviront à mariner la viande.",
-        "[BAVETTE] — Assèche les pièces de bavette avec du papier absorbant. Enrobe-les généreusement avec les deux tiers de sauce des deux côtés. Laisse mariner 2 à 4 heures au réfrigérateur (jusqu'à 8 heures maximum).",
-        "FILET MIGNON — Assèche les filets avec du papier absorbant. Enrobe-les avec les deux tiers de sauce. Laisse mariner 30 minutes à 1 heure seulement au réfrigérateur.",
-        "Retire la viande du réfrigérateur et laisse-la tempérer 20 à 30 minutes à température ambiante avant la cuisson.",
-        "CUISSON DE LA BAVETTE — Chauffe une poêle en fonte ou le BBQ à feu très vif sans ajouter de matière grasse. Saisis les bavettes 2 à 3 minutes par côté. Vise une cuisson saignant à médium-saignant (température interne : 52 à 54 °C). Ne pas dépasser, la bavette deviendrait coriace.",
-        "Laisse reposer la bavette 5 à 8 minutes sous une feuille d'aluminium. Tranche ensuite très finement et perpendiculairement aux longues fibres (contre le grain). Cette étape est non négociable.",
-        "CUISSON DU FILET MIGNON — Chauffe une poêle en fonte ou le BBQ à feu vif. Saisis le filet sur toutes ses faces pour former une belle croûte (environ 1 à 2 minutes par face).",
-        "Baisse ensuite le feu ou déplace le filet en zone moins chaude pour terminer la cuisson à coeur sans brûler l'extérieur. Vise médium-saignant (température interne : 54 à 57 °C).",
-        "Laisse reposer le filet 5 minutes sous une feuille d'aluminium. Tranche en médaillons ou sers la pièce entière, au choix.",
-        "(optionnel) SERVICE — Nappe la viande tranchée avec la sauce réservée. Grille les pitas et prépare la salade arménienne en mélangeant [concombre], poivron rouge et [vert], [oignon] et persil hachés, avec du sumac, un filet d'huile d'olive et de jus de citron. Sers immédiatement."
+        {
+          "texte": "SAUCE TERBIALY — Écrase les [gousses d'ail en pâte] avec une pincée de sel.",
+          "section": ""
+        },
+        {
+          "texte": "Chauffe l'huile d'olive à feu moyen-doux dans une petite casserole. Fais revenir l'ail et la [pâte de piment] (fléflé) 1 à 2 minutes sans laisser colorer.",
+          "section": ""
+        },
+        {
+          "texte": "Ajoute la [passata], le [concentré de tomate], le [cumin] et le sel. Laisse mijoter doucement 10 à 15 minutes jusqu'à obtenir une sauce nappante.",
+          "section": ""
+        },
+        {
+          "texte": "Hors du feu, incorpore le sumac et un trait de jus de citron si désiré. Goûte et ajuste l'acidité (sumac), le piquant (fléflé) et l'ail selon ton goût. Laisse refroidir.",
+          "section": ""
+        },
+        {
+          "texte": "Réserve un tiers de la sauce dans un bol à part pour le service. Les deux tiers restants serviront à mariner la viande.",
+          "section": ""
+        },
+        {
+          "texte": "[BAVETTE] — Assèche les pièces de bavette avec du papier absorbant. Enrobe-les généreusement avec les deux tiers de sauce des deux côtés. Laisse mariner 2 à 4 heures au réfrigérateur (jusqu'à 8 heures maximum).",
+          "section": ""
+        },
+        {
+          "texte": "FILET MIGNON — Assèche les filets avec du papier absorbant. Enrobe-les avec les deux tiers de sauce. Laisse mariner 30 minutes à 1 heure seulement au réfrigérateur.",
+          "section": ""
+        },
+        {
+          "texte": "Retire la viande du réfrigérateur et laisse-la tempérer 20 à 30 minutes à température ambiante avant la cuisson.",
+          "section": ""
+        },
+        {
+          "texte": "CUISSON DE LA BAVETTE — Chauffe une poêle en fonte ou le BBQ à feu très vif sans ajouter de matière grasse. Saisis les bavettes 2 à 3 minutes par côté. Vise une cuisson saignant à médium-saignant (température interne : 52 à 54 °C). Ne pas dépasser, la bavette deviendrait coriace.",
+          "section": ""
+        },
+        {
+          "texte": "Laisse reposer la bavette 5 à 8 minutes sous une feuille d'aluminium. Tranche ensuite très finement et perpendiculairement aux longues fibres (contre le grain). Cette étape est non négociable.",
+          "section": ""
+        },
+        {
+          "texte": "CUISSON DU FILET MIGNON — Chauffe une poêle en fonte ou le BBQ à feu vif. Saisis le filet sur toutes ses faces pour former une belle croûte (environ 1 à 2 minutes par face).",
+          "section": ""
+        },
+        {
+          "texte": "Baisse ensuite le feu ou déplace le filet en zone moins chaude pour terminer la cuisson à coeur sans brûler l'extérieur. Vise médium-saignant (température interne : 54 à 57 °C).",
+          "section": ""
+        },
+        {
+          "texte": "Laisse reposer le filet 5 minutes sous une feuille d'aluminium. Tranche en médaillons ou sers la pièce entière, au choix.",
+          "section": ""
+        },
+        {
+          "texte": "(optionnel) SERVICE — Nappe la viande tranchée avec la sauce réservée. Grille les pitas et prépare la salade arménienne en mélangeant [concombre], poivron rouge et [vert], [oignon] et persil hachés, avec du sumac, un filet d'huile d'olive et de jus de citron. Sers immédiatement.",
+          "section": ""
+        }
       ],
       "tags": [
         "Boeuf",
         "Sauce tomate",
         "Grillé"
+      ]
+    },
+    {
+      "titre": "Boeuf façon Terbialy",
+      "sous_titre": "Bavette ou filet mignon marinés à la sauce tomate-piment d'Alep",
+      "temps_prep": 30,
+      "temps_cuisson": 20,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2,
+        "personnes": 2,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "passata ou tomates broyées",
+          "qte": 250.0,
+          "unite": "ml",
+          "palier": null,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "concentré de tomate",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "pâte de piment doux d'Alep (fléflé)",
+          "qte": 2.5,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "gousses d'ail, en pâte",
+          "qte": 6.0,
+          "unite": "unité",
+          "palier": 1,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 3.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "sumac",
+          "qte": 1.25,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "cumin moulu",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "sel",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "jus de citron (optionnel)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Sauce Terbialy"
+        },
+        {
+          "nom": "bavette OU filet mignon",
+          "qte": 300.0,
+          "unite": "g",
+          "palier": null,
+          "section": "Viande"
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Écrase les gousses d'ail en pâte avec une pincée de sel.",
+          "section": ""
+        },
+        {
+          "texte": "Dans une casserole, chauffe l'huile d'olive à feu moyen-doux. Fais revenir la pâte d'ail et la pâte de piment doux environ 1 à 2 minutes sans laisser colorer.",
+          "section": ""
+        },
+        {
+          "texte": "Ajoute la passata, le concentré de tomate, le cumin et le sel. Laisse mijoter doucement 10 à 15 minutes jusqu'à obtenir une sauce nappante.",
+          "section": ""
+        },
+        {
+          "texte": "Hors du feu, incorpore le sumac et un trait de jus de citron si désiré. Goûte et ajuste l'assaisonnement. Laisse refroidir.",
+          "section": ""
+        },
+        {
+          "texte": "Réserve un tiers de la sauce pour le service. Les deux tiers restants serviront à la marinade.",
+          "section": ""
+        },
+        {
+          "texte": "PARCOURS A – BAVETTE : Assèche les pièces de bavette avec du papier absorbant, puis enrobe-les des deux tiers de sauce. Laisse mariner 2 à 4 heures au réfrigérateur (maximum 8 heures). Tempère 20 à 30 minutes à température ambiante avant la cuisson.",
+          "section": ""
+        },
+        {
+          "texte": "PARCOURS A – BAVETTE (cuisson) : Chauffe une poêle en fonte ou le BBQ à feu très vif, sans huile ajoutée. Saisis les bavettes 2 à 3 minutes par côté. Cible : saignant à medium-saignant, soit 52 à 54 °C à coeur. Ne pas dépasser cette température, la coupe devient coriace.",
+          "section": ""
+        },
+        {
+          "texte": "PARCOURS A – BAVETTE (repos et découpe) : Laisse reposer la viande 5 à 8 minutes sous un papier aluminium. Tranche ensuite finement contre le sens des fibres (perpendiculairement aux longues lignes). Étape essentielle pour cette coupe.",
+          "section": ""
+        },
+        {
+          "texte": "PARCOURS B – FILET MIGNON : Assèche les filets avec du papier absorbant, puis enrobe-les des deux tiers de sauce. Laisse mariner 30 minutes à 1 heure seulement. Tempère 20 à 30 minutes à température ambiante avant la cuisson.",
+          "section": ""
+        },
+        {
+          "texte": "PARCOURS B – FILET MIGNON (cuisson) : Chauffe une poêle en fonte ou le BBQ à feu vif. Saisis toutes les faces du filet pour former une croûte, environ 1 à 2 minutes par face. Réduis ensuite le feu (ou déplace en zone moins chaude) pour terminer la cuisson à coeur sans brûler l'extérieur. Cible : medium-saignant, soit 54 à 57 °C à coeur.",
+          "section": ""
+        },
+        {
+          "texte": "PARCOURS B – FILET MIGNON (repos et découpe) : Laisse reposer 5 minutes sous un papier aluminium. Tranche en médaillons ou sers la pièce entière.",
+          "section": ""
+        },
+        {
+          "texte": "Nappe la viande tranchée avec la sauce réservée. Sers avec du pain pita grillé et une salade arménienne (concombre, poivrons rouge et vert, oignon, persil, sumac, huile d'olive et jus de citron).",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Boeuf",
+        "Marinade",
+        "Moyen-Orient"
       ]
     }
   ],
@@ -1212,6 +1570,10 @@
     },
     {
       "nom": "Meringue",
+      "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "Moyen-Orient",
       "couleur": "#d6ddf4"
     },
     {
