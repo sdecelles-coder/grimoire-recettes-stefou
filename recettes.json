@@ -1231,6 +1231,113 @@
         "Marinade",
         "Stefou"
       ]
+    },
+    {
+      "titre": "Chimichurri",
+      "sous_titre": "",
+      "temps_prep": 15,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 4
+      },
+      "ingredients": [
+        {
+          "nom": "Persil plat frais",
+          "qte": 1.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Menthe fraîche",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Ciboulette",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Gousse d'ail",
+          "qte": 1.0,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Huile d'olive",
+          "qte": 3.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Vinaigre de vin rouge",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Flocons de piment fort",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sel",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Citron (demi)",
+          "qte": 0.5,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Hachez finement le persil, la menthe, la ciboulette et l'ail.",
+          "section": ""
+        },
+        {
+          "texte": "Déposez dans un bol moyen.",
+          "section": ""
+        },
+        {
+          "texte": "Ajoutez l'huile, le vinaigre, les flocons de piment et le sel.",
+          "section": ""
+        },
+        {
+          "texte": "Directement au-dessus du bol, pressez le demi-citron.",
+          "section": ""
+        },
+        {
+          "texte": "Mélangez et servez sur une viande, un poisson grillé ou dans une salade.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Sauce",
+        "Fines herbes",
+        "BBQ"
+      ]
     }
   ],
   "tags": [
@@ -1315,6 +1422,10 @@
       "couleur": "#f4d35e"
     },
     {
+      "nom": "Fines herbes",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Félix",
       "couleur": "#63b3ff"
     },
@@ -1376,6 +1487,10 @@
     },
     {
       "nom": "Sans gluten",
+      "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "Sauce",
       "couleur": "#d6ddf4"
     },
     {
