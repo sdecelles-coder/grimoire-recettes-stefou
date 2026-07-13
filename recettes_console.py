@@ -13,11 +13,14 @@ Grimoire de recettes techno-futuriste
   des tags dans les sommaires de cuisine et d'édition.
 • Dans une étape, les ingrédients cités deviennent DYNAMIQUES quand ils sont
   marqués [ainsi] : leur quantité mise à l'échelle s'affiche « nom (qté) ».
-  Le marquage se fait à la demande via « 🔍 Rescanner » : l'éditeur surligne
+  Le marquage se fait à la demande via « 🔍 Rescanner » (qui relance un scan à
+  neuf à chaque appui, sur les grilles EN COURS d'édition) : l'éditeur surligne
   chaque occurrence citée et on bascule dynamique/non d'un clic, PAR OCCURRENCE
   (un ingrédient cité plusieurs fois peut n'être dynamique qu'une seule fois).
-  On peut aussi éditer les crochets à la main. Aucun marquage automatique n'a
-  lieu à l'enregistrement.
+  La détection est EXACTE (« filet » → « Filet mignon ») mais aussi APPROCHÉE
+  (≈) : pluriel/singulier (« crevette » → « Crevettes ») et troncatures
+  (« choco » → « Chocolat noir ») ; les cas ambigus sont écartés. On peut aussi
+  éditer les crochets à la main. Aucun marquage automatique à l'enregistrement.
 • Pour un ingrédient fractionné, une PORTION explicite : [beurre: 15 ml]
   (le 15 s'échelonne) ou [beurre: reste] (le solde). Le rescan ne touche jamais
   aux portions (« 15 ml … du beurre », « le reste du beurre »).
@@ -609,6 +612,45 @@ def _phrases_ing(nom):
     return uniques
 
 
+# ── Correspondance APPROCHÉE : pluriel + troncature ───────────────────────────
+#  La détection exacte capte déjà les abréviations qui sont un mot ENTIER de
+#  l'ingrédient (« filet » pour « Filet mignon », via les préfixes de
+#  `_phrases_ing`). En plus, on tolère :
+#    • le pluriel/singulier      (« crevette » ↔ « Crevettes ») ;
+#    • une troncature en préfixe  (« choco » pour « Chocolat noir »),
+#  d'au moins _MIN_TRUNC lettres pour éviter le bruit. Détection ET résolution
+#  des marqueurs partagent ces règles pour rester cohérentes (sinon un marqueur
+#  accepté s'afficherait « introuvable » en cuisine).
+_MIN_TRUNC = 4
+
+
+def _racine(mot):
+    """Racine grossière d'un mot plié : ôte un « s »/« x » final de pluriel
+    (mot d'au moins 4 lettres). « crevettes » → « crevette », « choux » → « chou »."""
+    return mot[:-1] if len(mot) >= 4 and mot[-1] in "sx" else mot
+
+
+def _mots_similaires(a, b):
+    """Deux mots pliés se correspondent-ils au pluriel près ou par troncature
+    (le plus court, d'au moins _MIN_TRUNC lettres, préfixe de l'autre) ?"""
+    if a == b or _racine(a) == _racine(b):
+        return True
+    court, long = (a, b) if len(a) <= len(b) else (b, a)
+    return len(court) >= _MIN_TRUNC and long.startswith(court)
+
+
+def _regex_mot_flou(mot):
+    """Motif regex d'un mot d'ingrédient tolérant pluriel ET troncature : tout
+    préfixe d'au moins _MIN_TRUNC lettres (et sa marque de pluriel) correspond.
+    « chocolat » accepte « choc », « choco », …, « chocolat », « chocolats »."""
+    base = _racine(mot)
+    tete = re.escape(base[:_MIN_TRUNC])
+    queue = ""
+    for c in reversed(base[_MIN_TRUNC:]):             # lettres au-delà du seuil
+        queue = f"(?:{re.escape(c)}{queue})?"         # → chacune optionnelle
+    return tete + queue + "[sx]?"
+
+
 def index_marqueurs(ingredients):
     """Map « phrase-clé → ingrédient », en ne gardant que les clés NON ambiguës
     (une phrase qui désignerait deux ingrédients est écartée). Sert à résoudre
@@ -639,13 +681,29 @@ def index_marqueurs(ingredients):
 
 def resoudre_marqueur(texte, idx):
     """Ingrédient désigné par le contenu d'un marqueur [texte] : on teste les
-    préfixes de mots décroissants (pluriel toléré)."""
+    préfixes de mots décroissants (pluriel toléré), puis, en dernier recours, une
+    correspondance APPROCHÉE (pluriel/troncature) qui n'accepte qu'une cible
+    unique. Le repli flou permet à un marqueur accepté depuis le rescan
+    « similaire » (ex. [choco]) de retrouver sa quantité en cuisine."""
     mots = _mots_ing(texte)
     for n in range(len(mots), 0, -1):
         cle = " ".join(mots[:n])
         ing = idx.get(cle) or (idx.get(cle[:-1]) if cle.endswith("s") else None)
         if ing:
             return ing
+    # Repli flou : le texte du marqueur correspond mot à mot (pluriel/troncature)
+    # à une phrase-clé d'un SEUL ingrédient. Ambigu → non résolu (reste rouge).
+    for n in range(len(mots), 0, -1):
+        cle_mots = mots[:n]
+        cibles, trouve = set(), None
+        for ph, ing in idx.items():
+            ph_mots = ph.split()
+            if len(ph_mots) == len(cle_mots) and \
+                    all(_mots_similaires(x, y) for x, y in zip(cle_mots, ph_mots)):
+                cibles.add(id(ing))
+                trouve = ing
+        if len(cibles) == 1:
+            return trouve
     return None
 
 
@@ -834,13 +892,16 @@ def ingredients_deja_dynamiques(etapes, ingredients):
 
 
 def candidats_dynamiques(etapes, ingredients):
-    """Noms des ingrédients cités dans les étapes mais dont AUCUNE occurrence
-    n'est encore entre crochets. Ordre d'apparition, sans doublon. Sert au
-    rappel qui incite à rendre ces ingrédients dynamiques."""
+    """Noms des ingrédients cités dans les étapes (mention EXACTE ou APPROCHÉE)
+    mais dont AUCUNE occurrence n'est encore entre crochets. Ordre d'apparition,
+    sans doublon. Sert au rappel qui incite à rendre ces ingrédients dynamiques."""
     idx = index_marqueurs(ingredients)
     vus, noms = set(), []
     for e in etapes:
-        for _a, _b, ing in detecter_mentions(e, ingredients, idx):
+        mentions = (detecter_mentions(e, ingredients, idx)
+                    + detecter_similaires(e, ingredients, idx))
+        mentions.sort(key=lambda t: t[0])
+        for _a, _b, ing in mentions:
             if id(ing) in vus:
                 continue
             vus.add(id(ing))
@@ -888,12 +949,66 @@ def detecter_mentions_toutes(texte, ingredients, idx):
     return retenus
 
 
+def detecter_similaires(texte, ingredients, idx):
+    """Mentions APPROCHÉES d'une étape : pluriel/singulier (« crevette » pour
+    « Crevettes ») et troncatures (« choco » pour « Chocolat noir »). Complète
+    `detecter_mentions_toutes` (exact) sans jamais recouvrir ses occurrences ni
+    les marqueurs déjà posés. Ne renvoie que les occurrences NON AMBIGUËS (une
+    seule cible possible) — (start, end, ingrédient) triés, non chevauchants."""
+    folded = _plier(texte)
+    # Zones interdites : marqueurs existants + occurrences déjà captées EXACTEMENT
+    # (celles-ci restent des candidats « exacts », pas « similaires »).
+    exclus = [(m.start(), m.end()) for m in re.finditer(r"\[[^\[\]]*\]", texte)]
+    exclus += [(a, b) for a, b, _ing in
+               detecter_mentions_toutes(texte, ingredients, idx)]
+
+    def chevauche(a, b, spans):
+        return any(a < j and i < b for i, j in spans)
+
+    trouves = []
+    for ing in ingredients:
+        if not ing.get("nom") or ing.get("qte") is None:   # ignore « au goût »
+            continue
+        for ph in _phrases_ing(ing["nom"]):
+            if idx.get(ph) is not ing:            # phrase ambiguë ou d'un autre
+                continue
+            motif = (r"(?<![a-z0-9])"
+                     + r"[^a-z0-9]+".join(map(_regex_mot_flou, ph.split()))
+                     + r"(?![a-z0-9])")
+            for m in re.finditer(motif, folded):
+                if chevauche(m.start(), m.end(), exclus):
+                    continue
+                if _mention_est_portion(folded[max(0, m.start() - 40):m.start()]):
+                    continue
+                trouves.append((m.start(), m.end(), ing))
+
+    # Un même span réclamé par ≥2 ingrédients distincts est ambigu : on l'écarte
+    # (on ne saurait pas lequel proposer). Puis chevauchements : plus long d'abord.
+    par_span = {}
+    for a, b, ing in trouves:
+        par_span.setdefault((a, b), (set(), ing))[0].add(id(ing))
+    candidats = [(a, b, ing) for (a, b), (ids, ing) in par_span.items()
+                 if len(ids) == 1]
+    candidats.sort(key=lambda t: (t[0], -(t[1] - t[0])))
+    retenus, occup = [], []
+    for a, b, ing in candidats:
+        conflit_autre = any(a < j and i < b and id(g) != id(ing)
+                            for i, j, g in retenus)
+        if conflit_autre or chevauche(a, b, occup):
+            continue
+        occup.append((a, b))
+        retenus.append((a, b, ing))
+    retenus.sort()
+    return retenus
+
+
 def occurrences_dynamiques(texte, ingredients, idx):
     """Occurrences « basculables » d'une étape, pour le panneau interactif.
     Renvoie une liste triée de tuples (a, b, etat, nom) où [a, b) est le span
     dans `texte` :
       • etat 'dyn'  → un marqueur simple [nom] (cliquer RETIRE les crochets) ;
-      • etat 'cand' → une mention non marquée (cliquer AJOUTE les crochets).
+      • etat 'cand' → une mention exacte non marquée (cliquer AJOUTE) ;
+      • etat 'sim'  → une mention APPROCHÉE (pluriel/troncature) à confirmer.
     Les marqueurs de PORTION [nom: 15 ml] sont ignorés (édition manuelle)."""
     occ = []
     bornes_marqueurs = []
@@ -908,14 +1023,18 @@ def occurrences_dynamiques(texte, ingredients, idx):
             occ.append((m.start(), m.end(), "dyn", ing["nom"]))
     for a, b, ing in detecter_mentions_toutes(texte, ingredients, idx):
         occ.append((a, b, "cand", ing["nom"]))
+    for a, b, ing in detecter_similaires(texte, ingredients, idx):
+        occ.append((a, b, "sim", ing["nom"]))
     occ.sort()
     return occ
 
 
 def basculer_marqueur(texte, a, b, etat):
-    """Ajoute ('cand') ou retire ('dyn') les crochets sur le span [a, b) d'une
-    étape. Pour 'dyn', [a, b) englobe les crochets. Renvoie le nouveau texte."""
-    if etat == "cand":
+    """Ajoute ('cand'/'sim') ou retire ('dyn') les crochets sur le span [a, b)
+    d'une étape. Pour 'dyn', [a, b) englobe les crochets. Renvoie le nouveau
+    texte. Un candidat approché ('sim') s'insère tel quel — le résolveur flou
+    retrouvera l'ingrédient en cuisine."""
+    if etat in ("cand", "sim"):
         return texte[:a] + "[" + texte[a:b] + "]" + texte[b:]
     return texte[:a] + texte[a + 1:b - 1] + texte[b:]   # 'dyn' : ôte [ et ]
 
@@ -994,13 +1113,16 @@ _OCC_DYN = ("background:rgba(74,222,128,.15);color:#7ee787;"
             "border-bottom:2px solid rgba(74,222,128,.6);border-radius:3px;padding:0 2px")
 _OCC_CAND = ("background:rgba(255,180,84,.13);color:#ffd9a6;"
              "border-bottom:2px dashed rgba(255,180,84,.6);border-radius:3px;padding:0 2px")
+# 'sim' (approché) : bleu pointillé, pour le distinguer d'un candidat exact.
+_OCC_SIM = ("background:rgba(88,166,255,.13);color:#bcd6ff;"
+            "border-bottom:2px dotted rgba(88,166,255,.7);border-radius:3px;padding:0 2px")
 _CERCLES = {1: "①", 2: "②", 3: "③", 4: "④", 5: "⑤",
             6: "⑥", 7: "⑦", 8: "⑧", 9: "⑨"}
 
 
 def apercu_occurrences(texte, occ):
-    """HTML d'une étape pour le panneau interactif : chaque occurrence 'dyn' est
-    surlignée vert, chaque 'cand' ambre pointillé. Le contenu d'un marqueur
+    """HTML d'une étape pour le panneau interactif : 'dyn' surligné vert, 'cand'
+    ambre pointillé, 'sim' (approché) bleu pointillé. Le contenu d'un marqueur
     [..] est montré SANS les crochets (pour voir le rendu final). `occ` provient
     d'occurrences_dynamiques() ; le reste du texte est échappé."""
     morceaux, prev = [], 0
@@ -1008,7 +1130,7 @@ def apercu_occurrences(texte, occ):
         morceaux.append(html_escape(texte[prev:a]))
         brut = texte[a:b]
         interne = brut[1:-1] if (etat == "dyn" and brut.startswith("[")) else brut
-        style = _OCC_DYN if etat == "dyn" else _OCC_CAND
+        style = {"dyn": _OCC_DYN, "sim": _OCC_SIM}.get(etat, _OCC_CAND)
         morceaux.append(f'<span style="{style}">{html_escape(interne)}</span>')
         prev = b
     morceaux.append(html_escape(texte[prev:]))
@@ -3175,17 +3297,27 @@ if vue == VUE_EDITION:
                 "« 🔍 Rescanner » et clique-les pour les rendre dynamiques — "
                 + ", ".join(candidats) + ".")
 
+        # Le bouton relance TOUJOURS un scan à neuf (sur les grilles en cours
+        # d'édition) : ré-appuyer après avoir modifié les ingrédients ou les
+        # étapes ré-affiche des occurrences à jour. Un bouton séparé masque le
+        # panneau. Le scan lui-même se recalcule à chaque rerun via
+        # occurrences_dynamiques() ci-dessous.
         cle_rescan = f"rescan_actif_{k}"
         actif = st.session_state.get(cle_rescan, False)
-        if st.button("🔍 Masquer le marquage dynamique" if actif
-                     else "🔍 Rescanner les ingrédients dynamiques",
-                     key=f"rescan_btn_{k}", use_container_width=True):
-            st.session_state[cle_rescan] = not actif
+        c_scan, c_masq = st.columns([3, 1]) if actif else (st, None)
+        if c_scan.button("🔍 Rescanner les ingrédients dynamiques",
+                         key=f"rescan_btn_{k}", use_container_width=True):
+            st.session_state[cle_rescan] = True
+            st.rerun()
+        if actif and c_masq.button("Masquer", key=f"rescan_hide_{k}",
+                                   use_container_width=True):
+            st.session_state[cle_rescan] = False
             st.rerun()
 
         if actif:
             st.caption("Clique un mot ✅ pour RETIRER sa quantité dynamique, un "
-                       "mot ➕ pour l'AJOUTER. Chaque occurrence est indépendante : "
+                       "mot ➕ (exact) ou ≈ (approché : pluriel/abréviation) pour "
+                       "l'AJOUTER. Chaque occurrence est indépendante : "
                        "①②③ numérotent les répétitions d'un même ingrédient.")
             rien = True
             for si, etape in enumerate(textes_courants):
@@ -3207,7 +3339,7 @@ if vue == VUE_EDITION:
                     rang[nom] = rang.get(nom, 0) + 1
                     suffixe = (f" {_CERCLES.get(rang[nom], rang[nom])}"
                                if totaux[nom] > 1 else "")
-                    icone = "✅" if etat == "dyn" else "➕"
+                    icone = {"dyn": "✅", "sim": "≈"}.get(etat, "➕")
                     if cols[j % len(cols)].button(
                             f"{icone} {nom}{suffixe}",
                             key=f"occ_{k}_{si}_{a}_{b}", use_container_width=True):
