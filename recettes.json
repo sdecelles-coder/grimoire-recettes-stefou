@@ -1208,18 +1208,18 @@
       ]
     },
     {
-      "titre": "Shish Tawook",
+      "titre": "Marinade Shish Taouk",
       "sous_titre": "Brochettes de poulet libanaises marinées au yogourt, citron et ail",
       "temps_prep": 10,
       "temps_cuisson": 18,
       "base": {
-        "label": "Portions",
+        "label": "Poitrine poulet",
         "unite": "portions",
-        "valeur": 6,
+        "valeur": 6.0,
         "personnes": 6,
         "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 6
+        "multiples": true,
+        "pas_personnes": 3
       },
       "ingredients": [
         {
@@ -1254,7 +1254,7 @@
           "nom": "gousses d'ail écrasées",
           "qte": 6.0,
           "unite": "gousse",
-          "palier": 1,
+          "palier": 1.0,
           "section": ""
         },
         {
@@ -1309,11 +1309,11 @@
       ],
       "preparation": [
         {
-          "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : yogourt, jus de citron, huile d'olive, ail, pâte de tomate, épices, sel et poivre. Fouetter pour bien mélanger.",
+          "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : [yogourt], [jus de citron], [huile d'olive], ail, [pâte de tomate], épices, [sel] et [poivre]. Fouetter pour bien mélanger.",
           "section": ""
         },
         {
-          "texte": "Ajouter les cubes de poulet dans le bol et bien les enrober de marinade. Couvrir et laisser mariner au réfrigérateur pendant au moins 4 heures.",
+          "texte": "Ajouter les [cubes] de poulet dans le bol et bien les enrober de marinade. Couvrir et laisser mariner au réfrigérateur pendant au moins 4 heures.",
           "section": ""
         },
         {
@@ -1332,7 +1332,8 @@
       "tags": [
         "Poulet",
         "Grillades",
-        "Libanais"
+        "Libanais",
+        "Stefou"
       ]
     }
   ],
