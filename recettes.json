@@ -461,8 +461,8 @@
         "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 4
+        "multiples": true,
+        "pas_personnes": 2
       },
       "ingredients": [
         {
