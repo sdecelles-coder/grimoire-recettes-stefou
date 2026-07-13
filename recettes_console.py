@@ -2778,6 +2778,25 @@ positionVictoire();
 # ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET CONVERSION WEB — importer une recette depuis une URL ou du texte collé
 # ═════════════════════════════════════════════════════════════════════════════
+def _liberer_memoire():
+    """Rend au système la mémoire transitoire allouée par le process principal
+    (typiquement après une conversion web, qui parse du HTML et a lancé un
+    navigateur en sous-processus). `gc.collect()` casse les cycles Python ;
+    `malloc_trim(0)` (glibc/Linux) rend au noyau les arènes déjà libérées — sans
+    quoi le process conserve son pic mémoire même après coup, ce qui pèse sur un
+    conteneur contraint (Streamlit Cloud ≈ 1 Go). Sans effet hors Linux/glibc ;
+    n'échoue jamais."""
+    import gc
+    import sys
+    gc.collect()
+    if sys.platform.startswith("linux"):
+        try:
+            import ctypes
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
+
+
 if vue == VUE_CONVERSION:
     st.markdown("#### 🌐 Convertir une recette du web")
     st.caption("Colle l'adresse (URL) d'une recette OU colle directement son "
@@ -2841,6 +2860,11 @@ if vue == VUE_CONVERSION:
                         st.session_state.conv_source = src
                 finally:
                     anim.empty()
+                    # La conversion peut avoir lancé un navigateur (sous-processus
+                    # déjà terminé ici) et alloué du HTML : on rend au système la
+                    # mémoire transitoire pour ne pas garder le pic sur un
+                    # conteneur à 1 Go. Inutile d'attendre — c'est immédiat.
+                    _liberer_memoire()
             except cw.CreditEpuise as e:
                 st.session_state.conv_erreur = f"🪫 {e}"
             except cw.SiteBloque as e:

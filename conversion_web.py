@@ -535,48 +535,31 @@ def _assurer_chromium_installe():
         check=False, capture_output=True, timeout=180)
 
 
-def convertir_url_via_navigateur(url: str, api_key: str,
-                                 model: str = "claude-sonnet-4-6") -> tuple[dict, str]:
-    """Dernier repli, après convertir_url et convertir_url_via_ia : ouvre un
-    vrai navigateur (Chromium via Playwright) en mode VISIBLE, DANS UN VRAI
-    SOUS-PROCESSUS OS ISOLÉ (_navigateur_repli.py), pour récupérer la page,
-    puis envoie le texte obtenu à Claude.
+def _html_via_navigateur_repli(url: str, mode: str) -> tuple[str | None, str | None]:
+    """Lance UNE fois le sous-processus navigateur isolé dans le `mode` donné
+    (« headless » ou « visible ») et renvoie (html, None) si une page
+    exploitable a été récupérée, sinon (None, message d'erreur).
 
-    Constat empirique : certains sites bloquent les requêtes HTTP classiques
-    (les nôtres et celle de l'outil web_fetch de Claude) mais pas un
-    navigateur complet en mode visible — probablement une détection du mode
-    « headless » plutôt qu'un blocage par IP. Nettement plus lourd/lent
-    (plusieurs secondes, lance un vrai navigateur), donc réservé au dernier
-    recours. L'isolation en sous-processus protège le serveur principal d'un
-    crash natif du navigateur (ex. segfault), fréquent sur les environnements
-    de déploiement contraints.
-
-    Renvoie (recette, "navigateur"). Lève RecetteIntrouvable si le
-    sous-processus plante/dépasse le délai/ne renvoie rien d'exploitable ;
-    les mêmes exceptions que convertir_texte sinon."""
+    Chaque appel ouvre un Chromium qui meurt avant qu'un autre ne démarre
+    (jamais deux navigateurs simultanés) : le pic mémoire reste celui d'UN seul
+    navigateur, et le mode headless est nettement plus léger que le visible."""
     import subprocess
     import tempfile
-
-    try:
-        _assurer_chromium_installe()
-    except Exception:
-        pass  # best-effort ; un binaire manquant fera échouer le sous-processus plus bas
 
     fd, fichier_sortie = tempfile.mkstemp(suffix=".html")
     os.close(fd)
     try:
         try:
             resultat = subprocess.run(
-                [sys.executable, _SCRIPT_NAVIGATEUR_REPLI, url, fichier_sortie],
+                [sys.executable, _SCRIPT_NAVIGATEUR_REPLI, url, fichier_sortie, mode],
                 capture_output=True, text=True, timeout=50)
         except subprocess.TimeoutExpired:
-            raise RecetteIntrouvable(
-                "Le navigateur de repli a mis trop de temps à répondre.")
+            return None, "Le navigateur de repli a mis trop de temps à répondre."
         if resultat.returncode != 0:
             detail = (resultat.stderr or "erreur inconnue").strip().splitlines()
-            raise RecetteIntrouvable(
-                f"Le navigateur de repli a échoué (code {resultat.returncode}) : "
-                f"{detail[-1] if detail else 'erreur inconnue'}")
+            return None, (f"Le navigateur de repli a échoué "
+                          f"(code {resultat.returncode}) : "
+                          f"{detail[-1] if detail else 'erreur inconnue'}")
         with open(fichier_sortie, encoding="utf-8") as f:
             html_text = f.read()
     finally:
@@ -587,8 +570,46 @@ def convertir_url_via_navigateur(url: str, api_key: str,
 
     source_texte, _ = _texte_source_depuis_html(html_text)
     if len(source_texte) < 40:
+        return None, "Aucune recette exploitable trouvée sur cette page (navigateur)."
+    return html_text, None
+
+
+def convertir_url_via_navigateur(url: str, api_key: str,
+                                 model: str = "claude-sonnet-4-6") -> tuple[dict, str]:
+    """Dernier repli, après convertir_url et convertir_url_via_ia : ouvre un
+    vrai navigateur (Chromium via Playwright), DANS UN VRAI SOUS-PROCESSUS OS
+    ISOLÉ (_navigateur_repli.py), pour récupérer la page, puis envoie le texte
+    obtenu à Claude.
+
+    Constat empirique : certains sites bloquent les requêtes HTTP classiques
+    (les nôtres et celle de l'outil web_fetch de Claude) mais pas un
+    navigateur complet — parfois via une détection du mode « headless ». On
+    tente donc D'ABORD en headless (bien plus léger en mémoire, sans écran
+    virtuel : essentiel sur un conteneur contraint comme Streamlit Cloud à
+    1 Go), et on ne bascule en mode VISIBLE (plus lourd, + Xvfb) que si le site
+    a bloqué/vidé la tentative headless. Les deux tentatives sont séquentielles,
+    donc le pic mémoire reste celui d'un seul navigateur.
+
+    L'isolation en sous-processus protège le serveur principal d'un crash natif
+    du navigateur (ex. segfault), fréquent sur les environnements de déploiement
+    contraints.
+
+    Renvoie (recette, "navigateur"). Lève RecetteIntrouvable si les deux
+    tentatives plantent/dépassent le délai/ne renvoient rien d'exploitable ;
+    les mêmes exceptions que convertir_texte sinon."""
+    try:
+        _assurer_chromium_installe()
+    except Exception:
+        pass  # best-effort ; un binaire manquant fera échouer le sous-processus plus bas
+
+    html_text, detail = _html_via_navigateur_repli(url, "headless")
+    if html_text is None:                       # bloqué/vide en headless → visible
+        html_text, detail = _html_via_navigateur_repli(url, "visible")
+    if html_text is None:
         raise RecetteIntrouvable(
-            "Aucune recette exploitable trouvée sur cette page (navigateur).")
+            detail or "Aucune recette exploitable trouvée sur cette page (navigateur).")
+
+    source_texte, _ = _texte_source_depuis_html(html_text)
     recette = convertir_texte(source_texte, api_key, model)
     return recette, "navigateur"
 
