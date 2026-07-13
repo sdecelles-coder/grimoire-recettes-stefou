@@ -221,6 +221,22 @@ def _norm_tag(nom):
     return (nom or "").strip().casefold()
 
 
+_DELIGATURE = {"œ": "oe", "Œ": "Oe", "æ": "ae", "Æ": "Ae"}
+
+
+def _deligature(s):
+    """Remplace les ligatures œ/æ par « oe »/« ae » pour le STOCKAGE et
+    l'affichage (« bœuf » → « boeuf », « œuf » → « oeuf »). Sans effet sur le
+    matching interne, qui passe par _plier (lequel replie œ→o pour préserver les
+    positions). Renvoie la valeur telle quelle si ce n'est pas une chaîne."""
+    if not isinstance(s, str):
+        return s
+    for lig, rem in _DELIGATURE.items():
+        if lig in s:
+            s = s.replace(lig, rem)
+    return s
+
+
 def trier_tags(tags):
     """Trie une liste de tags (dicts {nom, couleur}) par nom, insensible à la
     casse. Retourne une nouvelle liste."""
@@ -234,7 +250,7 @@ def normaliser_tags(tags):
     for t in tags or []:
         if isinstance(t, str):                      # ancien format éventuel
             t = {"nom": t}
-        nom = (t.get("nom") or "").strip()
+        nom = _deligature((t.get("nom") or "").strip())   # « bœuf » → « boeuf »
         if not nom:
             continue
         cle = _norm_tag(nom)
@@ -446,10 +462,14 @@ def normaliser_recette(r):
     r.setdefault("preparation", [])
     r.setdefault("ingredients", [])
     r.setdefault("tags", [])
-    # Tags : liste de noms (chaînes), nettoyée et sans doublons.
+    # Ligatures œ/æ → « oe »/« ae » partout dans le texte visible de la recette.
+    r["titre"] = _deligature(r["titre"])
+    r["sous_titre"] = _deligature(r["sous_titre"])
+    r["preparation"] = [_deligature(e) for e in r.get("preparation", [])]
+    # Tags : liste de noms (chaînes), nettoyée, sans ligature et sans doublons.
     vus, propres = set(), []
     for t in r.get("tags", []):
-        nom = (t or "").strip() if isinstance(t, str) else ""
+        nom = _deligature((t or "").strip()) if isinstance(t, str) else ""
         if nom and _norm_tag(nom) not in vus:
             vus.add(_norm_tag(nom))
             propres.append(nom)
@@ -457,6 +477,13 @@ def normaliser_recette(r):
     for _ing in r.get("ingredients", []):         # section : groupe d'ingrédients
         if isinstance(_ing, dict):                # (« Garniture », « Bouillon »…)
             _ing.setdefault("section", "")
+            for champ in ("nom", "unite", "section"):   # « bœuf » → « boeuf »
+                if isinstance(_ing.get(champ), str):
+                    _ing[champ] = _deligature(_ing[champ])
+            # qte reste un float ou None : nettoie les quantités « texte libre »
+            # des recettes importées (conversion web) — « 1/2 » → 0.5, etc.
+            if "qte" in _ing:
+                _ing["qte"] = parse_qte(_ing["qte"])
     r.setdefault("base", {})
     b = r["base"]
     b.setdefault("label", "Rendement")
@@ -626,25 +653,64 @@ _AVANT_FRACTION = re.compile(
 _AVANT_QTE = re.compile(r"\d.*\b(?:du|des|de|d)\s+(?:la\s+|l\s+)?$")
 
 
-def _lire_portion(spec):
-    """(nombre, unité) depuis « 15 ml », « 1/2 tasse », « ½ c. à thé »,
-    « 1 ½ tasse ». Renvoie None si aucun nombre n'ouvre la chaîne."""
-    s = spec.strip()
+def _lire_nombre(s):
+    """Consomme un nombre en tête de `s` et renvoie (valeur, reste). Comprend :
+    entier/décimal (« 1 », « 1,5 »), fraction « a/b » (« 1/2 »), fraction unicode
+    (« ½ »), et les nombres mixtes (« 1 1/2 », « 1 ½ »). Renvoie None si aucun
+    nombre n'ouvre `s`. Logique partagée par `_lire_portion` et `parse_qte`."""
+    s = s.lstrip()
     total, trouve = 0.0, False
-    m = re.match(r"(\d+)\s*/\s*(\d+)", s)                 # fraction « a/b »
+    # Partie entière/décimale — sauf si la chaîne commence par une fraction pure
+    # « a/b » (« 1/2 » : le « 1 » n'est pas un entier autonome).
+    m = re.match(r"\d+(?:[.,]\d+)?", s)
+    if m and not re.match(r"\d+\s*/\s*\d+", s):
+        total += float(m.group(0).replace(",", "."))
+        s, trouve = s[m.end():], True
+    # Fraction « a/b », éventuellement après un entier (nombre mixte « 1 1/2 »).
+    m = re.match(r"\s*(\d+)\s*/\s*(\d+)", s)
     if m:
         total += int(m.group(1)) / int(m.group(2))
         s, trouve = s[m.end():], True
-    else:
-        m = re.match(r"\d+(?:[.,]\d+)?", s)               # entier ou décimal
-        if m:
-            total += float(m.group(0).replace(",", "."))
-            s, trouve = s[m.end():], True
-        m = re.match(r"\s*([½¼¾⅓⅔⅛])", s)                 # fraction unicode
+    else:                                                 # ou fraction unicode
+        m = re.match(r"\s*([½¼¾⅓⅔⅛])", s)                 # (« ½ », « 1 ½ »)
         if m:
             total += _FRAC_UNI.get(m.group(1), 0.0)
             s, trouve = s[m.end():], True
-    return (total, s.strip()) if trouve else None
+    return (total, s.lstrip()) if trouve else None
+
+
+def _lire_portion(spec):
+    """(nombre, unité) depuis « 15 ml », « 1/2 tasse », « ½ c. à thé »,
+    « 1 ½ tasse ». Renvoie None si aucun nombre n'ouvre la chaîne."""
+    r = _lire_nombre(spec.strip())
+    return (r[0], r[1].strip()) if r else None
+
+
+def parse_qte(valeur):
+    """Convertit une quantité saisie/importée en float, ou None (« au goût »).
+    Tolérante : ne lève JAMAIS d'exception. Comprend :
+      - un nombre déjà numérique (int/float) → tel quel ;
+      - une fraction texte « 1/2 », « 3/4 » → 0.5, 0.75 ;
+      - un nombre mixte « 1 1/2 » → 1.5 ;
+      - les fractions unicode « ½ ¼ ¾ ⅓ ⅔ ⅛ » (seules ou après un entier) ;
+      - la virgule décimale « 1,5 » → 1.5 ;
+      - les espaces superflus ;
+      - une plage « 2 à 3 » ou « 2-3 » → BORNE INFÉRIEURE (2). Pour prendre la
+        moyenne à la place, lire aussi la borne haute et moyenner les deux.
+    Vide, None, ou texte non chiffré (« au goût », « une pincée ») → None."""
+    if valeur is None or isinstance(valeur, bool):        # bool avant int !
+        return None
+    if isinstance(valeur, (int, float)):
+        return None if pd.isna(valeur) else float(valeur)
+    s = str(valeur).strip()
+    if not s:
+        return None
+    # Plage « 2 à 3 » / « 2-3 » / « 2–3 » : on ne garde que la borne inférieure.
+    m = re.match(r"(.+?)\s*(?:à|-|–|—)\s*.+", s)
+    if m:
+        s = m.group(1).strip()
+    r = _lire_nombre(s)
+    return r[0] if r else None
 
 
 def _echelle_portion(nombre, facteur):
@@ -995,8 +1061,8 @@ def _ingredients_depuis_editeur(df):
         nom = str(ligne.get("Ingrédient") or "").strip()
         if not nom or nom.lower() == "nan":
             continue
-        qte = ligne.get("Quantité")
-        au_gout = qte is None or qte == "" or pd.isna(qte)
+        qte = parse_qte(ligne.get("Quantité"))   # tolérant : « 1/2 », « ½ »… → float
+        au_gout = qte is None
         palier = ligne.get("Palier")
         unite_raw = ligne.get("Unité")
         unite = "" if (unite_raw is None or pd.isna(unite_raw)) else str(unite_raw).strip()
@@ -1004,7 +1070,7 @@ def _ingredients_depuis_editeur(df):
         section = "" if (section_raw is None or pd.isna(section_raw)) else str(section_raw).strip()
         nouveaux.append({
             "nom": nom,
-            "qte": None if au_gout else float(qte),
+            "qte": qte,                           # déjà float ou None (parse_qte)
             "unite": unite or ("au goût" if au_gout else ""),
             "palier": _palier_val(None if (palier is None or pd.isna(palier)) else str(palier)),
             "section": section,
