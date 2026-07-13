@@ -1233,18 +1233,18 @@
       ]
     },
     {
-      "titre": "Chimichurri",
+      "titre": "Chimichurri (à tester)",
       "sous_titre": "",
       "temps_prep": 15,
       "temps_cuisson": 0,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 4,
+        "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 4
+        "multiples": true,
+        "pas_personnes": 2
       },
       "ingredients": [
         {
@@ -1313,7 +1313,7 @@
       ],
       "preparation": [
         {
-          "texte": "Hachez finement le persil, la menthe, la ciboulette et l'ail.",
+          "texte": "Hachez finement le [persil], la [menthe], la [ciboulette] et l'[ail].",
           "section": ""
         },
         {
@@ -1321,11 +1321,11 @@
           "section": ""
         },
         {
-          "texte": "Ajoutez l'huile, le vinaigre, les flocons de piment et le sel.",
+          "texte": "Ajoutez l'[huile], le [vinaigre], les [flocons de piment] et le [sel].",
           "section": ""
         },
         {
-          "texte": "Directement au-dessus du bol, pressez le demi-citron.",
+          "texte": "Directement au-dessus du bol, pressez le demi-[citron].",
           "section": ""
         },
         {
