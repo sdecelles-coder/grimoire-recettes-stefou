@@ -465,7 +465,19 @@ def normaliser_recette(r):
     # Ligatures œ/æ → « oe »/« ae » partout dans le texte visible de la recette.
     r["titre"] = _deligature(r["titre"])
     r["sous_titre"] = _deligature(r["sous_titre"])
-    r["preparation"] = [_deligature(e) for e in r.get("preparation", [])]
+    # Préparation : liste d'objets {texte, section} (comme les ingrédients).
+    # Migration des anciennes recettes où chaque étape était une simple chaîne.
+    etapes = []
+    for e in r.get("preparation", []):
+        if isinstance(e, dict):
+            e.setdefault("texte", "")
+            e.setdefault("section", "")
+            e["texte"] = _deligature(e["texte"]) if isinstance(e["texte"], str) else ""
+            e["section"] = _deligature(e["section"]) if isinstance(e["section"], str) else ""
+            etapes.append(e)
+        else:                                     # ancien format : chaîne nue
+            etapes.append({"texte": _deligature(str(e or "")), "section": ""})
+    r["preparation"] = etapes
     # Tags : liste de noms (chaînes), nettoyée, sans ligature et sans doublons.
     vus, propres = set(), []
     for t in r.get("tags", []):
@@ -722,6 +734,17 @@ def _echelle_portion(nombre, facteur):
     """Met à l'échelle une portion (qui n'a pas de palier propre) en gardant des
     fractions lisibles : arrondi au quart."""
     return round(nombre * facteur / 0.25) * 0.25
+
+
+def _etape_texte(e):
+    """Texte d'une étape de préparation, tolérant aux deux formes : ancien
+    format (chaîne) et nouveau format (dict {texte, section})."""
+    return e.get("texte", "") if isinstance(e, dict) else str(e or "")
+
+
+def _etape_section(e):
+    """Section (groupe) d'une étape ; « » pour l'ancien format en chaîne."""
+    return e.get("section", "") if isinstance(e, dict) else ""
 
 
 def calc_allocations(etapes, idx):
@@ -1084,9 +1107,19 @@ def _ingredients_depuis_editeur(df):
 
 
 def _etapes_depuis_editeur(df):
-    """Convertit le tableau des étapes édité en liste de chaînes propre."""
-    return [str(v).strip() for v in df["Étape"].tolist()
-            if pd.notna(v) and str(v).strip()]
+    """Convertit le tableau des étapes édité en liste d'objets {texte, section}
+    propre, en ignorant les lignes sans texte. Miroir de
+    `_ingredients_depuis_editeur` pour la préparation."""
+    a_section = "Section" in df.columns
+    etapes = []
+    for ligne in df.to_dict("records"):
+        texte = str(ligne.get("Étape") or "").strip()
+        if not texte or texte.lower() == "nan":
+            continue
+        sec_raw = ligne.get("Section") if a_section else ""
+        sec = "" if (sec_raw is None or pd.isna(sec_raw)) else str(sec_raw).strip()
+        etapes.append({"texte": texte, "section": sec})
+    return etapes
 
 
 def _bloc_reordonner(recette, champ, items, labels, k):
@@ -1307,8 +1340,9 @@ def recette_vierge(recettes):
                  "pas_personnes": 4},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
                          "unite": "c. à table", "palier": 0.5, "section": ""}],
-        "preparation": ["Première étape — cite un ingrédient et sa quantité "
-                        "s'insérera toute seule à l'enregistrement."],
+        "preparation": [{"texte": "Première étape — cite un ingrédient et sa "
+                         "quantité s'insérera toute seule à l'enregistrement.",
+                         "section": ""}],
         "tags": [],
     }
 
@@ -2219,11 +2253,22 @@ if vue == VUE_CUISINE:
 
     # Section PRÉPARATION (étapes numérotées, quantités auto-ajustées)
     # Les portions explicites [ing: N unité] servent à calculer le « reste ».
-    allocations = calc_allocations(recette.get("preparation", []), index_ing)
+    etapes_prep = recette.get("preparation", [])
+    allocations = calc_allocations([_etape_texte(e) for e in etapes_prep], index_ing)
     lignes_prep = ""
-    for i, etape in enumerate(recette.get("preparation", []), start=1):
-        texte = injecter_quantites(html_escape(etape), index_ing, facteur,
-                                   allocations)
+    section_prep = None
+    i = 0
+    for etape in etapes_prep:
+        sec = _etape_section(etape).strip()
+        if sec != section_prep:              # nouveau groupe : sous-titre + reset
+            section_prep = sec
+            i = 0
+            if sec:
+                lignes_prep += (f'<div class="step-groupe">'
+                                f'{html_escape(sec)}</div>')
+        i += 1
+        texte = injecter_quantites(html_escape(_etape_texte(etape)), index_ing,
+                                   facteur, allocations)
         lignes_prep += f"""
         <div class="ing step" onclick="toggle(this)">
           <span class="box"></span>
@@ -2328,6 +2373,11 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
   letter-spacing:.14em;text-transform:uppercase;color:#4df3e3;
   padding:14px 12px 4px;margin-top:4px;border-top:1px solid #1e2a45}
 .ing-groupe:first-child{border-top:none;margin-top:0;padding-top:4px}
+/* Sous-titre de groupe d'étapes (variante ambre, cohérente avec la préparation) */
+.step-groupe{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#ffb454;
+  padding:14px 12px 4px;margin-top:4px;border-top:1px solid #3a2a12}
+.step-groupe:first-child{border-top:none;margin-top:0;padding-top:4px}
 /* Ligne « aliment principal » (étiquette de base + valeur de référence mise à
    l'échelle, non cochable). Rendu à plat, exactement comme un ingrédient — pas
    d'encadré ni de fond — mais en doré. */
@@ -2733,8 +2783,20 @@ if vue == VUE_CONVERSION:
                 st.write(f"- **{ing.get('nom', '')}** — {detail}")
 
             st.markdown("**Préparation**")
-            for i, etape in enumerate(rec.get("preparation", []), 1):
-                st.write(f"{i}. {etape}")
+            # Tolérant aux deux formes : aperçu AVANT normalisation (étapes en
+            # chaînes) comme après (dicts {texte, section}). Numérotation par
+            # section.
+            section_prep_ap = None
+            i_prep = 0
+            for etape in rec.get("preparation", []):
+                sec = _etape_section(etape).strip()
+                if sec != section_prep_ap:
+                    section_prep_ap = sec
+                    i_prep = 0
+                    if sec:
+                        st.markdown(f"*{sec}*")
+                i_prep += 1
+                st.write(f"{i_prep}. {_etape_texte(etape)}")
 
             if rec.get("tags"):
                 st.write("🏷 " + " · ".join(rec["tags"]))
@@ -3037,14 +3099,18 @@ if vue == VUE_EDITION:
         ss_prep = f"agg_prep_{k}"
 
         df_prep = pd.DataFrame(
-            [{"Étape": e, "_rowid": str(i)}
+            [{"Étape": _etape_texte(e), "Section": _etape_section(e),
+              "_rowid": str(i)}
              for i, e in enumerate(recette.get("preparation", []))],
             # _rowid en dernier : la 1re colonne (visible) porte la case à cocher.
-            columns=["Étape", "_rowid"],
+            columns=["Étape", "Section", "_rowid"],
         )
 
         def _cfg_prep(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
+            gb.configure_column("Section", editable=True, flex=2,
+                                headerTooltip="Groupe d'étapes (ex. Sauce, Montage, "
+                                              "Variante). Laisser vide si aucun.")
             gb.configure_column("Étape", rowDrag=True, editable=True, flex=1,
                                 wrapText=True, autoHeight=True,
                                 cellEditor="agLargeTextCellEditor",
@@ -3066,7 +3132,8 @@ if vue == VUE_EDITION:
             seq = st.session_state.get(f"{ss_prep}_seq", 0) + 1
             st.session_state[f"{ss_prep}_seq"] = seq
             st.session_state[ss_prep] = pd.concat(
-                [edite_prep, pd.DataFrame([{"Étape": "", "_rowid": f"n{seq}"}])],
+                [edite_prep, pd.DataFrame([{"Étape": "", "Section": "",
+                                            "_rowid": f"n{seq}"}])],
                 ignore_index=True)
             st.session_state[f"{ss_prep}_nonce"] = \
                 st.session_state.get(f"{ss_prep}_nonce", 0) + 1
@@ -3091,14 +3158,15 @@ if vue == VUE_EDITION:
         #  préservée). Chaque occurrence est indépendante : un ingrédient cité
         #  plusieurs fois peut n'être dynamique qu'une seule fois.
         etapes_courantes = _etapes_depuis_editeur(edite_prep)
+        textes_courants = [e["texte"] for e in etapes_courantes]
         ings_courants = _ingredients_depuis_editeur(edite)
         idx_dyn = index_marqueurs(ings_courants)
 
         # Rappel « dans l'intérêt de l'auteur » : ingrédients cités dont AUCUNE
         # occurrence n'est dynamique (leur quantité ne s'affichera pas en cuisine).
         deja = {_norm_titre(n)
-                for n in ingredients_deja_dynamiques(etapes_courantes, ings_courants)}
-        candidats = [n for n in candidats_dynamiques(etapes_courantes, ings_courants)
+                for n in ingredients_deja_dynamiques(textes_courants, ings_courants)}
+        candidats = [n for n in candidats_dynamiques(textes_courants, ings_courants)
                      if _norm_titre(n) not in deja]
         if candidats:
             st.warning(
@@ -3120,7 +3188,7 @@ if vue == VUE_EDITION:
                        "mot ➕ pour l'AJOUTER. Chaque occurrence est indépendante : "
                        "①②③ numérotent les répétitions d'un même ingrédient.")
             rien = True
-            for si, etape in enumerate(etapes_courantes):
+            for si, etape in enumerate(textes_courants):
                 occ = occurrences_dynamiques(etape, ings_courants, idx_dyn)
                 if not occ:
                     continue
@@ -3143,11 +3211,13 @@ if vue == VUE_EDITION:
                     if cols[j % len(cols)].button(
                             f"{icone} {nom}{suffixe}",
                             key=f"occ_{k}_{si}_{a}_{b}", use_container_width=True):
-                        etapes_courantes[si] = basculer_marqueur(etape, a, b, etat)
+                        etapes_courantes[si]["texte"] = \
+                            basculer_marqueur(etape, a, b, etat)
                         st.session_state[ss_prep] = pd.DataFrame(
-                            [{"Étape": e, "_rowid": str(i)}
+                            [{"Étape": e["texte"], "Section": e["section"],
+                              "_rowid": str(i)}
                              for i, e in enumerate(etapes_courantes)],
-                            columns=["Étape", "_rowid"])
+                            columns=["Étape", "Section", "_rowid"])
                         st.session_state[f"{ss_prep}_nonce"] = \
                             st.session_state.get(f"{ss_prep}_nonce", 0) + 1
                         st.rerun()
