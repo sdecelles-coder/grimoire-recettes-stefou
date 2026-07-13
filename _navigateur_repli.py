@@ -7,7 +7,12 @@ multiprocessing) pour qu'un crash natif du navigateur (ex. segfault, fréquent
 sur les environnements de déploiement contraints) ne puisse jamais faire
 tomber le serveur Streamlit principal — seul ce script meurt.
 
-Usage : python _navigateur_repli.py <url> <fichier_sortie>
+Usage : python _navigateur_repli.py <url> <fichier_sortie> [headless|visible]
+Le mode (défaut « visible ») pilote le lancement de Chromium :
+  • « headless » : nettement plus léger en mémoire, sans écran virtuel — à
+    privilégier (crucial sur un conteneur contraint, ex. Streamlit Cloud à 1 Go) ;
+  • « visible »  : plus lourd (+ Xvfb), réservé au contournement des sites qui
+    détectent et bloquent le mode headless.
 Écrit le HTML récupéré dans <fichier_sortie> et quitte avec le code 0 en cas
 de succès ; quitte avec un code non nul (rien dans le fichier) sinon.
 """
@@ -34,10 +39,13 @@ def _ecran_virtuel():
 
 
 def main() -> int:
-    if len(sys.argv) != 3:
-        print("usage: _navigateur_repli.py <url> <fichier_sortie>", file=sys.stderr)
+    if len(sys.argv) not in (3, 4):
+        print("usage: _navigateur_repli.py <url> <fichier_sortie> [headless|visible]",
+              file=sys.stderr)
         return 2
     url, fichier_sortie = sys.argv[1], sys.argv[2]
+    # Mode « visible » par défaut (rétro-compatible) ; « headless » = plus léger.
+    headless = (len(sys.argv) == 4 and sys.argv[3] == "headless")
 
     try:
         from playwright.sync_api import sync_playwright
@@ -45,12 +53,14 @@ def main() -> int:
         print("Playwright n'est pas installé.", file=sys.stderr)
         return 3
 
-    ecran = _ecran_virtuel()
+    # L'écran virtuel (Xvfb) ne sert qu'au mode visible : en headless on l'évite,
+    # ce qui économise encore de la mémoire.
+    ecran = None if headless else _ecran_virtuel()
     try:
         with sync_playwright() as p:
             try:
                 navigateur = p.chromium.launch(
-                    headless=False,
+                    headless=headless,
                     args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
                 )
             except Exception as e:
