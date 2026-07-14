@@ -1,41 +1,4 @@
 {
-  "commentaires": [
-    {
-      "id": 1,
-      "recette_id": 1,
-      "nom": "Bob",
-      "texte": "Super recette !",
-      "cree": "2026-07-14 14:07",
-      "modifie": "2026-07-14 14:07",
-      "reponses": []
-    },
-    {
-      "id": 2,
-      "recette_id": 1,
-      "nom": "Bob",
-      "texte": "Super recette !",
-      "cree": "2026-07-14 14:08",
-      "modifie": "2026-07-14 14:08",
-      "reponses": []
-    },
-    {
-      "id": 3,
-      "recette_id": 1,
-      "nom": "Bob",
-      "texte": "Super recette !",
-      "cree": "2026-07-14 14:10",
-      "modifie": "2026-07-14 14:10",
-      "reponses": []
-    },
-    {
-      "id": 4,
-      "recette_id": 1,
-      "nom": "Bob",
-      "texte": "Super recette",
-      "cree": "2026-07-14 14:13",
-      "modifie": "2026-07-14 14:13",
-      "reponses": []
-    }
-  ],
-  "prochain_id": 5
+  "commentaires": [],
+  "prochain_id": 1
 }
