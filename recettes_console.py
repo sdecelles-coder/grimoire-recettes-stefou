@@ -337,21 +337,25 @@ def _defaut():
 
 
 def _extraire(data):
-    """Décompose le contenu JSON chargé en (recettes, tags).
+    """Décompose le contenu JSON chargé en (recettes, tags, prochain_id).
 
     Deux formats acceptés :
       • ancien : une simple liste de recettes → les tags sont ceux par défaut ;
-      • nouveau : {"recettes": [...], "tags": [...]}."""
+      • nouveau : {"recettes": [...], "tags": [...], "prochain_id": N}.
+    `prochain_id` peut être absent (None) : il sera recalé à la migration."""
     if isinstance(data, list):
-        return data, json.loads(json.dumps(TAGS_DEFAUT))
+        return data, json.loads(json.dumps(TAGS_DEFAUT)), None
     if isinstance(data, dict) and isinstance(data.get("recettes"), list):
-        return data["recettes"], data.get("tags") or []
+        pid = data.get("prochain_id")
+        return data["recettes"], data.get("tags") or [], pid if isinstance(pid, int) else None
     return None
 
 
 def charger_recettes():
     """Charge recettes + tags depuis GitHub si configuré, sinon depuis le
-    fichier local ; retourne (recettes, tags, mode, erreur)."""
+    fichier local ; retourne (recettes, tags, prochain_id, mode, erreur).
+    `prochain_id` vaut None si le fichier ne le stocke pas encore (ancien
+    format) : l'appelant le recale alors à la migration des ids."""
     cfg = _github_cfg()
     if cfg:
         try:
@@ -361,17 +365,17 @@ def charger_recettes():
                 data = json.loads(base64.b64decode(r.json()["content"]))
                 extrait = _extraire(data)
                 if extrait:
-                    return extrait[0], extrait[1], "github", None
+                    return extrait[0], extrait[1], extrait[2], "github", None
             if r.status_code == 404:   # pas encore de fichier dans le repo
                 rec, tags = _defaut()
-                return rec, tags, "github", None
+                return rec, tags, None, "github", None
             rec, tags = _defaut()
-            return (rec, tags, "github",
+            return (rec, tags, None, "github",
                     f"Lecture GitHub impossible (code {r.status_code}) — "
                     "vérifie le token et le nom du repo dans les secrets.")
         except requests.RequestException as e:
             rec, tags = _defaut()
-            return (rec, tags, "github",
+            return (rec, tags, None, "github",
                     f"Connexion à GitHub impossible : {e}")
     # Mode local
     if os.path.exists(FICHIER):
@@ -380,16 +384,19 @@ def charger_recettes():
                 data = json.load(f)
             extrait = _extraire(data)
             if extrait:
-                return extrait[0], extrait[1], "local", None
+                return extrait[0], extrait[1], extrait[2], "local", None
         except (json.JSONDecodeError, OSError):
             pass
     rec, tags = _defaut()
-    return rec, tags, "local", None
+    return rec, tags, None, "local", None
 
 
-def sauvegarder_recettes(recettes, tags):
-    """Écrit recettes + catalogue de tags (GitHub si configuré, sinon local).
-    Retourne (ok, message_erreur)."""
+def sauvegarder_recettes(recettes, tags, prochain_id=None):
+    """Écrit recettes + catalogue de tags + compteur d'ids (GitHub si configuré,
+    sinon local). `prochain_id` par défaut = celui de la session. Retourne
+    (ok, message_erreur)."""
+    if prochain_id is None:
+        prochain_id = st.session_state.get("prochain_id")
     cfg = _github_cfg()
     # SÉCURITÉ — protection de la référence git : si la lecture initiale de
     # GitHub a échoué (ex. 502 transitoire), les recettes en session sont les
@@ -402,8 +409,10 @@ def sauvegarder_recettes(recettes, tags):
                 "les recettes affichées sont les valeurs par défaut. Écrire "
                 "maintenant écraserait la référence git. Recharge la page une "
                 "fois GitHub de nouveau accessible.")
-    contenu = json.dumps({"recettes": recettes, "tags": tags},
-                         ensure_ascii=False, indent=2)
+    corps = {"recettes": recettes, "tags": tags}
+    if prochain_id is not None:
+        corps["prochain_id"] = prochain_id
+    contenu = json.dumps(corps, ensure_ascii=False, indent=2)
     if cfg:
         try:
             # SHA actuel du fichier (obligatoire pour mettre à jour un fichier existant)
@@ -438,6 +447,141 @@ def sauvegarder_recettes(recettes, tags):
         return True, None
     except OSError as e:
         return False, f"Écriture locale impossible : {e}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  FICHIERS ANNEXES — notes (★) et commentaires, stockés à part de recettes.json
+#
+#  Choix d'architecture (léger pour Streamlit Cloud) :
+#    • Fichiers SÉPARÉS : ajouter une note/un commentaire ne réécrit jamais les
+#      recettes ; la surface de conflit git est minuscule.
+#    • Écriture UNIQUEMENT à la soumission (jamais à chaque rerun).
+#    • Les notes et commentaires référencent la recette par son `id` STABLE
+#      (survit à un renommage), jamais par son titre.
+#  Lecture/écriture calquées sur recettes.json (GitHub si secrets, sinon local).
+# ─────────────────────────────────────────────────────────────────────────────
+NOTES_FICHIER = "notes.json"
+COMMENTAIRES_FICHIER = "commentaires.json"
+NOTES_DEFAUT = {"notes": [], "prochain_id": 1}
+COMMENTAIRES_DEFAUT = {"commentaires": [], "prochain_id": 1}
+
+
+def _gh_url_fichier(cfg, chemin):
+    return f"https://api.github.com/repos/{cfg['repo']}/contents/{chemin}"
+
+
+def _chemin_local(nom_fichier):
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), nom_fichier)
+
+
+def charger_json_annexe(nom_fichier, defaut):
+    """Lecture seule d'un fichier annexe (notes/commentaires). Retourne
+    (data, erreur). En cas d'échec de lecture, renvoie une copie de `defaut`."""
+    cfg = _github_cfg()
+    if cfg:
+        try:
+            r = requests.get(_gh_url_fichier(cfg, nom_fichier),
+                             headers=_gh_headers(cfg),
+                             params={"ref": cfg["branch"]}, timeout=10)
+            if r.status_code == 200:
+                return json.loads(base64.b64decode(r.json()["content"])), None
+            if r.status_code == 404:            # fichier pas encore créé
+                return json.loads(json.dumps(defaut)), None
+            return (json.loads(json.dumps(defaut)),
+                    f"Lecture GitHub de {nom_fichier} impossible (code {r.status_code}).")
+        except requests.RequestException as e:
+            return json.loads(json.dumps(defaut)), f"Connexion à GitHub impossible : {e}"
+    chemin = _chemin_local(nom_fichier)
+    if os.path.exists(chemin):
+        try:
+            with open(chemin, encoding="utf-8") as f:
+                return json.load(f), None
+        except (json.JSONDecodeError, OSError):
+            pass
+    return json.loads(json.dumps(defaut)), None
+
+
+def muter_json_annexe(nom_fichier, defaut, mutation):
+    """Charge la version LA PLUS À JOUR du fichier annexe, applique
+    `mutation(data)` (qui modifie data sur place), puis l'écrit. En cas de
+    conflit de SHA (écriture concurrente d'un autre visiteur), recharge et
+    RÉAPPLIQUE la mutation : aucune contribution concurrente n'est perdue.
+    Retourne (data_final, ok, erreur)."""
+    cfg = _github_cfg()
+    if cfg:
+        url = _gh_url_fichier(cfg, nom_fichier)
+        for tentative in range(4):
+            try:
+                r = requests.get(url, headers=_gh_headers(cfg),
+                                 params={"ref": cfg["branch"]}, timeout=10)
+                sha = None
+                if r.status_code == 200:
+                    data = json.loads(base64.b64decode(r.json()["content"]))
+                    sha = r.json().get("sha")
+                elif r.status_code == 404:
+                    data = json.loads(json.dumps(defaut))
+                else:
+                    return (None, False,
+                            f"Lecture GitHub de {nom_fichier} impossible "
+                            f"(code {r.status_code}).")
+                mutation(data)
+                contenu = json.dumps(data, ensure_ascii=False, indent=2)
+                payload = {
+                    "message": f"Mise à jour {nom_fichier} via la console",
+                    "content": base64.b64encode(contenu.encode("utf-8")).decode("ascii"),
+                    "branch": cfg["branch"],
+                }
+                if sha:
+                    payload["sha"] = sha
+                r2 = requests.put(url, headers=_gh_headers(cfg), json=payload, timeout=15)
+                if r2.status_code in (200, 201):
+                    return data, True, None
+                if r2.status_code == 409 and tentative < 3:
+                    continue                    # SHA périmé : recharge + réapplique
+                detail = ""
+                try:
+                    detail = r2.json().get("message", "")
+                except ValueError:
+                    pass
+                return (None, False,
+                        f"GitHub a refusé l'écriture (code {r2.status_code}) : {detail}")
+            except requests.RequestException as e:
+                if tentative < 3:
+                    continue
+                return None, False, f"Connexion à GitHub impossible : {e}"
+        return None, False, "Conflit persistant lors de l'écriture GitHub (réessaie)."
+    # Mode local
+    chemin = _chemin_local(nom_fichier)
+    data = json.loads(json.dumps(defaut))
+    if os.path.exists(chemin):
+        try:
+            with open(chemin, encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    mutation(data)
+    try:
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(json.dumps(data, ensure_ascii=False, indent=2))
+        return data, True, None
+    except OSError as e:
+        return None, False, f"Écriture locale impossible : {e}"
+
+
+def _maintenant_iso():
+    """Horodatage local « AAAA-MM-JJ HH:MM » pour marquer créations et modifs."""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+def moyenne_notes(notes_data, recette_id):
+    """(moyenne, nombre) des étoiles pour une recette. (None, 0) si aucune note."""
+    valeurs = [n["etoiles"] for n in notes_data.get("notes", [])
+               if n.get("recette_id") == recette_id
+               and isinstance(n.get("etoiles"), (int, float))]
+    if not valeurs:
+        return None, 0
+    return sum(valeurs) / len(valeurs), len(valeurs)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1162,13 +1306,43 @@ def apercu_occurrences(texte, occ):
 #  ÉTAT
 # ─────────────────────────────────────────────────────────────────────────────
 if "recettes" not in st.session_state:
-    recettes, tags, mode, erreur = charger_recettes()
+    recettes, tags, prochain_id, mode, erreur = charger_recettes()
     for r in recettes:
         normaliser_recette(r)
+    # ── MIGRATION : id unique incrémental par recette (lien stable pour les
+    #    notes et commentaires). On cale d'abord le compteur au-dessus des ids
+    #    déjà présents, puis on attribue un id aux recettes qui n'en ont pas.
+    compteur_absent = not isinstance(prochain_id, int) or prochain_id < 1
+    if compteur_absent:
+        prochain_id = 1
+    for r in recettes:
+        if isinstance(r.get("id"), int):
+            prochain_id = max(prochain_id, r["id"] + 1)
+    ids_attribues = False
+    for r in recettes:
+        if not isinstance(r.get("id"), int):
+            r["id"] = prochain_id
+            prochain_id += 1
+            ids_attribues = True
     st.session_state.recettes = recettes
     st.session_state.tags = normaliser_tags(tags)   # catalogue global
+    st.session_state.prochain_id = prochain_id
     st.session_state.stockage = mode          # "github" ou "local"
     st.session_state.erreur_chargement = erreur
+    # Persistance UNIQUE de la migration — seulement si quelque chose a changé
+    # (ids nouveaux ou compteur absent) et si la lecture initiale a réussi (sans
+    # quoi on écraserait le dépôt avec les valeurs par défaut). Aucune écriture
+    # aux sessions suivantes une fois la migration faite.
+    if (ids_attribues or compteur_absent) and not erreur:
+        sauvegarder_recettes(recettes, st.session_state.tags, prochain_id)
+if "notes_data" not in st.session_state:
+    notes_data, err_notes = charger_json_annexe(NOTES_FICHIER, NOTES_DEFAUT)
+    st.session_state.notes_data = notes_data
+    st.session_state.erreur_notes = err_notes
+if "commentaires_data" not in st.session_state:
+    comm_data, err_comm = charger_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT)
+    st.session_state.commentaires_data = comm_data
+    st.session_state.erreur_commentaires = err_comm
 if "sel" not in st.session_state:
     # Au démarrage, aucune recette n'est sélectionnée (« Choisis ta recette »).
     st.session_state.sel = None
@@ -1545,7 +1719,10 @@ def _creer_recette():
     """Callback : ajoute une recette vierge, l'affiche et efface les filtres.
     Exécuté avant l'instanciation des widgets, donc peut écrire leurs clés."""
     recettes = st.session_state.recettes
-    recettes.append(recette_vierge(recettes))
+    nouvelle = recette_vierge(recettes)
+    nouvelle["id"] = st.session_state.prochain_id      # id stable pour notes/commentaires
+    st.session_state.prochain_id += 1
+    recettes.append(nouvelle)
     st.session_state.recherche_titre = ""
     st.session_state.recherche_ingredient = ""
     st.session_state.recette_select = len(recettes) - 1
@@ -1589,6 +1766,8 @@ def _ajouter_recette_convertie(rec):
             connus.add(_norm_tag(nom))
     st.session_state.tags = trier_tags(st.session_state.tags)
 
+    rec["id"] = st.session_state.prochain_id          # id stable pour notes/commentaires
+    st.session_state.prochain_id += 1
     recettes.append(rec)
     st.session_state.recherche_titre = ""
     st.session_state.recherche_ingredient = ""
@@ -2306,6 +2485,336 @@ with st.container(key="mode_nav"):
     )
 
 # ═════════════════════════════════════════════════════════════════════════════
+#  NOTES (★) ET COMMENTAIRES — affichés à la FIN d'une recette, en cuisine
+#
+#  Tout le monde peut ajouter/modifier/supprimer (app familiale, sans compte).
+#  Chaque écriture recharge le fichier le plus à jour, applique la mutation et
+#  réécrit (muter_json_annexe) : robuste aux contributions concurrentes.
+# ═════════════════════════════════════════════════════════════════════════════
+def _note_ajouter(recette_id, nom, etoiles):
+    def m(data):
+        data.setdefault("notes", [])
+        pid = data.get("prochain_id", 1)
+        now = _maintenant_iso()
+        data["notes"].append({"id": pid, "recette_id": recette_id, "nom": nom,
+                              "etoiles": etoiles, "cree": now, "modifie": now})
+        data["prochain_id"] = pid + 1
+    return muter_json_annexe(NOTES_FICHIER, NOTES_DEFAUT, m)
+
+
+def _note_modifier(note_id, nom, etoiles):
+    def m(data):
+        for n in data.get("notes", []):
+            if n.get("id") == note_id:
+                n["nom"], n["etoiles"] = nom, etoiles
+                n["modifie"] = _maintenant_iso()
+    return muter_json_annexe(NOTES_FICHIER, NOTES_DEFAUT, m)
+
+
+def _note_supprimer(note_id):
+    def m(data):
+        data["notes"] = [n for n in data.get("notes", []) if n.get("id") != note_id]
+    return muter_json_annexe(NOTES_FICHIER, NOTES_DEFAUT, m)
+
+
+def _commentaire_ajouter(recette_id, nom, texte):
+    def m(data):
+        data.setdefault("commentaires", [])
+        pid = data.get("prochain_id", 1)
+        now = _maintenant_iso()
+        data["commentaires"].append({"id": pid, "recette_id": recette_id, "nom": nom,
+                                     "texte": texte, "cree": now, "modifie": now,
+                                     "reponses": []})
+        data["prochain_id"] = pid + 1
+    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+
+
+def _commentaire_modifier(comm_id, nom, texte):
+    def m(data):
+        for c in data.get("commentaires", []):
+            if c.get("id") == comm_id:
+                c["nom"], c["texte"] = nom, texte
+                c["modifie"] = _maintenant_iso()
+    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+
+
+def _commentaire_supprimer(comm_id):
+    def m(data):
+        data["commentaires"] = [c for c in data.get("commentaires", [])
+                                if c.get("id") != comm_id]
+    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+
+
+def _reponse_ajouter(comm_id, nom, texte):
+    def m(data):
+        pid = data.get("prochain_id", 1)
+        now = _maintenant_iso()
+        for c in data.get("commentaires", []):
+            if c.get("id") == comm_id:
+                c.setdefault("reponses", []).append(
+                    {"id": pid, "nom": nom, "texte": texte, "cree": now, "modifie": now})
+                data["prochain_id"] = pid + 1
+                break
+    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+
+
+def _reponse_modifier(comm_id, rep_id, nom, texte):
+    def m(data):
+        for c in data.get("commentaires", []):
+            if c.get("id") == comm_id:
+                for rep in c.get("reponses", []):
+                    if rep.get("id") == rep_id:
+                        rep["nom"], rep["texte"] = nom, texte
+                        rep["modifie"] = _maintenant_iso()
+    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+
+
+def _reponse_supprimer(comm_id, rep_id):
+    def m(data):
+        for c in data.get("commentaires", []):
+            if c.get("id") == comm_id:
+                c["reponses"] = [r for r in c.get("reponses", [])
+                                 if r.get("id") != rep_id]
+    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+
+
+def _appliquer(resultat, cle_data, cle_erreur):
+    """Applique le résultat d'une mutation annexe : met à jour la session et
+    relance si OK, affiche l'erreur sinon. `resultat` = (data, ok, err)."""
+    data, ok, err = resultat
+    if ok:
+        st.session_state[cle_data] = data
+        st.session_state[cle_erreur] = None
+        st.rerun()
+    else:
+        st.error(f"⚠ Enregistrement échoué — {err}")
+
+
+def _horodatage(item):
+    """« le 2026-07-14 11:30 » + « · modifié le … » si l'item a été édité."""
+    cree = item.get("cree", "")
+    txt = f"le {cree}" if cree else ""
+    if item.get("modifie") and item["modifie"] != cree:
+        txt += f" · modifié le {item['modifie']}"
+    return txt
+
+
+def afficher_notes_commentaires(recette):
+    """Volet dépliable (replié par défaut) en fin de recette. Son TITRE résume
+    déjà la note moyenne et le nombre de commentaires ; le détail (formulaires,
+    liste, réponses) est à l'intérieur, ce qui garde la zone compacte et bien
+    repérable malgré la hauteur de la carte de recette."""
+    rid = recette.get("id")
+    notes_data = st.session_state.notes_data
+    comm_data = st.session_state.commentaires_data
+    moy, nb = moyenne_notes(notes_data, rid)
+    nb_comm = sum(1 for c in comm_data.get("commentaires", []) if c.get("recette_id") == rid)
+    note_txt = f"⭐ {moy:.1f}/5 ({nb})" if nb else "⭐ Aucune note"
+    titre = (f"{note_txt}   ·   💬 {nb_comm} commentaire{'s' if nb_comm > 1 else ''}"
+             "     —     Notes & commentaires")
+    # Le volet est habillé pour se lire comme une SECTION de la carte (même fond,
+    # même bordure/rayon, accent gauche doré comme « Préparation ») et collé sous
+    # elle (marge négative) : visuellement, il prolonge le même rectangle.
+    st.markdown("""<style>
+.st-key-notes_card{margin-top:-14px}
+.st-key-notes_card [data-testid="stExpander"]{
+  border:1px solid #1e2a45;border-left:3px solid #ffb454;border-radius:14px;
+  background:linear-gradient(180deg, rgba(14,22,40,.95), rgba(6,10,20,.95));
+  box-shadow:0 18px 44px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04)}
+.st-key-notes_card [data-testid="stExpander"] summary{font-family:'JetBrains Mono',monospace;
+  letter-spacing:.05em;text-transform:uppercase;font-size:.82rem;color:#ffe6c2}
+.st-key-notes_card [data-testid="stExpander"] summary:hover{color:#fff}
+/* Étoiles de notation : contour des étoiles VIDES en blanc (trop sombre par
+   défaut sur fond foncé), étoiles CHOISIES en doré. */
+[data-testid="stFeedback"] [data-testid="stIconMaterial"]{color:#eef2ff!important}
+[data-testid="stFeedback"] [aria-checked="true"] [data-testid="stIconMaterial"]{color:#ffb454!important}
+</style>""", unsafe_allow_html=True)
+    with st.container(key="notes_card"):
+        with st.expander(titre, expanded=False):
+            _contenu_notes_commentaires(recette)
+
+
+def _contenu_notes_commentaires(recette):
+    """Détail des notes (★) puis des commentaires (avec réponses), rendu à
+    l'intérieur du volet dépliable."""
+    rid = recette.get("id")
+    notes_data = st.session_state.notes_data
+    comm_data = st.session_state.commentaires_data
+
+    if st.session_state.get("erreur_notes") or st.session_state.get("erreur_commentaires"):
+        st.warning("Les notes/commentaires n'ont pas pu être lus (mode dégradé). "
+                   "Réessaie plus tard ; n'écris pas pour éviter d'écraser des données.")
+
+    # ── NOTES ★ ──────────────────────────────────────────────────────────────
+    moy, nb = moyenne_notes(notes_data, rid)
+    entete = (f"⭐ Notes — {moy:.1f}/5 sur {nb} note{'s' if nb > 1 else ''}"
+              if nb else "⭐ Notes — aucune note pour l'instant")
+    st.markdown(f"### {entete}")
+
+    with st.form(key=f"form_note_{rid}", clear_on_submit=True):
+        st.markdown("**Laisser une note**")
+        nom_n = st.text_input("Ton nom *", key=f"nom_note_{rid}",
+                              placeholder="Obligatoire")
+        etoiles_n = st.feedback("stars", key=f"etoiles_note_{rid}")
+        if st.form_submit_button("Noter", type="primary"):
+            if not (nom_n or "").strip():
+                st.error("Le nom est obligatoire.")
+            elif etoiles_n is None:
+                st.error("Choisis une note en étoiles.")
+            else:
+                _appliquer(_note_ajouter(rid, nom_n.strip(), etoiles_n + 1),
+                           "notes_data", "erreur_notes")
+
+    notes_recette = [n for n in notes_data.get("notes", []) if n.get("recette_id") == rid]
+    for n in reversed(notes_recette):
+        nid = n.get("id")
+        if st.session_state.get(f"edit_note_{nid}"):
+            with st.form(key=f"form_edit_note_{nid}", clear_on_submit=False):
+                nom_e = st.text_input("Nom *", value=n.get("nom", ""),
+                                      key=f"nom_edit_note_{nid}")
+                st.caption(f"Note actuelle : {n.get('etoiles', 0)}/5 — choisis la nouvelle")
+                et_e = st.feedback("stars", key=f"et_edit_note_{nid}")
+                c1, c2 = st.columns(2)
+                if c1.form_submit_button("Enregistrer", type="primary"):
+                    if not (nom_e or "").strip():
+                        st.error("Le nom est obligatoire.")
+                    elif et_e is None:
+                        st.error("Choisis une note en étoiles.")
+                    else:
+                        st.session_state[f"edit_note_{nid}"] = False
+                        _appliquer(_note_modifier(nid, nom_e.strip(), et_e + 1),
+                                   "notes_data", "erreur_notes")
+                if c2.form_submit_button("Annuler"):
+                    st.session_state[f"edit_note_{nid}"] = False
+                    st.rerun()
+        else:
+            etoiles_txt = "★" * int(n.get("etoiles", 0)) + "☆" * (5 - int(n.get("etoiles", 0)))
+            c_txt, c_ed, c_sup = st.columns([6, 1, 1])
+            c_txt.markdown(
+                f"<span style='color:#ffb454'>{etoiles_txt}</span> "
+                f"**{html_escape(n.get('nom', ''))}** "
+                f"<span style='color:#9fb0d8;font-size:.8rem'>{_horodatage(n)}</span>",
+                unsafe_allow_html=True)
+            if c_ed.button("✏️", key=f"btn_edit_note_{nid}", help="Modifier"):
+                st.session_state[f"edit_note_{nid}"] = True
+                st.rerun()
+            if c_sup.button("🗑", key=f"btn_sup_note_{nid}", help="Supprimer"):
+                _appliquer(_note_supprimer(nid), "notes_data", "erreur_notes")
+
+    # ── COMMENTAIRES ─────────────────────────────────────────────────────────
+    commentaires = [c for c in comm_data.get("commentaires", []) if c.get("recette_id") == rid]
+    st.markdown(f"### 💬 Commentaires ({len(commentaires)})")
+
+    with st.form(key=f"form_comm_{rid}", clear_on_submit=True):
+        st.markdown("**Laisser un commentaire**")
+        nom_c = st.text_input("Ton nom *", key=f"nom_comm_{rid}",
+                              placeholder="Obligatoire")
+        texte_c = st.text_area("Commentaire", key=f"texte_comm_{rid}")
+        if st.form_submit_button("Commenter", type="primary"):
+            if not (nom_c or "").strip():
+                st.error("Le nom est obligatoire.")
+            elif not (texte_c or "").strip():
+                st.error("Le commentaire ne peut pas être vide.")
+            else:
+                _appliquer(_commentaire_ajouter(rid, nom_c.strip(), texte_c.strip()),
+                           "commentaires_data", "erreur_commentaires")
+
+    for c in reversed(commentaires):
+        cid = c.get("id")
+        with st.container(border=True):
+            if st.session_state.get(f"edit_comm_{cid}"):
+                with st.form(key=f"form_edit_comm_{cid}", clear_on_submit=False):
+                    nom_ce = st.text_input("Nom *", value=c.get("nom", ""),
+                                           key=f"nom_edit_comm_{cid}")
+                    txt_ce = st.text_area("Commentaire", value=c.get("texte", ""),
+                                          key=f"txt_edit_comm_{cid}")
+                    c1, c2 = st.columns(2)
+                    if c1.form_submit_button("Enregistrer", type="primary"):
+                        if not (nom_ce or "").strip():
+                            st.error("Le nom est obligatoire.")
+                        elif not (txt_ce or "").strip():
+                            st.error("Le commentaire ne peut pas être vide.")
+                        else:
+                            st.session_state[f"edit_comm_{cid}"] = False
+                            _appliquer(_commentaire_modifier(cid, nom_ce.strip(), txt_ce.strip()),
+                                       "commentaires_data", "erreur_commentaires")
+                    if c2.form_submit_button("Annuler"):
+                        st.session_state[f"edit_comm_{cid}"] = False
+                        st.rerun()
+            else:
+                st.markdown(
+                    f"**{html_escape(c.get('nom', ''))}** "
+                    f"<span style='color:#9fb0d8;font-size:.8rem'>{_horodatage(c)}</span>",
+                    unsafe_allow_html=True)
+                st.markdown(html_escape(c.get("texte", "")).replace("\n", "  \n"))
+                b1, b2, b3, _ = st.columns([1.3, 1, 1, 4])
+                if b1.button("💬 Répondre", key=f"btn_rep_{cid}"):
+                    st.session_state[f"rep_comm_{cid}"] = not st.session_state.get(f"rep_comm_{cid}")
+                    st.rerun()
+                if b2.button("✏️", key=f"btn_edit_comm_{cid}", help="Modifier"):
+                    st.session_state[f"edit_comm_{cid}"] = True
+                    st.rerun()
+                if b3.button("🗑", key=f"btn_sup_comm_{cid}", help="Supprimer"):
+                    _appliquer(_commentaire_supprimer(cid),
+                               "commentaires_data", "erreur_commentaires")
+
+            # Réponses (un seul niveau), légèrement indentées.
+            for rep in c.get("reponses", []):
+                repid = rep.get("id")
+                with st.container():
+                    cg, cd = st.columns([0.4, 9.6])
+                    with cd:
+                        if st.session_state.get(f"edit_rep_{repid}"):
+                            with st.form(key=f"form_edit_rep_{repid}", clear_on_submit=False):
+                                nom_re = st.text_input("Nom *", value=rep.get("nom", ""),
+                                                       key=f"nom_edit_rep_{repid}")
+                                txt_re = st.text_area("Réponse", value=rep.get("texte", ""),
+                                                      key=f"txt_edit_rep_{repid}")
+                                cc1, cc2 = st.columns(2)
+                                if cc1.form_submit_button("Enregistrer", type="primary"):
+                                    if not (nom_re or "").strip():
+                                        st.error("Le nom est obligatoire.")
+                                    elif not (txt_re or "").strip():
+                                        st.error("La réponse ne peut pas être vide.")
+                                    else:
+                                        st.session_state[f"edit_rep_{repid}"] = False
+                                        _appliquer(_reponse_modifier(cid, repid, nom_re.strip(), txt_re.strip()),
+                                                   "commentaires_data", "erreur_commentaires")
+                                if cc2.form_submit_button("Annuler"):
+                                    st.session_state[f"edit_rep_{repid}"] = False
+                                    st.rerun()
+                        else:
+                            st.markdown(
+                                f"↳ **{html_escape(rep.get('nom', ''))}** "
+                                f"<span style='color:#9fb0d8;font-size:.8rem'>{_horodatage(rep)}</span>",
+                                unsafe_allow_html=True)
+                            st.markdown(html_escape(rep.get("texte", "")).replace("\n", "  \n"))
+                            r1, r2, _ = st.columns([1, 1, 6])
+                            if r1.button("✏️", key=f"btn_edit_rep_{repid}", help="Modifier"):
+                                st.session_state[f"edit_rep_{repid}"] = True
+                                st.rerun()
+                            if r2.button("🗑", key=f"btn_sup_rep_{repid}", help="Supprimer"):
+                                _appliquer(_reponse_supprimer(cid, repid),
+                                           "commentaires_data", "erreur_commentaires")
+
+            # Formulaire de réponse (affiché à la demande via « Répondre »).
+            if st.session_state.get(f"rep_comm_{cid}"):
+                with st.form(key=f"form_rep_{cid}", clear_on_submit=True):
+                    nom_r = st.text_input("Ton nom *", key=f"nom_rep_{cid}",
+                                          placeholder="Obligatoire")
+                    txt_r = st.text_area("Ta réponse", key=f"txt_rep_{cid}")
+                    if st.form_submit_button("Répondre", type="primary"):
+                        if not (nom_r or "").strip():
+                            st.error("Le nom est obligatoire.")
+                        elif not (txt_r or "").strip():
+                            st.error("La réponse ne peut pas être vide.")
+                        else:
+                            st.session_state[f"rep_comm_{cid}"] = False
+                            _appliquer(_reponse_ajouter(cid, nom_r.strip(), txt_r.strip()),
+                                       "commentaires_data", "erreur_commentaires")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 #  ONGLET CUISINE — mise à l'échelle + checklist
 # ═════════════════════════════════════════════════════════════════════════════
 if vue == VUE_CUISINE:
@@ -2381,7 +2890,18 @@ if vue == VUE_CUISINE:
     portion = rendement_ref / personnes_ref if personnes_ref else 0
 
     # Récapitulatif « sommaire » — rendu DANS la carte (classes .meta / .chip).
-    chips = [f'<span class="chip chip-ref">Personnes · <b>{cible_pers:g}</b></span>']
+    # La NOTE moyenne (★) est la toute première puce : c'est ce que l'utilisateur
+    # veut voir en premier en ouvrant une recette.
+    _moy, _nb = moyenne_notes(st.session_state.notes_data, recette.get("id"))
+    if _nb:
+        _pleines = int(round(_moy))
+        _etoiles = "★" * _pleines + "☆" * (5 - _pleines)
+        note_chip = (f'<span class="chip chip-note">{_etoiles} '
+                     f'<b>{_moy:.1f}</b>/5 · {_nb} note{"s" if _nb > 1 else ""}</span>')
+    else:
+        note_chip = '<span class="chip chip-note">☆☆☆☆☆ <b>—</b> · Aucune note</span>'
+    chips = [note_chip,
+             f'<span class="chip chip-ref">Personnes · <b>{cible_pers:g}</b></span>']
     if par_multiples:
         chips.append(f'<span class="chip">Palier · '
                      f'<b>+{pas_pers}</b></span>')
@@ -2529,6 +3049,9 @@ body{font-family:'Inter',sans-serif;color:#e9efff;background:transparent;padding
 .chip-ref{border-color:#4df3e3;background:rgba(77,243,227,.12);color:#cfe9ff;
   box-shadow:0 0 14px rgba(77,243,227,.25)}
 .chip-ref b{color:#4df3e3;text-shadow:0 0 12px rgba(77,243,227,.6)}
+.chip-note{border-color:#ffb454;background:rgba(255,180,84,.12);color:#ffe6c2;
+  box-shadow:0 0 14px rgba(255,180,84,.22);letter-spacing:.04em}
+.chip-note b{color:#ffb454;text-shadow:0 0 12px rgba(255,180,84,.55)}
 .sommaire-rel{font-family:'Inter',sans-serif;font-size:.82rem;color:#9fb0d8;
   margin-top:11px;padding:9px 12px;border-radius:10px;border:1px dashed #26355c;
   background:rgba(77,243,227,.04)}
@@ -2704,8 +3227,17 @@ var fermeIng=false, fermePrep=false;
 // parente est refusé : la hauteur de repli sert alors de valeur fixe.
 function resizeFrame(){
   try{
-    if(window.frameElement){
-      window.frameElement.style.height=document.documentElement.scrollHeight+'px';
+    var fe=window.frameElement;
+    if(fe){
+      var h=document.documentElement.scrollHeight;
+      fe.style.height=h+'px';
+      // Le conteneur Streamlit (stElementContainer) conserve la hauteur RÉSERVÉE
+      // (paramètre height=), figée. Si on ne l'ajuste pas, l'iframe agrandie
+      // déborde par-dessus le contenu qui suit (les notes). On aligne donc le
+      // conteneur sur la hauteur réelle : la carte colle exactement à son
+      // contenu (aucun vide) sans jamais chevaucher les notes. Same-origin
+      // (srcdoc) → l'accès au parent est autorisé.
+      if(fe.parentElement){ fe.parentElement.style.height=h+'px'; }
     }
   }catch(e){}
 }
@@ -2831,16 +3363,17 @@ positionVictoire();
             .replace("__GIF_PREP__", gif_src(GIF_PREPARATION_FICHIER))
             .replace("__ROWS__", rows))
 
-    # Hauteur de repli (les sections sont fermées par défaut). Si le
-    # redimensionnement auto de l'iframe fonctionne, elle grandit à l'ouverture
-    # d'une section ; sinon cette valeur (contenu déplié) évite toute coupure.
-    hauteur = (290
-               + 210                                    # section Sommaire (dépliée)
-               + (48 if recette.get("tags") else 0)     # puces de tags
-               + (60 if rendement_ref > 0 else 0)       # ligne « rendement »
-               + (66 + n_ing * 60 if n_ing else 0)
-               + (66 + n_prep * 92 if n_prep else 0))
+    # Hauteur INITIALE volontairement PETITE : resizeFrame() (iframe srcdoc,
+    # same-origin) agrandit l'iframe pile au contenu réel dès le chargement, puis
+    # à chaque section dépliée. Comme il ne peut jamais RÉTRÉCIR sous la valeur
+    # passée ici (documentElement remplit le viewport → scrollHeight ≥ hauteur),
+    # on sous-estime exprès : ainsi la carte colle exactement à son contenu, sans
+    # aucun vide en bas, quelle que soit la recette (avec ou sans ingrédients).
+    hauteur = 200
     st.iframe(html, height=hauteur)
+
+    # NOTES (★) et COMMENTAIRES — à la toute fin de la recette.
+    afficher_notes_commentaires(recette)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
