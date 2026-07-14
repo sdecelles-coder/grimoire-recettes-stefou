@@ -1,0 +1,13 @@
+{
+  "notes": [
+    {
+      "id": 1,
+      "recette_id": 4,
+      "nom": "Stefou",
+      "etoiles": 5,
+      "cree": "2026-07-14 16:19",
+      "modifie": "2026-07-14 16:19"
+    }
+  ],
+  "prochain_id": 2
+}
