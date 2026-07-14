@@ -1,4 +1,14 @@
 {
-  "commentaires": [],
-  "prochain_id": 1
+  "commentaires": [
+    {
+      "id": 1,
+      "recette_id": 4,
+      "nom": "Stefou",
+      "texte": "DÉ-LI-CIEUX !  Surtout avec la version Angine de poitrine :)",
+      "cree": "2026-07-14 16:20",
+      "modifie": "2026-07-14 16:20",
+      "reponses": []
+    }
+  ],
+  "prochain_id": 2
 }
