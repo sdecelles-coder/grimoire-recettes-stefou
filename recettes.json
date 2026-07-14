@@ -451,138 +451,6 @@
       ]
     },
     {
-      "titre": "Poulet Shish Taouk (à tester)",
-      "sous_titre": "Poulet mariné à la libanaise",
-      "temps_prep": 15,
-      "temps_cuisson": 15,
-      "base": {
-        "label": "Portions",
-        "unite": "portions",
-        "valeur": 4.0,
-        "personnes": 4,
-        "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 4
-      },
-      "ingredients": [
-        {
-          "nom": "poitrines de poulet, coupées en cubes",
-          "qte": 900.0,
-          "unite": "g",
-          "palier": null,
-          "section": ""
-        },
-        {
-          "nom": "gousses d'ail émincées",
-          "qte": 3.0,
-          "unite": "unité",
-          "palier": null,
-          "section": ""
-        },
-        {
-          "nom": "yogourt grec sans gras",
-          "qte": 0.33,
-          "unite": "tasse",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "huile d'olive",
-          "qte": 6.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "vinaigre de cidre de pommes",
-          "qte": 2.0,
-          "unite": "c. à table",
-          "palier": 0.5,
-          "section": ""
-        },
-        {
-          "nom": "poivre",
-          "qte": 1.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "jus de citron frais",
-          "qte": 0.5,
-          "unite": "tasse",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "gingembre moulu",
-          "qte": 0.25,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "origan",
-          "qte": 0.5,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "paprika",
-          "qte": 0.5,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "sel",
-          "qte": 1.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        },
-        {
-          "nom": "pâte de tomates",
-          "qte": 1.0,
-          "unite": "c. à thé",
-          "palier": 0.25,
-          "section": ""
-        }
-      ],
-      "preparation": [
-        {
-          "texte": "Mettre tous les ingrédients dans un grand sac ziplock et bien secouer pour enrober le poulet.",
-          "section": ""
-        },
-        {
-          "texte": "Laisser mariner au réfrigérateur pendant au moins 4 heures.",
-          "section": ""
-        },
-        {
-          "texte": "Si vous préparez des brochettes, faire tremper les pics en bois dans l'eau pendant la marinade.",
-          "section": ""
-        },
-        {
-          "texte": "Assembler les brochettes en enfilant les cubes de poulet marinés.",
-          "section": ""
-        },
-        {
-          "texte": "Faire cuire à broil (gril du four) pendant 15 à 18 minutes, ou sur le BBQ jusqu'à cuisson complète.",
-          "section": ""
-        },
-        {
-          "texte": "Servir avec du riz, une salade et une sauce à l'ail.",
-          "section": ""
-        }
-      ],
-      "tags": [
-        "Poulet",
-        "Libanais",
-        "Brochettes"
-      ]
-    },
-    {
       "titre": "Guimauves maison",
       "sous_titre": "",
       "temps_prep": 30,
@@ -1096,7 +964,7 @@
       ]
     },
     {
-      "titre": "Sauce Terbialy version Stefou",
+      "titre": "Sauce Terbialy (à tester)",
       "sous_titre": "Marinade et sauce réinterprétée par Stefou",
       "temps_prep": 30,
       "temps_cuisson": 15,
@@ -1231,6 +1099,242 @@
         "Marinade",
         "Stefou"
       ]
+    },
+    {
+      "titre": "Chimichurri (à tester)",
+      "sous_titre": "",
+      "temps_prep": 15,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4.0,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": true,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "Persil plat frais",
+          "qte": 1.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Menthe fraîche",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Ciboulette",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Gousse d'ail",
+          "qte": 1.0,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Huile d'olive",
+          "qte": 3.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Vinaigre de vin rouge",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "Flocons de piment fort",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sel",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Citron (demi)",
+          "qte": 0.5,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Hachez finement le [persil], la [menthe], la [ciboulette] et l'[ail].",
+          "section": ""
+        },
+        {
+          "texte": "Déposez dans un bol moyen.",
+          "section": ""
+        },
+        {
+          "texte": "Ajoutez l'[huile], le [vinaigre], les [flocons de piment] et le [sel].",
+          "section": ""
+        },
+        {
+          "texte": "Directement au-dessus du bol, pressez le demi-[citron].",
+          "section": ""
+        },
+        {
+          "texte": "Mélangez et servez sur une viande, un poisson grillé ou dans une salade.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Sauce",
+        "Fines herbes",
+        "BBQ"
+      ]
+    },
+    {
+      "titre": "Marinade Shish Taouk",
+      "sous_titre": "Brochettes de poulet libanaises marinées au yogourt, citron et ail",
+      "temps_prep": 10,
+      "temps_cuisson": 18,
+      "base": {
+        "label": "Poitrine poulet",
+        "unite": "portions",
+        "valeur": 6.0,
+        "personnes": 6,
+        "max_personnes": 20,
+        "multiples": true,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "poitrines de poulet désossées sans peau, coupées en gros cubes",
+          "qte": 900.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "yogourt nature entier",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "jus de citron (concentré)",
+          "qte": 50.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "ail (gousses d'ail écrasées)",
+          "qte": 6.0,
+          "unite": "gousse",
+          "palier": 1.0,
+          "section": ""
+        },
+        {
+          "nom": "pâte de tomate",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "paprika",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "cannelle moulue",
+          "qte": 0.75,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "origan",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "gingembre moulu",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "poivre noir moulu",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : [yogourt], [jus de citron], [huile d'olive], [ail], [pâte de tomate], épices, [sel] et [poivre]. Fouetter pour bien mélanger.",
+          "section": ""
+        },
+        {
+          "texte": "Ajouter les [cubes] de poulet dans le bol et bien les enrober de marinade. Couvrir et laisser mariner au réfrigérateur pendant au moins 4 heures.",
+          "section": ""
+        },
+        {
+          "texte": "Juste avant de griller, enfiler les morceaux de poulet sur des brochettes. Ajouter un quartier d'oignon par brochette si désiré.",
+          "section": ""
+        },
+        {
+          "texte": "Griller à feu moyen de 5 à 8 minutes par côté, jusqu'à ce que le poulet soit bien cuit.",
+          "section": ""
+        },
+        {
+          "texte": "Servir avec du pain pita, de la laitue et une sauce à l'ail si désiré.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Poulet",
+        "Grillades",
+        "Libanais",
+        "Stefou"
+      ]
     }
   ],
   "tags": [
@@ -1315,12 +1419,20 @@
       "couleur": "#f4d35e"
     },
     {
+      "nom": "Fines herbes",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Félix",
       "couleur": "#63b3ff"
     },
     {
       "nom": "Fêtes",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Grillades",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Grillé",
@@ -1376,6 +1488,10 @@
     },
     {
       "nom": "Sans gluten",
+      "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "Sauce",
       "couleur": "#d6ddf4"
     },
     {
