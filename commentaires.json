@@ -7,8 +7,16 @@
       "texte": "DÉ-LI-CIEUX !  Surtout avec la version Angine de poitrine :)",
       "cree": "2026-07-14 16:20",
       "modifie": "2026-07-14 16:20",
-      "reponses": []
+      "reponses": [
+        {
+          "id": 2,
+          "nom": "Mélo",
+          "texte": "Merci 😬",
+          "cree": "2026-07-14 20:29",
+          "modifie": "2026-07-14 20:29"
+        }
+      ]
     }
   ],
-  "prochain_id": 2
+  "prochain_id": 3
 }
