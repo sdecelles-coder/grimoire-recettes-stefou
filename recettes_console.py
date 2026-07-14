@@ -96,17 +96,39 @@ ANIM_FICHIERS = {
 }
 
 
-def _jouer_anim(nom, *, width=170):
+def _jouer_anim(nom, *, width=170, overlay=False, legende=None):
     """Affiche le GIF animé `nom` (centré). Renvoie True si joué, False si le
     fichier manque — l'appelant peut alors se rabattre sur un texte.
 
     On l'injecte en <img> base64 (via gif_src) plutôt qu'avec st.image : ça
-    garantit l'animation (st.image peut ré-encoder le GIF en image fixe)."""
+    garantit l'animation (st.image peut ré-encoder le GIF en image fixe).
+
+    Si `overlay` est vrai, le GIF est posé en surimpression `position:fixed` au
+    centre de la fenêtre visible (quel que soit le défilement), sur un voile
+    semi-transparent. `legende` s'affiche alors sous le GIF, dans le voile."""
     fichier = ANIM_FICHIERS.get(nom)
     if not fichier:
         return False
     if not os.path.exists(os.path.join(DOSSIER_IMAGES, fichier)):
         return False
+    if overlay:
+        # Surimpression plein écran : le GIF reste au milieu de ce qu'on regarde
+        # même si la page est scrollée (position:fixed rapportée au viewport).
+        texte = (
+            f'<div style="margin-top:16px;color:#e6edf3;font-size:.95rem;'
+            f'text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.6)">{legende}</div>'
+            if legende else "")
+        st.markdown(
+            '<div style="position:fixed;inset:0;z-index:9999;display:flex;'
+            'flex-direction:column;align-items:center;justify-content:center;'
+            'background:rgba(11,15,20,.55);backdrop-filter:blur(3px);'
+            '-webkit-backdrop-filter:blur(3px)">'
+            f'<img src="{gif_src(fichier)}" '
+            f'style="width:80%;max-width:{width}px;border-radius:12px;'
+            'box-shadow:0 12px 40px rgba(0,0,0,.5)">'
+            f'{texte}</div>',
+            unsafe_allow_html=True)
+        return True
     # Centrage fiable : colonnes [1,2,1] → le GIF est au milieu de la page,
     # juste sous le bouton « Convertir ».
     _, milieu, _ = st.columns([1, 2, 1])
@@ -2892,9 +2914,9 @@ if vue == VUE_CONVERSION:
                 # Repli sur le spinner texte si le fichier conversion.gif manque.
                 anim = st.empty()
                 with anim.container():
-                    marmite = _jouer_anim("conversion", width=200)
-                    if marmite:
-                        st.caption("Conversion en cours… (quelques secondes)")
+                    marmite = _jouer_anim(
+                        "conversion", width=200, overlay=True,
+                        legende="Conversion en cours… (quelques secondes)")
                 attente = (nullcontext() if marmite else
                            st.spinner("Conversion en cours… (quelques secondes)"))
                 try:
