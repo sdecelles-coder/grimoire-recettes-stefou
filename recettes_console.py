@@ -1311,6 +1311,11 @@ def _grille_aggrid(df_init, ss_key, configurer):
     options["animateRows"] = True
     options["suppressMoveWhenRowDragging"] = False
     options["domLayout"] = "autoHeight"   # la grille s'adapte au nombre de lignes
+    # Valide l'édition en cours dès que la cellule perd le focus (ex. clic sur
+    # « 💾 Enregistrer »). Sans cela, une cellule encore en mode édition ne
+    # déclenche jamais cellValueChanged : l'ancienne valeur (ex. « tasse » au
+    # lieu de « ml ») est renvoyée et enregistrée à sa place.
+    options["stopEditingWhenCellsLoseFocus"] = True
     # Info-bulles natives du navigateur (attribut title) : la bulle maison
     # d'AgGrid est tronquée dans l'iframe Streamlit et n'apparaît pas.
     options["enableBrowserTooltips"] = True
