@@ -1208,7 +1208,7 @@
       ]
     },
     {
-      "titre": "Marinade Shish Taouk",
+      "titre": "Marinade Shish Taouk (à tester)",
       "sous_titre": "Brochettes de poulet libanaises marinées au yogourt, citron et ail",
       "temps_prep": 10,
       "temps_cuisson": 18,
@@ -1240,7 +1240,7 @@
           "nom": "jus de citron (concentré)",
           "qte": 3.0,
           "unite": "c. à table",
-          "palier": 0.25,
+          "palier": 1.0,
           "section": ""
         },
         {
@@ -1310,23 +1310,23 @@
       "preparation": [
         {
           "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : [yogourt], [jus de citron], [huile d'olive], [ail], [pâte de tomate], épices, [sel] et [poivre]. Fouetter pour bien mélanger.",
-          "section": ""
+          "section": "Marinade/sauce"
         },
         {
           "texte": "Ajouter les [cubes] de poulet dans le bol et bien les enrober de marinade. Couvrir et laisser mariner au réfrigérateur pendant au moins 4 heures.",
-          "section": ""
+          "section": "Marinade/sauce"
         },
         {
           "texte": "Juste avant de griller, enfiler les morceaux de poulet sur des brochettes. Ajouter un quartier d'oignon par brochette si désiré.",
-          "section": ""
+          "section": "Cuisson"
         },
         {
           "texte": "Griller à feu moyen de 5 à 8 minutes par côté, jusqu'à ce que le poulet soit bien cuit.",
-          "section": ""
+          "section": "Cuisson"
         },
         {
           "texte": "Servir avec du pain pita, de la laitue et une sauce à l'ail si désiré.",
-          "section": ""
+          "section": "Service (optionnel)"
         }
       ],
       "tags": [
