@@ -22,7 +22,3 @@ Thumbs.db
 # Autres
 todo_amelioration.md
 .claude/settings.json
-
-# Données locales de test des notes/commentaires (en prod : gérées via l'API GitHub)
-notes.json
-commentaires.json
