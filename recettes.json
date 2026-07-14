@@ -1237,8 +1237,8 @@
           "section": ""
         },
         {
-          "nom": "jus de citron",
-          "qte": 0.25,
+          "nom": "jus de citron (concentré)",
+          "qte": 50.0,
           "unite": "tasse",
           "palier": 0.25,
           "section": ""
@@ -1251,7 +1251,7 @@
           "section": ""
         },
         {
-          "nom": "gousses d'ail écrasées",
+          "nom": "ail (gousses d'ail écrasées)",
           "qte": 6.0,
           "unite": "gousse",
           "palier": 1.0,
@@ -1309,7 +1309,7 @@
       ],
       "preparation": [
         {
-          "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : [yogourt], [jus de citron], [huile d'olive], ail, [pâte de tomate], épices, [sel] et [poivre]. Fouetter pour bien mélanger.",
+          "texte": "Dans un grand bol, combiner tous les ingrédients de la marinade : [yogourt], [jus de citron], [huile d'olive], [ail], [pâte de tomate], épices, [sel] et [poivre]. Fouetter pour bien mélanger.",
           "section": ""
         },
         {
