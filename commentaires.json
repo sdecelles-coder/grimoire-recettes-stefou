@@ -1,0 +1,14 @@
+{
+  "commentaires": [
+    {
+      "id": 1,
+      "recette_id": 1,
+      "nom": "Bob",
+      "texte": "Super recette !",
+      "cree": "2026-07-14 14:07",
+      "modifie": "2026-07-14 14:07",
+      "reponses": []
+    }
+  ],
+  "prochain_id": 2
+}
