@@ -17,7 +17,16 @@
       "cree": "2026-07-14 14:08",
       "modifie": "2026-07-14 14:08",
       "reponses": []
+    },
+    {
+      "id": 3,
+      "recette_id": 1,
+      "nom": "Bob",
+      "texte": "Super recette !",
+      "cree": "2026-07-14 14:10",
+      "modifie": "2026-07-14 14:10",
+      "reponses": []
     }
   ],
-  "prochain_id": 3
+  "prochain_id": 4
 }
