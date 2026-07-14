@@ -1239,7 +1239,7 @@
         {
           "nom": "jus de citron (concentré)",
           "qte": 50.0,
-          "unite": "tasse",
+          "unite": "ml",
           "palier": 0.25,
           "section": ""
         },
