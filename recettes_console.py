@@ -39,7 +39,6 @@ from contextlib import nullcontext
 import pandas as pd
 import requests
 import streamlit as st
-import streamlit.components.v1 as components
 from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode
 
 import conversion_web as cw          # module local : import d'une recette web
@@ -1285,6 +1284,37 @@ def _bloc_reordonner(recette, champ, items, labels, k):
             _echanger(i, i + 1)
 
 
+def _df_retour_grille(grille, gabarit):
+    """Normalise le retour d'AgGrid en DataFrame, quel que soit le mode de
+    sérialisation.
+
+    Avec `use_json_serialization=True` (forcé pour éviter un segfault pyarrow),
+    `grille["data"]` n'est PLUS un DataFrame : c'est None (aucune édition depuis
+    le rendu → on garde l'état courant) ou une CHAÎNE JSON de records après
+    édition (« [] » si toutes les lignes ont été retirées). On reconstruit un
+    DataFrame en préservant TOUJOURS les colonnes de `gabarit` (sans quoi une
+    grille vide/inchangée perdrait ses colonnes → `configure_selection` planterait
+    au rerun suivant) et en gardant `_rowid` en texte pour les correspondances de
+    lignes (ajout / retrait)."""
+    d = grille["data"]
+    if isinstance(d, pd.DataFrame):
+        df = d.copy()
+    elif isinstance(d, str):
+        lignes = json.loads(d) if d.strip() else []
+        if not lignes:                       # grille vidée : vide MAIS colonné
+            return gabarit.iloc[0:0].copy()
+        df = pd.DataFrame(lignes)
+    else:                                    # None : rien de neuf, on conserve
+        return gabarit.copy()
+    for c in gabarit.columns:                # complète d'éventuelles colonnes absentes
+        if c not in df.columns:
+            df[c] = ""
+    df = df[list(gabarit.columns)]
+    if "_rowid" in df.columns:
+        df["_rowid"] = df["_rowid"].astype(str)
+    return df.reset_index(drop=True)
+
+
 def _grille_aggrid(df_init, ss_key, configurer):
     """PROTOTYPE — Option B : une seule grille AgGrid qui édite les cellules ET
     réordonne les lignes par glisser (poignée ⠿ sur la 1ʳᵉ colonne).
@@ -1332,9 +1362,18 @@ def _grille_aggrid(df_init, ss_key, configurer):
         allow_unsafe_jscode=True,
         fit_columns_on_grid_load=True,
         theme="streamlit",
+        # Sérialisation JSON forcée (pas pyarrow). Par défaut streamlit-aggrid
+        # sérialise le DataFrame via pyarrow ; avec pandas 3.x / pyarrow récent
+        # cette conversion native peut provoquer un SEGMENTATION FAULT côté
+        # serveur (Streamlit Cloud), non rattrapable — le repli JSON automatique
+        # de la lib ne sert qu'en cas d'EXCEPTION, pas de segfault. On force donc
+        # le chemin JSON, robuste aux dtypes mixtes (Quantité None/nombre, etc.).
+        use_json_serialization=True,
     )
     # Persiste l'état courant (ordre glissé + éditions) pour les reruns suivants.
-    st.session_state[ss_key] = pd.DataFrame(grille["data"])
+    # _df_retour_grille normalise le retour JSON en DataFrame colonné (voir sa
+    # docstring) ; les appelants relisent cet état via st.session_state[ss_key].
+    st.session_state[ss_key] = _df_retour_grille(grille, travail)
     return grille
 
 
@@ -2014,7 +2053,9 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ── Toggle « écran toujours allumé » (Wake Lock API — mobile / tablette) ───────
-components.html(
+# st.iframe : remplaçant de st.components.v1.html (déprécié, retiré après 2026-06).
+# Une chaîne HTML brute est auto-détectée et rendue dans un iframe sandboxé.
+st.iframe(
     """
 <div id="wl-wrap">
   <button id="wl-btn" type="button" aria-pressed="false">
@@ -2777,7 +2818,7 @@ positionVictoire();
                + (60 if rendement_ref > 0 else 0)       # ligne « rendement »
                + (66 + n_ing * 60 if n_ing else 0)
                + (66 + n_prep * 92 if n_prep else 0))
-    components.html(html, height=hauteur, scrolling=True)
+    st.iframe(html, height=hauteur)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -3209,7 +3250,10 @@ if vue == VUE_EDITION:
                                               "impossible à mesurer !")
 
         grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)
-        edite = pd.DataFrame(grille_ing["data"])
+        # État normalisé (DataFrame colonné) persisté par _grille_aggrid — évite
+        # de refaire pd.DataFrame(grille["data"]) qui, en sérialisation JSON,
+        # recevrait None ou une chaîne et produirait un DataFrame vide/sans colonnes.
+        edite = st.session_state[ss_ing]
 
         ca, cb = st.columns(2)
         if ca.button("＋ Ajouter un ingrédient", key=f"add_ing_{k}",
@@ -3275,7 +3319,7 @@ if vue == VUE_EDITION:
                                                   "cols": 60})
 
         grille_prep = _grille_aggrid(df_prep, ss_prep, _cfg_prep)
-        edite_prep = pd.DataFrame(grille_prep["data"])
+        edite_prep = st.session_state[ss_prep]   # état normalisé (voir _df_retour_grille)
 
         cc, cd = st.columns(2)
         if cc.button("＋ Ajouter une étape", key=f"add_prep_{k}",
