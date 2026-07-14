@@ -451,7 +451,7 @@
       ]
     },
     {
-      "titre": "Guimauves maison",
+      "titre": "Guimauves maison (à tester)",
       "sous_titre": "",
       "temps_prep": 30,
       "temps_cuisson": 15,
@@ -1238,8 +1238,8 @@
         },
         {
           "nom": "jus de citron (concentré)",
-          "qte": 50.0,
-          "unite": "tasse",
+          "qte": 3.0,
+          "unite": "c. à table",
           "palier": 0.25,
           "section": ""
         },
