@@ -88,7 +88,8 @@
       "tags": [
         "Stefou",
         "Marinade"
-      ]
+      ],
+      "id": 1
     },
     {
       "titre": "Cuisses de poulet braisées au vin blanc et au romarin",
@@ -208,7 +209,8 @@
       ],
       "tags": [
         "Plat principal"
-      ]
+      ],
+      "id": 2
     },
     {
       "titre": "Biscuits moelleux aux brisures de chocolat (les meilleurs)",
@@ -326,7 +328,8 @@
       "tags": [
         "Amélie",
         "Dessert"
-      ]
+      ],
+      "id": 3
     },
     {
       "titre": "Brownies maison (les meilleurs)",
@@ -449,7 +452,8 @@
         "Chocolat",
         "Brownie",
         "Amélie"
-      ]
+      ],
+      "id": 4
     },
     {
       "titre": "Guimauves maison (à tester)",
@@ -579,7 +583,8 @@
         "Confiserie",
         "Guimauve",
         "Bonbon"
-      ]
+      ],
+      "id": 5
     },
     {
       "titre": "Meringue (à tester)",
@@ -652,7 +657,8 @@
         "Dessert",
         "Meringue",
         "Tarte"
-      ]
+      ],
+      "id": 6
     },
     {
       "titre": "Flocons d'avoine de nuit",
@@ -812,7 +818,8 @@
         "Déjeuner",
         "Avoine",
         "Juju"
-      ]
+      ],
+      "id": 7
     },
     {
       "titre": "Marinade au vin rouge pour steak",
@@ -962,7 +969,8 @@
         "Chef Michel",
         "Marinade",
         "Boeuf"
-      ]
+      ],
+      "id": 8
     },
     {
       "titre": "Sauce Terbialy (à tester)",
@@ -1099,7 +1107,8 @@
       "tags": [
         "Marinade",
         "Stefou"
-      ]
+      ],
+      "id": 9
     },
     {
       "titre": "Chimichurri (à tester)",
@@ -1206,7 +1215,8 @@
         "Sauce",
         "Fines herbes",
         "BBQ"
-      ]
+      ],
+      "id": 10
     },
     {
       "titre": "Marinade Shish Taouk (à tester)",
@@ -1336,7 +1346,8 @@
         "Libanais",
         "Stefou",
         "Marinade"
-      ]
+      ],
+      "id": 11
     }
   ],
   "tags": [
@@ -1536,5 +1547,6 @@
       "nom": "Érable",
       "couleur": "#7d8cb5"
     }
-  ]
+  ],
+  "prochain_id": 12
 }
