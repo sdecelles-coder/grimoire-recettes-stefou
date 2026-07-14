@@ -1238,8 +1238,8 @@
         },
         {
           "nom": "jus de citron (concentré)",
-          "qte": 50.0,
-          "unite": "ml",
+          "qte": 3.0,
+          "unite": "c. à table",
           "palier": 0.25,
           "section": ""
         },
