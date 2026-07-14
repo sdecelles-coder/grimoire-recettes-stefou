@@ -7,6 +7,14 @@
       "etoiles": 5,
       "cree": "2026-07-14 14:07",
       "modifie": "2026-07-14 14:07"
+    },
+    {
+      "id": 1,
+      "recette_id": 1,
+      "nom": "X",
+      "etoiles": 5,
+      "cree": "now",
+      "modifie": "now"
     }
   ],
   "prochain_id": 2
