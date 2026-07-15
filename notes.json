@@ -7,7 +7,15 @@
       "etoiles": 5,
       "cree": "2026-07-14 16:19",
       "modifie": "2026-07-14 16:19"
+    },
+    {
+      "id": 2,
+      "recette_id": 11,
+      "nom": "Stefou",
+      "etoiles": 4,
+      "cree": "2026-07-15 00:57",
+      "modifie": "2026-07-15 00:57"
     }
   ],
-  "prochain_id": 2
+  "prochain_id": 3
 }
