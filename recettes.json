@@ -1348,15 +1348,15 @@
       "titre": "Pâte à pizza comme au resto à la machine à pain",
       "sous_titre": "Croûte croustillante et moelleuse comme au restaurant",
       "temps_prep": 15,
-      "temps_cuisson": 15,
+      "temps_cuisson": 25,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 10,
-        "personnes": 10,
+        "valeur": 4.0,
+        "personnes": 4,
         "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 10
+        "multiples": true,
+        "pas_personnes": 4
       },
       "ingredients": [
         {
@@ -1418,15 +1418,15 @@
       ],
       "preparation": [
         {
-          "texte": "Dans un grand bol, mélanger la farine, la levure, le sel et les épices (si désiré).",
+          "texte": "Dans un grand bol, mélanger la [farine], la [levure], le [sel] et les épices (si désiré).",
           "section": ""
         },
         {
-          "texte": "Dans un petit bol, bien battre l'oeuf.",
+          "texte": "Dans un petit bol, bien battre l'[oeuf].",
           "section": ""
         },
         {
-          "texte": "Mettre l'eau dans la machine à pain et ajouter le sucre, l'huile et l'oeuf. Verser tout le mélange de farine dans la machine à pain. Régler au mode « pâte » (dough) et attendre la fin du cycle.",
+          "texte": "Mettre l'[eau] dans la machine à pain et ajouter le [sucre], l'[huile] et l'[oeuf]. Verser tout le mélange de farine dans la machine à pain. Régler au mode « pâte » (dough) et attendre la fin du cycle.",
           "section": ""
         },
         {
