@@ -989,23 +989,23 @@
       "ingredients": [
         {
           "nom": "tomates séchées (conservées dans l'huile)",
-          "qte": 150.0,
+          "qte": 300.0,
           "unite": "g",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
           "nom": "concentré de tomate",
-          "qte": 1.5,
+          "qte": 3.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
-          "nom": "pâte de piment doux d'Alep (fléflé)",
-          "qte": 3.0,
-          "unite": "c. à table",
-          "palier": 0.5,
+          "nom": "Piment d'espelette",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
           "section": "Sauce Terbialy"
         },
         {
@@ -1017,16 +1017,16 @@
         },
         {
           "nom": "huile d'olive",
-          "qte": 3.0,
+          "qte": 5.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
           "nom": "jus de citron",
-          "qte": 1.0,
+          "qte": 1.5,
           "unite": "c. à table",
-          "palier": 0.25,
+          "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
