@@ -1045,9 +1045,9 @@
         },
         {
           "nom": "sel",
-          "qte": null,
-          "unite": "au goût",
-          "palier": null,
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
           "section": "Sauce Terbialy"
         },
         {
@@ -1068,7 +1068,7 @@
           "section": "Sauce"
         },
         {
-          "texte": "Au robot : mets l'huile parfumée (étape d'avant), les [tomates sèchées], le [sumac], le [cumin], le [jus de citron], sel et le [concentré de tomate]. Mixe jusqu'à une pâte rouge foncé, épaisse et brillante.",
+          "texte": "Au robot : mets l'huile parfumée (étape d'avant), les [tomates sèchées], le [sumac], le [cumin], le [jus de citron], [sel] et le [concentré de tomate]. Mixe jusqu'à une pâte rouge foncé, épaisse et brillante.",
           "section": "Sauce"
         },
         {
