@@ -1343,6 +1343,107 @@
         "Marinade"
       ],
       "id": 11
+    },
+    {
+      "titre": "Pâte à pizza comme au resto à la machine à pain",
+      "sous_titre": "Croûte croustillante et moelleuse comme au restaurant",
+      "temps_prep": 15,
+      "temps_cuisson": 15,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 10,
+        "personnes": 10,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 10
+      },
+      "ingredients": [
+        {
+          "nom": "farine",
+          "qte": 4.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "levure instantanée",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "eau tiède",
+          "qte": 1.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "huile d'olive",
+          "qte": 100.0,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "oeuf",
+          "qte": 1.0,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sucre",
+          "qte": 2.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "épices à l'italienne (optionnel)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un grand bol, mélanger la farine, la levure, le sel et les épices (si désiré).",
+          "section": ""
+        },
+        {
+          "texte": "Dans un petit bol, bien battre l'oeuf.",
+          "section": ""
+        },
+        {
+          "texte": "Mettre l'eau dans la machine à pain et ajouter le sucre, l'huile et l'oeuf. Verser tout le mélange de farine dans la machine à pain. Régler au mode « pâte » (dough) et attendre la fin du cycle.",
+          "section": ""
+        },
+        {
+          "texte": "Préchauffer le four au maximum de sa capacité (ex. : 500 °F).",
+          "section": ""
+        },
+        {
+          "texte": "Séparer la pâte en 2 ou 3 parties selon les dimensions désirées (donne facilement 2 grandes pizzas de 18-19 pouces avec le rebord rabattu farci au fromage). Étirer sur une feuille de papier parchemin enfarinée à la forme désirée et transférer sur une plaque de cuisson. Garnir de sauce, viandes, légumes et fromage, puis mettre au four. Surveiller la cuisson pour ne pas noircir la croûte.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Pizza",
+        "Pâte",
+        "Machine à pain"
+      ],
+      "id": 12
     }
   ],
   "tags": [
@@ -1467,6 +1568,10 @@
       "couleur": "#d6ddf4"
     },
     {
+      "nom": "Machine à pain",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Marinade",
       "couleur": "#5eead4"
     },
@@ -1479,11 +1584,19 @@
       "couleur": "#d6ddf4"
     },
     {
+      "nom": "Pizza",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Plat principal",
       "couleur": "#4df3e3"
     },
     {
       "nom": "Poulet",
+      "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "Pâte",
       "couleur": "#d6ddf4"
     },
     {
@@ -1543,5 +1656,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 12
+  "prochain_id": 13
 }
