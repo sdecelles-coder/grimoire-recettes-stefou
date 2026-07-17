@@ -988,10 +988,10 @@
       },
       "ingredients": [
         {
-          "nom": "passata ou tomates broyées",
-          "qte": 375.0,
-          "unite": "ml",
-          "palier": null,
+          "nom": "tomates séchées (conservées dans l'huile)",
+          "qte": 150.0,
+          "unite": "g",
+          "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
@@ -1023,6 +1023,13 @@
           "section": "Sauce Terbialy"
         },
         {
+          "nom": "jus de citron",
+          "qte": 1.0,
+          "unite": "c. à table",
+          "palier": 0.25,
+          "section": "Sauce Terbialy"
+        },
+        {
           "nom": "sumac",
           "qte": 1.5,
           "unite": "c. à table",
@@ -1044,13 +1051,6 @@
           "section": "Sauce Terbialy"
         },
         {
-          "nom": "jus de citron (optionnel)",
-          "qte": null,
-          "unite": "au goût",
-          "palier": null,
-          "section": "Sauce Terbialy"
-        },
-        {
           "nom": "bavette OU filet mignon",
           "qte": 300.0,
           "unite": "g",
@@ -1064,11 +1064,11 @@
           "section": "Sauce"
         },
         {
-          "texte": "Dans une casserole, chauffe l'[huile d'olive] à feu moyen-doux. Fais revenir la pâte d'ail et la [pâte de piment doux d'Alep] 1 à 2 minutes sans laisser colorer.",
+          "texte": "Au robot : mets les [tomates sèchées], l'[huile d'olive] avec l'ail et la [pâte de piment doux], le [cumin], le [jus de citron] et le [concentré de tomate]. Mixe jusqu'à une pâte rouge foncé, épaisse et brillante.",
           "section": "Sauce"
         },
         {
-          "texte": "Ajoute la [passata], le [concentré de tomate], le [cumin] et le sel. Laisse mijoter doucement 10 à 15 minutes jusqu'à obtenir une sauce nappante.",
+          "texte": "Dans une casserole, chauffe l'[huile d'olive] à feu moyen-doux. Fais revenir la pâte d'ail et la [pâte de piment doux d'Alep] 1 à 2 minutes sans laisser colorer, ça réveille les arômes et parfume l'huile.",
           "section": "Sauce"
         },
         {
