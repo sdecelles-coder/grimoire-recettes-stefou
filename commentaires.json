@@ -34,7 +34,16 @@
       "cree": "2026-07-15 01:02",
       "modifie": "2026-07-15 01:02",
       "reponses": []
+    },
+    {
+      "id": 5,
+      "recette_id": 3,
+      "nom": "stefou",
+      "texte": "C'est bon en ouistiti !!!",
+      "cree": "2026-07-22 23:28",
+      "modifie": "2026-07-22 23:28",
+      "reponses": []
     }
   ],
-  "prochain_id": 5
+  "prochain_id": 6
 }
