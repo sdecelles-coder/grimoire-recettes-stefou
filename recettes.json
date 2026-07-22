@@ -264,7 +264,7 @@
           "nom": "Sucre",
           "qte": 2.0,
           "unite": "c. à table",
-          "palier": 5.0,
+          "palier": 0.25,
           "section": "2e mélange"
         },
         {
