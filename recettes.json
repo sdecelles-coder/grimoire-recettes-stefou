@@ -1455,10 +1455,10 @@
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 2,
+        "valeur": 2.0,
         "personnes": 2,
         "max_personnes": 20,
-        "multiples": false,
+        "multiples": true,
         "pas_personnes": 2
       },
       "ingredients": [
