@@ -16,28 +16,28 @@
         {
           "nom": "Mayonnaise (comble)",
           "qte": 4.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "Origan",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "Huile légère",
           "qte": 4.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "Jus de citron",
           "qte": 3.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -263,7 +263,7 @@
         {
           "nom": "Sucre",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.25,
           "section": "2e mélange"
         },
@@ -480,7 +480,7 @@
         {
           "nom": "gélatine non aromatisée",
           "qte": 3.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -515,7 +515,7 @@
         {
           "nom": "extrait de vanille ou d'amande",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -646,7 +646,7 @@
           "section": ""
         },
         {
-          "texte": "Ajouter le [sucre] graduellement, environ une cuillère à table à la fois, en battant après chaque ajout jusqu'à ce qu'il soit bien incorporé. Continuer à battre jusqu'à la formation de pics fermes.",
+          "texte": "Ajouter le [sucre] graduellement, environ une cuillère à soupe à la fois, en battant après chaque ajout jusqu'à ce qu'il soit bien incorporé. Continuer à battre jusqu'à la formation de pics fermes.",
           "section": ""
         },
         {
@@ -687,14 +687,14 @@
         {
           "nom": "Yogourt grec nature",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Base"
         },
         {
           "nom": "Sirop d'érable ou miel",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Base"
         },
@@ -722,14 +722,14 @@
         {
           "nom": "Beurre d'arachide croquant ou crémeux",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Variante beurre d'arachide et fraise"
         },
         {
           "nom": "Confiture de fraises",
           "qte": 1.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Variante beurre d'arachide et fraise"
         },
@@ -778,7 +778,7 @@
         {
           "nom": "Lait condensé sucré",
           "qte": 1.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Variante mangue et lait condensé"
         },
@@ -999,7 +999,7 @@
         {
           "nom": "concentré de tomate",
           "qte": 3.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
@@ -1020,21 +1020,21 @@
         {
           "nom": "huile d'olive",
           "qte": 5.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
           "nom": "jus de citron",
           "qte": 1.5,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
         {
           "nom": "sumac",
           "qte": 1.5,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Sauce Terbialy"
         },
@@ -1155,14 +1155,14 @@
         {
           "nom": "Huile d'olive",
           "qte": 3.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
         {
           "nom": "Vinaigre de vin rouge",
           "qte": 1.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -1271,7 +1271,7 @@
         {
           "nom": "pâte de tomate",
           "qte": 1.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -1380,7 +1380,7 @@
         {
           "nom": "levure instantanée",
           "qte": 1.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -1408,7 +1408,7 @@
         {
           "nom": "sucre",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -1483,7 +1483,7 @@
         {
           "nom": "sucre",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": ""
         },
@@ -1548,7 +1548,7 @@
         {
           "nom": "Sirop d'érable - partie1",
           "qte": 4.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.25,
           "section": ""
         },
@@ -1590,7 +1590,7 @@
         {
           "nom": "Sirop d'érable - partie2",
           "qte": 2.0,
-          "unite": "c. à table",
+          "unite": "c. à soupe",
           "palier": 0.5,
           "section": "Crème mascarpone"
         },
