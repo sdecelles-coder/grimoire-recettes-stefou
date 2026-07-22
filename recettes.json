@@ -1577,14 +1577,14 @@
           "nom": "Fromage à la crème, en cubes et ramolli",
           "qte": 60.0,
           "unite": "g",
-          "palier": null,
+          "palier": 15.0,
           "section": "Crème mascarpone"
         },
         {
           "nom": "Yogourt grec à la vanille",
           "qte": 150.0,
           "unite": "g",
-          "palier": null,
+          "palier": 37.5,
           "section": "Crème mascarpone"
         },
         {
