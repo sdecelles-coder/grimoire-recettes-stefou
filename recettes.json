@@ -250,7 +250,7 @@
           "nom": "Beurre non salé (fondu)",
           "qte": 0.75,
           "unite": "tasse",
-          "palier": 0.3333333333333333,
+          "palier": 0.25,
           "section": "2e mélange"
         },
         {
@@ -262,8 +262,8 @@
         },
         {
           "nom": "Sucre",
-          "qte": 30.0,
-          "unite": "ml",
+          "qte": 2.0,
+          "unite": "c. à table",
           "palier": 5.0,
           "section": "2e mélange"
         },
