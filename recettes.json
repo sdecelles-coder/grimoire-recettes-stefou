@@ -1515,6 +1515,132 @@
         "Dessert"
       ],
       "id": 13
+    },
+    {
+      "titre": "Gruau de nuit façon tiramisu",
+      "sous_titre": "Un déjeuner inspiré du dessert italien classique",
+      "temps_prep": 10,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 4
+      },
+      "ingredients": [
+        {
+          "nom": "Lait entier",
+          "qte": 2.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Espresso ou café fort",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Sirop d'érable ou miel",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Extrait de vanille",
+          "qte": 1.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Flocons d'avoine à l'ancienne",
+          "qte": 2.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Graines de chia",
+          "qte": 8.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "Fromage à la crème, en cubes et ramolli",
+          "qte": 60.0,
+          "unite": "g",
+          "palier": null,
+          "section": "Crème mascarpone"
+        },
+        {
+          "nom": "Yogourt grec à la vanille",
+          "qte": 150.0,
+          "unite": "g",
+          "palier": null,
+          "section": "Crème mascarpone"
+        },
+        {
+          "nom": "Sirop d'érable ou miel",
+          "qte": 2.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": "Crème mascarpone"
+        },
+        {
+          "nom": "Extrait de vanille",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Crème mascarpone"
+        },
+        {
+          "nom": "Poudre de cacao",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Service"
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un grand bol ou une tasse à mesurer, mélanger le lait, le café, 60 ml (1/4 tasse) de sirop d'érable et 1,5 c. à thé de vanille.",
+          "section": ""
+        },
+        {
+          "texte": "Répartir le mélange dans 4 bocaux ou contenants hermétiques.",
+          "section": ""
+        },
+        {
+          "texte": "Incorporer 125 ml (1/2 tasse) de flocons d'avoine et 2 c. à thé de graines de chia dans chaque contenant en s'assurant que les flocons sont bien immergés dans le liquide.",
+          "section": ""
+        },
+        {
+          "texte": "Couvrir et réfrigérer au moins 4 heures ou jusqu'à 12 heures.",
+          "section": ""
+        },
+        {
+          "texte": "Dans un bol moyen, fouetter le fromage à la crème jusqu'à consistance lisse. Ajouter le yogourt grec, les 2 c. à table de sirop d'érable restantes et la 1 c. à thé de vanille restante ; fouetter jusqu'à obtenir un mélange crémeux et homogène.",
+          "section": ""
+        },
+        {
+          "texte": "Déposer la crème au yogourt sur le gruau en étalant en couche lisse. Saupoudrer de poudre de cacao et servir froid.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Déjeuner",
+        "Tiramisu",
+        "Gruau de nuit"
+      ],
+      "id": 14
     }
   ],
   "tags": [
@@ -1615,6 +1741,10 @@
       "couleur": "#d6ddf4"
     },
     {
+      "nom": "Gruau de nuit",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Guimauve",
       "couleur": "#d6ddf4"
     },
@@ -1711,6 +1841,10 @@
       "couleur": "#d6ddf4"
     },
     {
+      "nom": "Tiramisu",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Tofu",
       "couleur": "#d6ddf4"
     },
@@ -1735,5 +1869,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 14
+  "prochain_id": 15
 }
