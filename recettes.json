@@ -1446,6 +1446,71 @@
         "Plat principal"
       ],
       "id": 12
+    },
+    {
+      "titre": "Sorbet express au melon d'eau",
+      "sous_titre": "Des restes de melon d'eau ? Voici ce qu'on en fait.",
+      "temps_prep": 5,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2,
+        "personnes": 2,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 2
+      },
+      "ingredients": [
+        {
+          "nom": "cubes de melon d'eau sans pépins, congelés",
+          "qte": 2.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "blanc d'oeuf",
+          "qte": 1.0,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sucre",
+          "qte": 2.0,
+          "unite": "c. à table",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "cannelle moulue",
+          "qte": 1.0,
+          "unite": "pincée",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Au robot culinaire, broyer grossièrement le melon d'eau congelé. À l'aide d'une spatule, racler les parois à quelques reprises.",
+          "section": ""
+        },
+        {
+          "texte": "Incorporer le blanc d'oeuf, le sucre et la cannelle, puis mélanger jusqu'à ce que le sorbet soit homogène.",
+          "section": ""
+        },
+        {
+          "texte": "Servir immédiatement.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Sorbet",
+        "Melon d'eau",
+        "Dessert"
+      ],
+      "id": 13
     }
   ],
   "tags": [
@@ -1578,6 +1643,10 @@
       "couleur": "#5eead4"
     },
     {
+      "nom": "Melon d'eau",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Meringue",
       "couleur": "#d6ddf4"
     },
@@ -1626,6 +1695,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Sorbet",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Stefou",
       "couleur": "#007cfb"
     },
@@ -1658,5 +1731,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 13
+  "prochain_id": 14
 }
