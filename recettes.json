@@ -1210,7 +1210,8 @@
       "tags": [
         "Sauce",
         "Fines herbes",
-        "BBQ"
+        "BBQ",
+        "À tester"
       ],
       "id": 10
     },
@@ -1721,6 +1722,10 @@
     {
       "nom": "Végétarien",
       "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "À tester",
+      "couleur": "#a78bfa"
     },
     {
       "nom": "Érable",
