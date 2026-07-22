@@ -1387,14 +1387,21 @@ def _palier_txt(p):
 def _palier_val(txt):
     """Convertit le texte d'un palier (« 0.5 », « 1/3 ») en float ; None si vide.
     Symétrique de _palier_txt — accepte en plus la notation fractionnaire pour
-    que les paliers comme 1/3 survivent à l'aller-retour éditeur ↔ données."""
-    txt = (txt or "").strip()
+    que les paliers comme 1/3 survivent à l'aller-retour éditeur ↔ données.
+    Depuis que le palier se saisit en texte libre (plus de menu déroulant), on
+    tolère la virgule décimale française (« 0,5 ») et on retombe sur None — donc
+    sur le palier par défaut appliqué à l'échelle — plutôt que de planter sur une
+    saisie illisible (« abc », « 0.5.5 »…)."""
+    txt = (txt or "").strip().replace(",", ".")
     if not txt:
         return None
-    if "/" in txt:
-        n, d = txt.split("/", 1)
-        return float(n) / float(d)
-    return float(txt)
+    try:
+        if "/" in txt:
+            n, d = txt.split("/", 1)
+            return float(n) / float(d)
+        return float(txt)
+    except (ValueError, ZeroDivisionError):
+        return None
 
 
 def _ingredients_depuis_editeur(df):
@@ -3767,15 +3774,6 @@ if vue == VUE_EDITION:
             columns=["Ingrédient", "Section", "Quantité", "Unité", "Palier", "_rowid"],
         )
 
-        # Valeurs du menu déroulant Palier : les standards (dont le tiers, pour
-        # les mesures en 1/3 / 2/3) + tout palier déjà présent dans la recette
-        # (ex. 5, 25) pour ne pas le perdre à l'édition.
-        paliers_presents = {_palier_txt(ing.get("palier"))
-                            for ing in recette["ingredients"]}
-        paliers_menu = [""] + sorted(
-            (paliers_presents | {"0.25", "0.5", "1.0", "1/3"}) - {""},
-            key=_palier_val)
-
         def _cfg_ing(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
             gb.configure_column("Ingrédient", rowDrag=True, editable=True, flex=3)
@@ -3791,18 +3789,16 @@ if vue == VUE_EDITION:
                                 headerTooltip="Dans quoi on mesure : c. à table, "
                                               "c. à thé, ml, g, tasse…")
             gb.configure_column("Palier", editable=True, flex=1,
-                                cellEditor="agSelectCellEditor",
-                                cellEditorParams={"values": paliers_menu},
-                                headerTooltip="Le palier indique simplement un "
-                                              "arrondi des quantités quand tu "
-                                              "cuisines pour tomber sur des chiffres "
+                                headerTooltip="Saisis librement le palier : c'est "
+                                              "l'arrondi des quantités quand tu "
+                                              "cuisines, pour tomber sur des chiffres "
                                               "faciles à mesurer. Exemple: Palier 25, "
                                               "on incrémente de 25 → 25, 50, 75, 100… "
                                               "Palier 0.5 → des demies (1/2, 1, 1 1/2…). "
                                               "Palier 1/3 → des tiers (1/3, 2/3, 1, "
                                               "1 1/3…), pour ne jamais arrondir un 2/3 "
-                                              "à 1. Comme ça, jamais de « 0,37 cuillère » "
-                                              "impossible à mesurer !")
+                                              "à 1. Tu peux écrire « 0,5 » ou « 1/3 ». "
+                                              "Laisse vide pour l'arrondi par défaut.")
 
         grille_ing = _grille_aggrid(df_ing, ss_ing, _cfg_ing)
         # État normalisé (DataFrame colonné) persisté par _grille_aggrid — évite
