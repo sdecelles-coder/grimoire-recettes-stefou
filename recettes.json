@@ -227,16 +227,16 @@
       "ingredients": [
         {
           "nom": "Farine tout usage non blanchie",
-          "qte": 225.0,
-          "unite": "g",
+          "qte": 1.5,
+          "unite": "tasse",
           "palier": 25.0,
           "section": "Ingrédients sec"
         },
         {
           "nom": "Bicarbonate de soude",
-          "qte": 2.5,
-          "unite": "ml",
-          "palier": 0.5,
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
           "section": "Ingrédients sec"
         },
         {
@@ -248,16 +248,16 @@
         },
         {
           "nom": "Beurre non salé (fondu)",
-          "qte": 170.0,
-          "unite": "g",
-          "palier": 10.0,
+          "qte": 0.75,
+          "unite": "tasse",
+          "palier": 0.3333333333333333,
           "section": "2e mélange"
         },
         {
           "nom": "Cassonade tassée",
-          "qte": 210.0,
-          "unite": "g",
-          "palier": 10.0,
+          "qte": 1.0,
+          "unite": "tasse",
+          "palier": 0.25,
           "section": "2e mélange"
         },
         {
