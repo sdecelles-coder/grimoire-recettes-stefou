@@ -39,7 +39,7 @@ from contextlib import nullcontext
 import pandas as pd
 import requests
 import streamlit as st
-from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode
+from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, JsCode
 
 import conversion_web as cw          # module local : import d'une recette web
 
@@ -1549,6 +1549,13 @@ def _grille_aggrid(df_init, ss_key, configurer):
     # déclenche jamais cellValueChanged : l'ancienne valeur (ex. « tasse » au
     # lieu de « ml ») est renvoyée et enregistrée à sa place.
     options["stopEditingWhenCellsLoseFocus"] = True
+    # Identifie chaque ligne par son _rowid. Sans getRowId, streamlit-aggrid
+    # fabrique et AFFICHE une colonne parasite « ::auto_unique_id:: » (voir
+    # aggrid_utils : la colonne n'est créée que si getRowId est absent). On la
+    # supprime à la source tout en donnant à AgGrid une identité de ligne stable
+    # (utile aussi au réordonnancement glissé).
+    if "_rowid" in travail.columns:
+        options["getRowId"] = JsCode("function(params){ return params.data._rowid; }")
     # Info-bulles natives du navigateur (attribut title) : la bulle maison
     # d'AgGrid est tronquée dans l'iframe Streamlit et n'apparaît pas.
     options["enableBrowserTooltips"] = True
@@ -3776,7 +3783,8 @@ if vue == VUE_EDITION:
 
         def _cfg_ing(gb):
             gb.configure_column("_rowid", hide=True, editable=False)
-            gb.configure_column("Ingrédient", rowDrag=True, editable=True, flex=3)
+            gb.configure_column("Ingrédient", rowDrag=True, editable=True,
+                                flex=5, minWidth=220)
             gb.configure_column("Section", editable=True, flex=2,
                                 headerTooltip="Groupe d'ingrédients (ex. Garniture, "
                                               "Bouillon). Laisser vide si aucun.")
@@ -3857,7 +3865,8 @@ if vue == VUE_EDITION:
             gb.configure_column("Section", editable=True, flex=2,
                                 headerTooltip="Groupe d'étapes (ex. Sauce, Montage, "
                                               "Variante). Laisser vide si aucun.")
-            gb.configure_column("Étape", rowDrag=True, editable=True, flex=1,
+            gb.configure_column("Étape", rowDrag=True, editable=True,
+                                flex=6, minWidth=320,
                                 wrapText=True, autoHeight=True,
                                 cellEditor="agLargeTextCellEditor",
                                 cellEditorPopup=True,
