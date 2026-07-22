@@ -31,7 +31,15 @@
       "etoiles": 5,
       "cree": "2026-07-22 23:29",
       "modifie": "2026-07-22 23:29"
+    },
+    {
+      "id": 5,
+      "recette_id": 3,
+      "nom": "Félix",
+      "etoiles": 5,
+      "cree": "2026-07-22 23:34",
+      "modifie": "2026-07-22 23:34"
     }
   ],
-  "prochain_id": 5
+  "prochain_id": 6
 }
