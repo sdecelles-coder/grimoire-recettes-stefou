@@ -1642,6 +1642,121 @@
         "À tester"
       ],
       "id": 14
+    },
+    {
+      "titre": "Salade de lentilles à l'érable et aux pommes",
+      "sous_titre": "",
+      "temps_prep": 15,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 4
+      },
+      "ingredients": [
+        {
+          "nom": "Huile de caméline",
+          "qte": 30.0,
+          "unite": "ml",
+          "palier": null,
+          "section": "Vinaigrette"
+        },
+        {
+          "nom": "Vinaigre de cidre",
+          "qte": 30.0,
+          "unite": "ml",
+          "palier": null,
+          "section": "Vinaigrette"
+        },
+        {
+          "nom": "Sirop d'érable",
+          "qte": 30.0,
+          "unite": "ml",
+          "palier": null,
+          "section": "Vinaigrette"
+        },
+        {
+          "nom": "Moutarde de Dijon",
+          "qte": 5.0,
+          "unite": "ml",
+          "palier": null,
+          "section": "Vinaigrette"
+        },
+        {
+          "nom": "Sel",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Vinaigrette"
+        },
+        {
+          "nom": "Branches de céleri",
+          "qte": 4.0,
+          "unite": "unité",
+          "palier": null,
+          "section": "Salade"
+        },
+        {
+          "nom": "Grosses pommes",
+          "qte": 2.0,
+          "unite": "unité",
+          "palier": null,
+          "section": "Salade"
+        },
+        {
+          "nom": "Échalote française",
+          "qte": 1.0,
+          "unite": "unité",
+          "palier": null,
+          "section": "Salade"
+        },
+        {
+          "nom": "Lentilles cuites",
+          "qte": 4.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Salade"
+        },
+        {
+          "nom": "Canneberges séchées",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Salade"
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un grand bol, mélanger tous les ingrédients de la vinaigrette.",
+          "section": ""
+        },
+        {
+          "texte": "Couper le céleri et les pommes en petits dés.",
+          "section": ""
+        },
+        {
+          "texte": "Hacher finement l'échalote.",
+          "section": ""
+        },
+        {
+          "texte": "Déposer le céleri, les pommes, l'échalote, les lentilles et les canneberges dans le bol avec la vinaigrette.",
+          "section": ""
+        },
+        {
+          "texte": "Mélanger et servir.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Salade",
+        "Lentilles",
+        "Érable"
+      ],
+      "id": 15
     }
   ],
   "tags": [
@@ -1754,6 +1869,10 @@
       "couleur": "#00ff2c"
     },
     {
+      "nom": "Lentilles",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Libanais",
       "couleur": "#d6ddf4"
     },
@@ -1804,6 +1923,10 @@
     {
       "nom": "Québécois",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Salade",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Sans cuisson",
@@ -1870,5 +1993,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 15
+  "prochain_id": 16
 }
