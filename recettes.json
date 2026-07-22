@@ -293,10 +293,6 @@
       "temps_cuisson": 24,
       "preparation": [
         {
-          "texte": "Préchauffer le four à 190 °C (375 °F).",
-          "section": ""
-        },
-        {
           "texte": "Dans un bol, mélanger la [farine], le [bicarbonate] et le [sel].",
           "section": ""
         },
@@ -306,6 +302,10 @@
         },
         {
           "texte": "Incorporer les ingrédients secs et le 2e mélange + le [chocolat]. Couvrir et réfrigérer 1 heure ou toute une nuit.",
+          "section": ""
+        },
+        {
+          "texte": "Préchauffer le four à 190 °C (375 °F).",
           "section": ""
         },
         {
