@@ -1517,14 +1517,14 @@
       "id": 13
     },
     {
-      "titre": "Gruau de nuit façon tiramisu",
+      "titre": "Gruau de nuit façon tiramisu (à tester)",
       "sous_titre": "Un déjeuner inspiré du dessert italien classique",
       "temps_prep": 10,
       "temps_cuisson": 0,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 4,
+        "valeur": 4.0,
         "personnes": 4,
         "max_personnes": 20,
         "multiples": false,
@@ -1546,14 +1546,14 @@
           "section": ""
         },
         {
-          "nom": "Sirop d'érable ou miel",
-          "qte": 0.25,
-          "unite": "tasse",
+          "nom": "Sirop d'érable - partie1",
+          "qte": 4.0,
+          "unite": "c. à table",
           "palier": 0.25,
           "section": ""
         },
         {
-          "nom": "Extrait de vanille",
+          "nom": "Extrait de vanille - partie1",
           "qte": 1.5,
           "unite": "c. à thé",
           "palier": 0.25,
@@ -1588,14 +1588,14 @@
           "section": "Crème mascarpone"
         },
         {
-          "nom": "Sirop d'érable ou miel",
+          "nom": "Sirop d'érable - partie2",
           "qte": 2.0,
           "unite": "c. à table",
           "palier": 0.5,
           "section": "Crème mascarpone"
         },
         {
-          "nom": "Extrait de vanille",
+          "nom": "Extrait de vanille - partie2",
           "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
@@ -1611,34 +1611,35 @@
       ],
       "preparation": [
         {
-          "texte": "Dans un grand bol ou une tasse à mesurer, mélanger le lait, le café, 60 ml (1/4 tasse) de sirop d'érable et 1,5 c. à thé de vanille.",
-          "section": ""
+          "texte": "Dans un grand bol ou une tasse à mesurer, mélanger le [lait], le café, [sirop d'érable - partie1] et [extrait de vanille - partie1].",
+          "section": "Gruau Tiramisu"
         },
         {
           "texte": "Répartir le mélange dans 4 bocaux ou contenants hermétiques.",
-          "section": ""
+          "section": "Gruau Tiramisu"
         },
         {
-          "texte": "Incorporer 125 ml (1/2 tasse) de flocons d'avoine et 2 c. à thé de graines de chia dans chaque contenant en s'assurant que les flocons sont bien immergés dans le liquide.",
-          "section": ""
+          "texte": "Incorporer 125 ml (1/2 tasse) de flocons d'avoine et 2 c. à thé de graines [de chia] dans chaque contenant en s'assurant que les [flocons] sont bien immergés dans le liquide.",
+          "section": "Gruau Tiramisu"
         },
         {
           "texte": "Couvrir et réfrigérer au moins 4 heures ou jusqu'à 12 heures.",
-          "section": ""
+          "section": "Gruau Tiramisu"
         },
         {
-          "texte": "Dans un bol moyen, fouetter le fromage à la crème jusqu'à consistance lisse. Ajouter le yogourt grec, les 2 c. à table de sirop d'érable restantes et la 1 c. à thé de vanille restante ; fouetter jusqu'à obtenir un mélange crémeux et homogène.",
-          "section": ""
+          "texte": "Dans un bol moyen, fouetter le [fromage à la crème] jusqu'à consistance lisse. Ajouter le [yogourt grec], [sirop d'érable - partie2] et [extrait de vanille - partie2] ; fouetter jusqu'à obtenir un mélange crémeux et homogène.",
+          "section": "Crème mascarpone"
         },
         {
-          "texte": "Déposer la crème au yogourt sur le gruau en étalant en couche lisse. Saupoudrer de poudre de cacao et servir froid.",
-          "section": ""
+          "texte": "Déposer la crème mascarpone sur le gruau en étalant en couche lisse. Saupoudrer de poudre de cacao et servir froid.",
+          "section": "Présentation"
         }
       ],
       "tags": [
         "Déjeuner",
         "Tiramisu",
-        "Gruau de nuit"
+        "Gruau de nuit",
+        "À tester"
       ],
       "id": 14
     }
