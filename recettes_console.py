@@ -150,10 +150,10 @@ RECETTES_DEFAUT = [
         "base": {"label": "Poids de poulet", "unite": "g", "valeur": 750,
                  "personnes": 4, "max_personnes": 20},
         "ingredients": [
-            {"nom": "Mayonnaise (comble)",        "qte": 3,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Origan",                      "qte": 2,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Huile légère",                "qte": 4,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Jus de citron",               "qte": 3,    "unite": "c. à table", "palier": 0.5},
+            {"nom": "Mayonnaise (comble)",        "qte": 3,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Origan",                      "qte": 2,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Huile légère",                "qte": 4,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Jus de citron",               "qte": 3,    "unite": "c. à soupe", "palier": 0.5},
             {"nom": "Poudre d'oignon",             "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Ail haché",                   "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Moutarde de Dijon",           "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
@@ -175,8 +175,8 @@ RECETTES_DEFAUT = [
         "base": {"label": "Volume", "unite": "ml", "valeur": 250,
                  "personnes": 4, "max_personnes": 20},
         "ingredients": [
-            {"nom": "Huile d'olive",        "qte": 6,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Vinaigre balsamique",  "qte": 2,    "unite": "c. à table", "palier": 0.5},
+            {"nom": "Huile d'olive",        "qte": 6,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Vinaigre balsamique",  "qte": 2,    "unite": "c. à soupe", "palier": 0.5},
             {"nom": "Moutarde de Dijon",    "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Miel",                 "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Ail haché",            "qte": 0.5,  "unite": "c. à thé",   "palier": 0.25},
@@ -196,10 +196,10 @@ RECETTES_DEFAUT = [
         "base": {"label": "Poids de viande", "unite": "g", "valeur": 1000,
                  "personnes": 4, "max_personnes": 20},
         "ingredients": [
-            {"nom": "Ketchup",              "qte": 4,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Cassonade",            "qte": 2,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Sauce Worcestershire", "qte": 2,    "unite": "c. à table", "palier": 0.5},
-            {"nom": "Vinaigre de cidre",    "qte": 1,    "unite": "c. à table", "palier": 0.5},
+            {"nom": "Ketchup",              "qte": 4,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Cassonade",            "qte": 2,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Sauce Worcestershire", "qte": 2,    "unite": "c. à soupe", "palier": 0.5},
+            {"nom": "Vinaigre de cidre",    "qte": 1,    "unite": "c. à soupe", "palier": 0.5},
             {"nom": "Paprika fumé",         "qte": 2,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Poudre d'ail",         "qte": 1,    "unite": "c. à thé",   "palier": 0.25},
             {"nom": "Sel et poivre",        "qte": None, "unite": "au goût",    "palier": None},
@@ -1708,7 +1708,7 @@ def recette_vierge(recettes):
                  "personnes": 4, "max_personnes": 20, "multiples": False,
                  "pas_personnes": 4},
         "ingredients": [{"nom": "Premier ingrédient", "qte": 1,
-                         "unite": "c. à table", "palier": 0.5, "section": ""}],
+                         "unite": "c. à soupe", "palier": 0.5, "section": ""}],
         "preparation": [{"texte": "Première étape — cite un ingrédient et sa "
                          "quantité s'insérera toute seule à l'enregistrement.",
                          "section": ""}],
@@ -3786,7 +3786,7 @@ if vue == VUE_EDITION:
                                               "base, avant d'ajuster le nombre de "
                                               "personnes.")
             gb.configure_column("Unité", editable=True, flex=1,
-                                headerTooltip="Dans quoi on mesure : c. à table, "
+                                headerTooltip="Dans quoi on mesure : c. à soupe, "
                                               "c. à thé, ml, g, tasse…")
             gb.configure_column("Palier", editable=True, flex=1,
                                 headerTooltip="Saisis librement le palier : c'est "

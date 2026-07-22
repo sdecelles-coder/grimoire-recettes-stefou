@@ -365,7 +365,7 @@ ingrédient concerné — sous une forme COURTE et cohérente (« Garniture », 
 Si la recette n'a AUCUN regroupement, mets "section": "" partout.
 
 UNITÉS (privilégie ces formes québécoises) :
-- cuillère à soupe / tablespoon / tbsp  -> "c. à table"   (palier 0.5)
+- cuillère à soupe / tablespoon / tbsp  -> "c. à soupe"   (palier 0.5)
 - cuillère à thé / teaspoon / tsp        -> "c. à thé"     (palier 0.25)
 - tasse / cup                            -> "tasse"        (palier 0.25)
 - millilitre -> "ml", litre -> "l", gramme -> "g", kilogramme -> "kg"  (palier null)
@@ -374,7 +374,7 @@ UNITÉS (privilégie ces formes québécoises) :
 
 RÈGLES qte / palier :
 - "qte" est un nombre décimal ; convertis les fractions (1/2 -> 0.5, 1/4 -> 0.25).
-- "palier" = pas d'ajustement : 0.5 pour "c. à table", 0.25 pour "c. à thé" et \
+- "palier" = pas d'ajustement : 0.5 pour "c. à soupe", 0.25 pour "c. à thé" et \
 "tasse", null pour g/ml/l et pour tout ingrédient "au goût" (qte null).
 - Si la quantité source est un tiers ou un multiple de tiers (1/3, 2/3, 1 1/3, \
 etc., quelle que soit l'unité), mets "palier": 0.3333333333333333 pour cet \
