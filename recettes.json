@@ -229,7 +229,7 @@
           "nom": "Farine tout usage non blanchie",
           "qte": 1.5,
           "unite": "tasse",
-          "palier": 25.0,
+          "palier": 0.25,
           "section": "Ingrédients sec"
         },
         {
