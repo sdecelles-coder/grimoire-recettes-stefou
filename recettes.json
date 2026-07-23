@@ -2021,18 +2021,18 @@
       "id": 20
     },
     {
-      "titre": "Blinis",
+      "titre": "Blinis (à tester)",
       "sous_titre": "",
       "temps_prep": 25,
       "temps_cuisson": 15,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 45,
-        "personnes": 45,
-        "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 45
+        "valeur": 45.0,
+        "personnes": 44,
+        "max_personnes": 120,
+        "multiples": true,
+        "pas_personnes": 22
       },
       "ingredients": [
         {
@@ -2040,65 +2040,65 @@
           "qte": 1.0,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Blinis"
         },
         {
           "nom": "farine de sarrasin",
           "qte": 0.25,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Blinis"
         },
         {
           "nom": "levure instantanée",
           "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
-          "section": ""
+          "section": "Blinis"
         },
         {
           "nom": "sel",
           "qte": 0.5,
           "unite": "c. à thé",
           "palier": 0.25,
-          "section": ""
+          "section": "Blinis"
         },
         {
           "nom": "lait, tiède",
           "qte": 1.0,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Blinis"
         },
         {
           "nom": "oeufs, séparés",
           "qte": 2.0,
           "unite": "unité",
           "palier": null,
-          "section": ""
+          "section": "Blinis"
         },
         {
           "nom": "crème sure ou crème fraîche",
           "qte": 0.5,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Garniture"
         },
         {
           "nom": "caviar ou oeufs de truite ou de saumon",
           "qte": 0.25,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Garniture"
         }
       ],
       "preparation": [
         {
-          "texte": "Dans un bol, mélanger les farines, la levure et le sel. Ajouter le lait tiède et les jaunes d'oeufs. Fouetter jusqu'à ce que le mélange soit homogène. Couvrir d'un linge ou d'une pellicule plastique et laisser reposer environ 1 heure dans un endroit chaud et humide.",
+          "texte": "Dans un bol, mélanger les farines, la [levure] et le [sel]. Ajouter le [lait tiède] et les jaunes d'[oeufs]. Fouetter jusqu'à ce que le mélange soit homogène. Couvrir d'un linge ou d'une pellicule plastique et laisser reposer environ 1 heure dans un endroit chaud et humide.",
           "section": ""
         },
         {
-          "texte": "Dans un autre bol, fouetter les blancs d'oeufs jusqu'à l'obtention de pics fermes. Incorporer la meringue à la pâte à l'aide d'un fouet.",
+          "texte": "Dans un autre bol, fouetter les blancs d'[oeufs] jusqu'à l'obtention de pics fermes. Incorporer la meringue à la pâte à l'aide d'un fouet.",
           "section": ""
         },
         {
@@ -2106,14 +2106,15 @@
           "section": ""
         },
         {
-          "texte": "Garnir chaque blini de ½ c. à thé de crème sure et de ¼ c. à thé d'oeufs de poisson. Servir à la température ambiante.",
+          "texte": "Garnir chaque blini de [crème sure] et de [caviar]. Servir à la température ambiante.",
           "section": ""
         }
       ],
       "tags": [
         "Entrée",
         "Blinis",
-        "Caviar"
+        "Caviar",
+        "À tester"
       ],
       "id": 21
     }
