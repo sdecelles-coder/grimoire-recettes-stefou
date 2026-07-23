@@ -2118,6 +2118,64 @@
         "Apéro"
       ],
       "id": 21
+    },
+    {
+      "titre": "Compote de rhubarbe",
+      "sous_titre": "Simple, fondante et légèrement acidulée",
+      "temps_prep": 15,
+      "temps_cuisson": 60,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 3,
+        "personnes": 3,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 3
+      },
+      "ingredients": [
+        {
+          "nom": "Rhubarbe rose fraîche ou congelée, coupée en cubes",
+          "qte": 780.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Sucre",
+          "qte": 420.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "Jus de citron",
+          "qte": 3.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans une casserole à fond épais, mélanger la rhubarbe, le sucre et le jus de citron. Laisser reposer 1 heure.",
+          "section": ""
+        },
+        {
+          "texte": "Porter à ébullition à feu moyen, puis laisser mijoter 1 heure ou jusqu'à ce que la rhubarbe soit translucide et que le mélange ait la consistance d'une purée épaisse et sirupeuse. Remuer fréquemment durant la cuisson, surtout en fin de cuisson, pour éviter que la compote ne colle.",
+          "section": ""
+        },
+        {
+          "texte": "Verser la compote dans trois pots d'une capacité de 250 ml chacun. Couvrir et laisser tiédir. Réfrigérer jusqu'à refroidissement complet. La compote se conserve trois semaines au réfrigérateur ou 6 mois au congélateur.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Compote",
+        "Rhubarbe",
+        "Dessert"
+      ],
+      "id": 22
     }
   ],
   "tags": [
@@ -2188,6 +2246,10 @@
     {
       "nom": "Comfort food",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Compote",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Confiserie",
@@ -2310,6 +2372,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Rhubarbe",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Salade",
       "couleur": "#d6ddf4"
     },
@@ -2386,5 +2452,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 22
+  "prochain_id": 23
 }
