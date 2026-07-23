@@ -2120,14 +2120,14 @@
       "id": 21
     },
     {
-      "titre": "Compote de rhubarbe",
+      "titre": "Compote de rhubarbe (à tester)",
       "sous_titre": "Simple, fondante et légèrement acidulée",
       "temps_prep": 15,
       "temps_cuisson": 60,
       "base": {
         "label": "Portions",
-        "unite": "portions",
-        "valeur": 3,
+        "unite": "tasses",
+        "valeur": 3.0,
         "personnes": 3,
         "max_personnes": 20,
         "multiples": false,
@@ -2136,15 +2136,15 @@
       "ingredients": [
         {
           "nom": "Rhubarbe rose fraîche ou congelée, coupée en cubes",
-          "qte": 780.0,
-          "unite": "g",
+          "qte": 6.0,
+          "unite": "tasse",
           "palier": null,
           "section": ""
         },
         {
           "nom": "Sucre",
-          "qte": 420.0,
-          "unite": "g",
+          "qte": 2.0,
+          "unite": "tasse",
           "palier": null,
           "section": ""
         },
@@ -2158,7 +2158,7 @@
       ],
       "preparation": [
         {
-          "texte": "Dans une casserole à fond épais, mélanger la rhubarbe, le sucre et le jus de citron. Laisser reposer 1 heure.",
+          "texte": "Dans une casserole à fond épais, mélanger la [rhubarbe], le [sucre] et le [jus de citron]. Laisser reposer 1 heure.",
           "section": ""
         },
         {
@@ -2173,7 +2173,8 @@
       "tags": [
         "Compote",
         "Rhubarbe",
-        "Dessert"
+        "Dessert",
+        "À tester"
       ],
       "id": 22
     }
