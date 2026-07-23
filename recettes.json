@@ -1757,6 +1757,169 @@
         "Érable"
       ],
       "id": 15
+    },
+    {
+      "titre": "Flocons d'avoine de nuit façon gâteau aux carottes épicé",
+      "sous_titre": "Un déjeuner sain qui goûte comme une vraie pointe de gâteau aux carottes",
+      "temps_prep": 10,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 1,
+        "personnes": 1,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 1
+      },
+      "ingredients": [
+        {
+          "nom": "Flocons d'avoine à gros grains (certifiés sans gluten)",
+          "qte": 1.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Carottes râpées",
+          "qte": 0.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Lait d'amande",
+          "qte": 1.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Beurre d'amande",
+          "qte": 4.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Graines de lin moulues",
+          "qte": 1.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Sirop d'érable pur",
+          "qte": 2.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Extrait de vanille",
+          "qte": 2.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Cannelle moulue",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Muscade moulue",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Quatre-épices moulu",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Gingembre moulu",
+          "qte": 0.125,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Sel de mer",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Raisins secs séchés",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Flocons d'avoine"
+        },
+        {
+          "nom": "Carottes râpées",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Garnitures"
+        },
+        {
+          "nom": "Noix de Grenoble grillées (écalées)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Garnitures"
+        },
+        {
+          "nom": "Pacanes grillées (coupées en deux)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Garnitures"
+        },
+        {
+          "nom": "Raisins secs séchés",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Garnitures"
+        },
+        {
+          "nom": "Sirop d'érable pur (pour arroser)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": "Garnitures"
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Ajouter tous les ingrédients des flocons d'avoine dans un bol moyen ou un pot Mason et mélanger jusqu'à ce que le tout soit bien combiné.",
+          "section": ""
+        },
+        {
+          "texte": "Couvrir hermétiquement le bol avec une pellicule plastique ou le couvercle du pot, puis réfrigérer toute la nuit (ou au moins 8 heures).",
+          "section": ""
+        },
+        {
+          "texte": "Au moment de servir (chaud ou froid), verser les flocons d'avoine dans un bol ou un pot Mason, puis garnir de noix, de carottes râpées, de raisins secs et arroser de sirop d'érable, si désiré.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Déjeuner",
+        "Avoine",
+        "Végétalien"
+      ],
+      "id": 16
     }
   ],
   "tags": [
@@ -1981,6 +2144,10 @@
       "couleur": "#c084fc"
     },
     {
+      "nom": "Végétalien",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Végétarien",
       "couleur": "#d6ddf4"
     },
@@ -1993,5 +2160,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 16
+  "prochain_id": 17
 }
