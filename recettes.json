@@ -1923,14 +1923,14 @@
       "id": 16
     },
     {
-      "titre": "Gruau du lendemain façon pâte à biscuits",
+      "titre": "Gruau du lendemain façon pâte à biscuits (à tester)",
       "sous_titre": "Déjeuner sain et rapide en 5 minutes",
       "temps_prep": 5,
       "temps_cuisson": 0,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 3,
+        "valeur": 3.0,
         "personnes": 3,
         "max_personnes": 20,
         "multiples": false,
@@ -1942,49 +1942,49 @@
           "qte": 1.5,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Sec"
         },
         {
           "nom": "graines de chia",
           "qte": 2.0,
           "unite": "c. à soupe",
           "palier": 0.5,
-          "section": ""
+          "section": "Sec"
         },
         {
           "nom": "pépites de chocolat véganes (ou éclats de cacao)",
           "qte": 3.0,
           "unite": "c. à soupe",
           "palier": 0.5,
-          "section": ""
+          "section": "Sec"
         },
         {
           "nom": "beurre d'arachide ou d'amande",
           "qte": 2.0,
           "unite": "c. à soupe",
           "palier": 0.5,
-          "section": ""
+          "section": "Liquide"
         },
         {
           "nom": "sirop d'érable",
           "qte": 3.0,
           "unite": "c. à soupe",
           "palier": 0.5,
-          "section": ""
+          "section": "Liquide"
         },
         {
           "nom": "extrait de vanille",
           "qte": 1.0,
           "unite": "c. à thé",
           "palier": 0.25,
-          "section": ""
+          "section": "Liquide"
         },
         {
           "nom": "lait végétal",
           "qte": 2.0,
           "unite": "tasse",
           "palier": 0.25,
-          "section": ""
+          "section": "Liquide"
         },
         {
           "nom": "poudre de protéines végane (facultatif)",
@@ -1997,25 +1997,26 @@
       "preparation": [
         {
           "texte": "Dans un grand bol, mélanger tous les ingrédients secs ensemble.",
-          "section": ""
+          "section": "Sec"
         },
         {
           "texte": "Ajouter les ingrédients liquides et bien mélanger jusqu'à homogénéité.",
-          "section": ""
+          "section": "Liquide"
         },
         {
           "texte": "Répartir le mélange dans des bols ou des contenants hermétiques et couvrir.",
-          "section": ""
+          "section": "Finition"
         },
         {
           "texte": "Réfrigérer pendant au moins 4 heures ou toute la nuit avant de déguster.",
-          "section": ""
+          "section": "Finition"
         }
       ],
       "tags": [
         "Déjeuner",
         "Gruau",
-        "Végane"
+        "Végane",
+        "À tester"
       ],
       "id": 20
     }
