@@ -2114,7 +2114,8 @@
         "Entrée",
         "Blinis",
         "Caviar",
-        "À tester"
+        "À tester",
+        "Apéro"
       ],
       "id": 21
     }
@@ -2127,6 +2128,10 @@
     {
       "nom": "Amélie",
       "couleur": "#f7406d"
+    },
+    {
+      "nom": "Apéro",
+      "couleur": "#63b3ff"
     },
     {
       "nom": "Avoine",
