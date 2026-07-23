@@ -2179,25 +2179,25 @@
       "id": 22
     },
     {
-      "titre": "« Limonade » à la rhubarbe",
+      "titre": "Limonade à la rhubarbe (à tester)",
       "sous_titre": "Boisson rafraîchissante et acidulée à la rhubarbe",
       "temps_prep": 10,
       "temps_cuisson": 10,
       "base": {
         "label": "Portions",
-        "unite": "portions",
-        "valeur": 8,
+        "unite": "Litres",
+        "valeur": 2.0,
         "personnes": 8,
         "max_personnes": 20,
-        "multiples": false,
-        "pas_personnes": 8
+        "multiples": true,
+        "pas_personnes": 4
       },
       "ingredients": [
         {
           "nom": "eau",
-          "qte": 1.625,
-          "unite": "l",
-          "palier": null,
+          "qte": 6.5,
+          "unite": "tasse",
+          "palier": 0.5,
           "section": ""
         },
         {
@@ -2208,7 +2208,7 @@
           "section": ""
         },
         {
-          "nom": "tiges de rhubarbe fraîche, émincées grossièrement",
+          "nom": "rhubarbe (tiges de rhubarbe fraîche, émincées grossièrement)",
           "qte": 4.5,
           "unite": "tasse",
           "palier": 0.25,
@@ -2238,11 +2238,11 @@
       ],
       "preparation": [
         {
-          "texte": "Dans une casserole, porter l'eau et le sucre à ébullition.",
+          "texte": "Dans une casserole, porter l'[eau] et le [sucre] à ébullition.",
           "section": ""
         },
         {
-          "texte": "Ajouter la rhubarbe. Porter de nouveau à ébullition et laisser mijoter à feu doux environ 5 minutes. Passer au tamis et laisser égoutter 10 minutes sans presser la rhubarbe. Verser dans un pichet et ajouter le jus de citron. Réfrigérer environ 4 heures.",
+          "texte": "Ajouter la [rhubarbe]. Porter de nouveau à ébullition et laisser mijoter à feu doux environ 5 minutes. Passer au tamis et laisser égoutter 10 minutes sans presser la rhubarbe. Verser dans un pichet et ajouter le [jus de citron]. Réfrigérer environ 4 heures.",
           "section": ""
         },
         {
@@ -2257,7 +2257,8 @@
       "tags": [
         "Boisson",
         "Rhubarbe",
-        "Rafraîchissant"
+        "Rafraîchissant",
+        "À tester"
       ],
       "id": 23
     }
