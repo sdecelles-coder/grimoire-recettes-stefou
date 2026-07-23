@@ -2177,6 +2177,89 @@
         "À tester"
       ],
       "id": 22
+    },
+    {
+      "titre": "« Limonade » à la rhubarbe",
+      "sous_titre": "Boisson rafraîchissante et acidulée à la rhubarbe",
+      "temps_prep": 10,
+      "temps_cuisson": 10,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 8,
+        "personnes": 8,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 8
+      },
+      "ingredients": [
+        {
+          "nom": "eau",
+          "qte": 1.625,
+          "unite": "l",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "sucre",
+          "qte": 0.75,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "tiges de rhubarbe fraîche, émincées grossièrement",
+          "qte": 4.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "jus de citron",
+          "qte": 1.0,
+          "unite": "citron",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "bleuets frais",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "brochettes de bois d'environ 10 cm",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans une casserole, porter l'eau et le sucre à ébullition.",
+          "section": ""
+        },
+        {
+          "texte": "Ajouter la rhubarbe. Porter de nouveau à ébullition et laisser mijoter à feu doux environ 5 minutes. Passer au tamis et laisser égoutter 10 minutes sans presser la rhubarbe. Verser dans un pichet et ajouter le jus de citron. Réfrigérer environ 4 heures.",
+          "section": ""
+        },
+        {
+          "texte": "Enfiler des bleuets sur des brochettes. Les placer au congélateur si désiré, environ 1 heure.",
+          "section": ""
+        },
+        {
+          "texte": "Servir la limonade avec des glaçons et décorer d'une brochette de bleuets.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Boisson",
+        "Rhubarbe",
+        "Rafraîchissant"
+      ],
+      "id": 23
     }
   ],
   "tags": [
@@ -2207,6 +2290,10 @@
     {
       "nom": "Boeuf",
       "couleur": "#f4d35e"
+    },
+    {
+      "nom": "Boisson",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Bonbon",
@@ -2373,6 +2460,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Rafraîchissant",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Rhubarbe",
       "couleur": "#d6ddf4"
     },
@@ -2453,5 +2544,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 23
+  "prochain_id": 24
 }
