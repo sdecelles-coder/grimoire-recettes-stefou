@@ -1759,14 +1759,14 @@
       "id": 15
     },
     {
-      "titre": "Flocons d'avoine de nuit façon gâteau aux carottes épicé",
+      "titre": "Flocons d'avoine de nuit façon gâteau aux carottes épicé (à tester)",
       "sous_titre": "Un déjeuner sain qui goûte comme une vraie pointe de gâteau aux carottes",
       "temps_prep": 10,
       "temps_cuisson": 0,
       "base": {
         "label": "Portions",
         "unite": "portions",
-        "valeur": 1,
+        "valeur": 1.0,
         "personnes": 1,
         "max_personnes": 20,
         "multiples": false,
@@ -1917,7 +1917,8 @@
       "tags": [
         "Déjeuner",
         "Avoine",
-        "Végétalien"
+        "Végétalien",
+        "À tester"
       ],
       "id": 16
     }
