@@ -1921,6 +1921,125 @@
         "À tester"
       ],
       "id": 16
+    },
+    {
+      "titre": "Flocons d'avoine façon pâte à biscuits",
+      "sous_titre": "Overnight oats saveur pâte à biscuits",
+      "temps_prep": 10,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 4,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 4
+      },
+      "ingredients": [
+        {
+          "nom": "Beurre d'arachide non salé",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Ingrédients humides"
+        },
+        {
+          "nom": "Sirop d'érable",
+          "qte": 3.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": "Ingrédients humides"
+        },
+        {
+          "nom": "Extrait de vanille",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Ingrédients humides"
+        },
+        {
+          "nom": "Extrait d'amande (optionnel)",
+          "qte": 0.125,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Ingrédients humides"
+        },
+        {
+          "nom": "Lait d'amande non sucré",
+          "qte": 1.5,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Ingrédients humides"
+        },
+        {
+          "nom": "Flocons d'avoine à l'ancienne",
+          "qte": 1.0,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": "Ingrédients secs"
+        },
+        {
+          "nom": "Graines de chia",
+          "qte": 2.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": "Ingrédients secs"
+        },
+        {
+          "nom": "Cannelle",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Ingrédients secs"
+        },
+        {
+          "nom": "Sel de mer",
+          "qte": 0.125,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": "Ingrédients secs"
+        },
+        {
+          "nom": "Pépites de chocolat noir sans produits laitiers",
+          "qte": 3.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": "Ingrédients secs"
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un grand bol, mélanger le beurre d'arachide, le sirop d'érable, l'extrait d'amande (si utilisé) et l'extrait de vanille. Remuer jusqu'à l'obtention d'une pâte épaisse.",
+          "section": ""
+        },
+        {
+          "texte": "Incorporer le lait au fouet jusqu'à ce que la pâte soit bien dissoute et que le mélange ait une couleur caramel.",
+          "section": ""
+        },
+        {
+          "texte": "Ajouter les flocons d'avoine, les graines de chia, le sel, la cannelle et les pépites de chocolat. Bien mélanger.",
+          "section": ""
+        },
+        {
+          "texte": "Couvrir le bol et réfrigérer toute la nuit ou au moins 8 heures. Après 10 minutes au réfrigérateur, remuer brièvement pour éviter que les graines de chia ne tombent au fond.",
+          "section": ""
+        },
+        {
+          "texte": "Le lendemain, répartir dans quatre petits pots et servir avec des pépites de chocolat supplémentaires et du beurre d'arachide sur le dessus.",
+          "section": ""
+        },
+        {
+          "texte": "Conserver dans un pot Mason en verre hermétique au réfrigérateur jusqu'à 3 jours.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Déjeuner",
+        "Avoine",
+        "Sans cuisson"
+      ],
+      "id": 17
     }
   ],
   "tags": [
@@ -2161,5 +2280,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 17
+  "prochain_id": 18
 }
