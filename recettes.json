@@ -2262,6 +2262,98 @@
         "À tester"
       ],
       "id": 23
+    },
+    {
+      "titre": "Sauce chimichurri",
+      "sous_titre": "Sauce argentine fraîche et piquante au persil et piment",
+      "temps_prep": 15,
+      "temps_cuisson": 0,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 2.5,
+        "personnes": 4,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 4
+      },
+      "ingredients": [
+        {
+          "nom": "huile d'olive",
+          "qte": 375.0,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "vinaigre de vin rouge",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "échalote française hachée finement",
+          "qte": 30.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "origan ciselé",
+          "qte": 10.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "coriandre ciselée",
+          "qte": 10.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "persil plat ciselé",
+          "qte": 2.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "thym ciselé",
+          "qte": 1.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "ail haché finement",
+          "qte": 1.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "flocons de piment broyé",
+          "qte": 1.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Dans un bol, mélanger tous les ingrédients. Ajuster la quantité de flocons de piment au goût.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Sauce",
+        "Condiment",
+        "Argentin"
+      ],
+      "id": 24
     }
   ],
   "tags": [
@@ -2276,6 +2368,10 @@
     {
       "nom": "Apéro",
       "couleur": "#63b3ff"
+    },
+    {
+      "nom": "Argentin",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Avoine",
@@ -2339,6 +2435,10 @@
     },
     {
       "nom": "Compote",
+      "couleur": "#d6ddf4"
+    },
+    {
+      "nom": "Condiment",
       "couleur": "#d6ddf4"
     },
     {
@@ -2546,5 +2646,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 24
+  "prochain_id": 25
 }
