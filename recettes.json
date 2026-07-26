@@ -2308,15 +2308,15 @@
         },
         {
           "nom": "coriandre ciselée",
-          "qte": 10.0,
+          "qte": 20.0,
           "unite": "g",
           "palier": null,
           "section": ""
         },
         {
           "nom": "persil plat ciselé",
-          "qte": 2.0,
-          "unite": "c. à soupe",
+          "qte": 20.0,
+          "unite": "g",
           "palier": 0.5,
           "section": ""
         },
