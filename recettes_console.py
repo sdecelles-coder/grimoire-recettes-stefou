@@ -460,10 +460,8 @@ def sauvegarder_recettes(recettes, tags, prochain_id=None):
 #      (survit à un renommage), jamais par son titre.
 #  Lecture/écriture calquées sur recettes.json (GitHub si secrets, sinon local).
 # ─────────────────────────────────────────────────────────────────────────────
-NOTES_FICHIER = "notes.json"
-COMMENTAIRES_FICHIER = "commentaires.json"
-NOTES_DEFAUT = {"notes": [], "prochain_id": 1}
-COMMENTAIRES_DEFAUT = {"commentaires": [], "prochain_id": 1}
+AVIS_FICHIER = "avis.json"
+AVIS_DEFAUT = {"avis": [], "prochain_id": 1}
 
 
 def _gh_url_fichier(cfg, chemin):
@@ -574,11 +572,11 @@ def _maintenant_iso():
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
-def moyenne_notes(notes_data, recette_id):
+def moyenne_notes(avis_data, recette_id):
     """(moyenne, nombre) des étoiles pour une recette. (None, 0) si aucune note."""
-    valeurs = [n["etoiles"] for n in notes_data.get("notes", [])
-               if n.get("recette_id") == recette_id
-               and isinstance(n.get("etoiles"), (int, float))]
+    valeurs = [a["etoiles"] for a in avis_data.get("avis", [])
+               if a.get("recette_id") == recette_id
+               and isinstance(a.get("etoiles"), (int, float))]
     if not valeurs:
         return None, 0
     return sum(valeurs) / len(valeurs), len(valeurs)
@@ -1335,14 +1333,10 @@ if "recettes" not in st.session_state:
     # aux sessions suivantes une fois la migration faite.
     if (ids_attribues or compteur_absent) and not erreur:
         sauvegarder_recettes(recettes, st.session_state.tags, prochain_id)
-if "notes_data" not in st.session_state:
-    notes_data, err_notes = charger_json_annexe(NOTES_FICHIER, NOTES_DEFAUT)
-    st.session_state.notes_data = notes_data
-    st.session_state.erreur_notes = err_notes
-if "commentaires_data" not in st.session_state:
-    comm_data, err_comm = charger_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT)
-    st.session_state.commentaires_data = comm_data
-    st.session_state.erreur_commentaires = err_comm
+if "avis_data" not in st.session_state:
+    avis_data, err_avis = charger_json_annexe(AVIS_FICHIER, AVIS_DEFAUT)
+    st.session_state.avis_data = avis_data
+    st.session_state.erreur_avis = err_avis
 if "sel" not in st.session_state:
     # Au démarrage, aucune recette n'est sélectionnée (« Choisis ta recette »).
     st.session_state.sel = None
@@ -2499,97 +2493,72 @@ with st.container(key="mode_nav"):
     )
 
 # ═════════════════════════════════════════════════════════════════════════════
-#  NOTES (★) ET COMMENTAIRES — affichés à la FIN d'une recette, en cuisine
+#  NOTES ET COMMENTAIRES (★ + texte) — affichés à la FIN d'une recette, en cuisine
 #
 #  Tout le monde peut ajouter/modifier/supprimer (app familiale, sans compte).
-#  Chaque écriture recharge le fichier le plus à jour, applique la mutation et
-#  réécrit (muter_json_annexe) : robuste aux contributions concurrentes.
+#  Une seule entrée "avis" par contribution : étoiles et/ou texte, l'un des deux
+#  au moins étant requis. Chaque écriture recharge le fichier le plus à jour,
+#  applique la mutation et réécrit (muter_json_annexe) : robuste aux
+#  contributions concurrentes.
 # ═════════════════════════════════════════════════════════════════════════════
-def _note_ajouter(recette_id, nom, etoiles):
+def _avis_ajouter(recette_id, nom, etoiles, texte):
     def m(data):
-        data.setdefault("notes", [])
+        data.setdefault("avis", [])
         pid = data.get("prochain_id", 1)
         now = _maintenant_iso()
-        data["notes"].append({"id": pid, "recette_id": recette_id, "nom": nom,
-                              "etoiles": etoiles, "cree": now, "modifie": now})
+        data["avis"].append({"id": pid, "recette_id": recette_id, "nom": nom,
+                             "etoiles": etoiles, "texte": texte,
+                             "cree": now, "modifie": now, "reponses": []})
         data["prochain_id"] = pid + 1
-    return muter_json_annexe(NOTES_FICHIER, NOTES_DEFAUT, m)
+    return muter_json_annexe(AVIS_FICHIER, AVIS_DEFAUT, m)
 
 
-def _note_modifier(note_id, nom, etoiles):
+def _avis_modifier(avis_id, nom, etoiles, texte):
     def m(data):
-        for n in data.get("notes", []):
-            if n.get("id") == note_id:
-                n["nom"], n["etoiles"] = nom, etoiles
-                n["modifie"] = _maintenant_iso()
-    return muter_json_annexe(NOTES_FICHIER, NOTES_DEFAUT, m)
+        for a in data.get("avis", []):
+            if a.get("id") == avis_id:
+                a["nom"], a["etoiles"], a["texte"] = nom, etoiles, texte
+                a["modifie"] = _maintenant_iso()
+    return muter_json_annexe(AVIS_FICHIER, AVIS_DEFAUT, m)
 
 
-def _note_supprimer(note_id):
+def _avis_supprimer(avis_id):
     def m(data):
-        data["notes"] = [n for n in data.get("notes", []) if n.get("id") != note_id]
-    return muter_json_annexe(NOTES_FICHIER, NOTES_DEFAUT, m)
+        data["avis"] = [a for a in data.get("avis", []) if a.get("id") != avis_id]
+    return muter_json_annexe(AVIS_FICHIER, AVIS_DEFAUT, m)
 
 
-def _commentaire_ajouter(recette_id, nom, texte):
-    def m(data):
-        data.setdefault("commentaires", [])
-        pid = data.get("prochain_id", 1)
-        now = _maintenant_iso()
-        data["commentaires"].append({"id": pid, "recette_id": recette_id, "nom": nom,
-                                     "texte": texte, "cree": now, "modifie": now,
-                                     "reponses": []})
-        data["prochain_id"] = pid + 1
-    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
-
-
-def _commentaire_modifier(comm_id, nom, texte):
-    def m(data):
-        for c in data.get("commentaires", []):
-            if c.get("id") == comm_id:
-                c["nom"], c["texte"] = nom, texte
-                c["modifie"] = _maintenant_iso()
-    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
-
-
-def _commentaire_supprimer(comm_id):
-    def m(data):
-        data["commentaires"] = [c for c in data.get("commentaires", [])
-                                if c.get("id") != comm_id]
-    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
-
-
-def _reponse_ajouter(comm_id, nom, texte):
+def _reponse_ajouter(avis_id, nom, texte):
     def m(data):
         pid = data.get("prochain_id", 1)
         now = _maintenant_iso()
-        for c in data.get("commentaires", []):
-            if c.get("id") == comm_id:
-                c.setdefault("reponses", []).append(
+        for a in data.get("avis", []):
+            if a.get("id") == avis_id:
+                a.setdefault("reponses", []).append(
                     {"id": pid, "nom": nom, "texte": texte, "cree": now, "modifie": now})
                 data["prochain_id"] = pid + 1
                 break
-    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+    return muter_json_annexe(AVIS_FICHIER, AVIS_DEFAUT, m)
 
 
-def _reponse_modifier(comm_id, rep_id, nom, texte):
+def _reponse_modifier(avis_id, rep_id, nom, texte):
     def m(data):
-        for c in data.get("commentaires", []):
-            if c.get("id") == comm_id:
-                for rep in c.get("reponses", []):
+        for a in data.get("avis", []):
+            if a.get("id") == avis_id:
+                for rep in a.get("reponses", []):
                     if rep.get("id") == rep_id:
                         rep["nom"], rep["texte"] = nom, texte
                         rep["modifie"] = _maintenant_iso()
-    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+    return muter_json_annexe(AVIS_FICHIER, AVIS_DEFAUT, m)
 
 
-def _reponse_supprimer(comm_id, rep_id):
+def _reponse_supprimer(avis_id, rep_id):
     def m(data):
-        for c in data.get("commentaires", []):
-            if c.get("id") == comm_id:
-                c["reponses"] = [r for r in c.get("reponses", [])
+        for a in data.get("avis", []):
+            if a.get("id") == avis_id:
+                a["reponses"] = [r for r in a.get("reponses", [])
                                  if r.get("id") != rep_id]
-    return muter_json_annexe(COMMENTAIRES_FICHIER, COMMENTAIRES_DEFAUT, m)
+    return muter_json_annexe(AVIS_FICHIER, AVIS_DEFAUT, m)
 
 
 def _appliquer(resultat, cle_data, cle_erreur):
@@ -2615,17 +2584,17 @@ def _horodatage(item):
 
 def afficher_notes_commentaires(recette):
     """Volet dépliable (replié par défaut) en fin de recette. Son TITRE résume
-    déjà la note moyenne et le nombre de commentaires ; le détail (formulaires,
+    déjà la note moyenne et le nombre de commentaires ; le détail (formulaire,
     liste, réponses) est à l'intérieur, ce qui garde la zone compacte et bien
     repérable malgré la hauteur de la carte de recette."""
     rid = recette.get("id")
-    notes_data = st.session_state.notes_data
-    comm_data = st.session_state.commentaires_data
-    moy, nb = moyenne_notes(notes_data, rid)
-    nb_comm = sum(1 for c in comm_data.get("commentaires", []) if c.get("recette_id") == rid)
+    avis_data = st.session_state.avis_data
+    moy, nb = moyenne_notes(avis_data, rid)
+    avis_recette = [a for a in avis_data.get("avis", []) if a.get("recette_id") == rid]
+    nb_comm = sum(1 for a in avis_recette if (a.get("texte") or "").strip())
     note_txt = f"⭐ {moy:.1f}/5 ({nb})" if nb else "⭐ Aucune note"
     titre = (f"{note_txt}   ·   💬 {nb_comm} commentaire{'s' if nb_comm > 1 else ''}"
-             "     —     Notes & commentaires")
+             "     —     Notes et commentaires")
     # Le volet est habillé pour se lire comme une SECTION de la carte (même fond,
     # même bordure/rayon, accent gauche doré comme « Préparation ») et collé sous
     # elle (marge négative) : visuellement, il prolonge le même rectangle.
@@ -2649,131 +2618,97 @@ def afficher_notes_commentaires(recette):
 
 
 def _contenu_notes_commentaires(recette):
-    """Détail des notes (★) puis des commentaires (avec réponses), rendu à
-    l'intérieur du volet dépliable."""
+    """Formulaire unique puis liste chronologique unique des avis (note ★ et/ou
+    commentaire, avec réponses), rendus à l'intérieur du volet dépliable."""
     rid = recette.get("id")
-    notes_data = st.session_state.notes_data
-    comm_data = st.session_state.commentaires_data
+    avis_data = st.session_state.avis_data
 
-    if st.session_state.get("erreur_notes") or st.session_state.get("erreur_commentaires"):
+    if st.session_state.get("erreur_avis"):
         st.warning("Les notes/commentaires n'ont pas pu être lus (mode dégradé). "
                    "Réessaie plus tard ; n'écris pas pour éviter d'écraser des données.")
 
-    # ── NOTES ★ ──────────────────────────────────────────────────────────────
-    moy, nb = moyenne_notes(notes_data, rid)
-    entete = (f"⭐ Notes — {moy:.1f}/5 sur {nb} note{'s' if nb > 1 else ''}"
-              if nb else "⭐ Notes — aucune note pour l'instant")
+    moy, nb = moyenne_notes(avis_data, rid)
+    entete = (f"📝 Notes et commentaires — {moy:.1f}/5 sur {nb} note{'s' if nb > 1 else ''}"
+              if nb else "📝 Notes et commentaires — aucune note pour l'instant")
     st.markdown(f"### {entete}")
 
-    with st.form(key=f"form_note_{rid}", clear_on_submit=True):
-        st.markdown("**Laisser une note**")
-        nom_n = st.text_input("Ton nom *", key=f"nom_note_{rid}",
+    with st.form(key=f"form_avis_{rid}", clear_on_submit=True):
+        st.markdown("**Laisser une note et/ou un commentaire**")
+        nom_a = st.text_input("Ton nom *", key=f"nom_avis_{rid}",
                               placeholder="Obligatoire")
-        etoiles_n = st.feedback("stars", key=f"etoiles_note_{rid}")
-        if st.form_submit_button("Noter", type="primary"):
-            if not (nom_n or "").strip():
+        etoiles_a = st.feedback("stars", key=f"etoiles_avis_{rid}")
+        texte_a = st.text_area("Commentaire (optionnel)", key=f"texte_avis_{rid}")
+        if st.form_submit_button("Publier", type="primary"):
+            texte_propre = (texte_a or "").strip()
+            if not (nom_a or "").strip():
                 st.error("Le nom est obligatoire.")
-            elif etoiles_n is None:
-                st.error("Choisis une note en étoiles.")
+            elif etoiles_a is None and not texte_propre:
+                st.error("Choisis une note en étoiles et/ou écris un commentaire.")
             else:
-                _appliquer(_note_ajouter(rid, nom_n.strip(), etoiles_n + 1),
-                           "notes_data", "erreur_notes")
+                etoiles_val = etoiles_a + 1 if etoiles_a is not None else None
+                _appliquer(_avis_ajouter(rid, nom_a.strip(), etoiles_val,
+                                         texte_propre or None),
+                           "avis_data", "erreur_avis")
 
-    notes_recette = [n for n in notes_data.get("notes", []) if n.get("recette_id") == rid]
-    for n in reversed(notes_recette):
-        nid = n.get("id")
-        if st.session_state.get(f"edit_note_{nid}"):
-            with st.form(key=f"form_edit_note_{nid}", clear_on_submit=False):
-                nom_e = st.text_input("Nom *", value=n.get("nom", ""),
-                                      key=f"nom_edit_note_{nid}")
-                st.caption(f"Note actuelle : {n.get('etoiles', 0)}/5 — choisis la nouvelle")
-                et_e = st.feedback("stars", key=f"et_edit_note_{nid}")
-                c1, c2 = st.columns(2)
-                if c1.form_submit_button("Enregistrer", type="primary"):
-                    if not (nom_e or "").strip():
-                        st.error("Le nom est obligatoire.")
-                    elif et_e is None:
-                        st.error("Choisis une note en étoiles.")
-                    else:
-                        st.session_state[f"edit_note_{nid}"] = False
-                        _appliquer(_note_modifier(nid, nom_e.strip(), et_e + 1),
-                                   "notes_data", "erreur_notes")
-                if c2.form_submit_button("Annuler"):
-                    st.session_state[f"edit_note_{nid}"] = False
-                    st.rerun()
-        else:
-            etoiles_txt = "★" * int(n.get("etoiles", 0)) + "☆" * (5 - int(n.get("etoiles", 0)))
-            c_txt, c_ed, c_sup = st.columns([6, 1, 1])
-            c_txt.markdown(
-                f"<span style='color:#ffb454'>{etoiles_txt}</span> "
-                f"**{html_escape(n.get('nom', ''))}** "
-                f"<span style='color:#9fb0d8;font-size:.8rem'>{_horodatage(n)}</span>",
-                unsafe_allow_html=True)
-            if c_ed.button("✏️", key=f"btn_edit_note_{nid}", help="Modifier"):
-                st.session_state[f"edit_note_{nid}"] = True
-                st.rerun()
-            if c_sup.button("🗑", key=f"btn_sup_note_{nid}", help="Supprimer"):
-                _appliquer(_note_supprimer(nid), "notes_data", "erreur_notes")
-
-    # ── COMMENTAIRES ─────────────────────────────────────────────────────────
-    commentaires = [c for c in comm_data.get("commentaires", []) if c.get("recette_id") == rid]
-    st.markdown(f"### 💬 Commentaires ({len(commentaires)})")
-
-    with st.form(key=f"form_comm_{rid}", clear_on_submit=True):
-        st.markdown("**Laisser un commentaire**")
-        nom_c = st.text_input("Ton nom *", key=f"nom_comm_{rid}",
-                              placeholder="Obligatoire")
-        texte_c = st.text_area("Commentaire", key=f"texte_comm_{rid}")
-        if st.form_submit_button("Commenter", type="primary"):
-            if not (nom_c or "").strip():
-                st.error("Le nom est obligatoire.")
-            elif not (texte_c or "").strip():
-                st.error("Le commentaire ne peut pas être vide.")
-            else:
-                _appliquer(_commentaire_ajouter(rid, nom_c.strip(), texte_c.strip()),
-                           "commentaires_data", "erreur_commentaires")
-
-    for c in reversed(commentaires):
-        cid = c.get("id")
+    avis_recette = [a for a in avis_data.get("avis", []) if a.get("recette_id") == rid]
+    for a in reversed(avis_recette):
+        aid = a.get("id")
         with st.container(border=True):
-            if st.session_state.get(f"edit_comm_{cid}"):
-                with st.form(key=f"form_edit_comm_{cid}", clear_on_submit=False):
-                    nom_ce = st.text_input("Nom *", value=c.get("nom", ""),
-                                           key=f"nom_edit_comm_{cid}")
-                    txt_ce = st.text_area("Commentaire", value=c.get("texte", ""),
-                                          key=f"txt_edit_comm_{cid}")
+            if st.session_state.get(f"edit_avis_{aid}"):
+                with st.form(key=f"form_edit_avis_{aid}", clear_on_submit=False):
+                    nom_e = st.text_input("Nom *", value=a.get("nom", ""),
+                                          key=f"nom_edit_avis_{aid}")
+                    if a.get("etoiles"):
+                        st.caption(f"Note actuelle : {a.get('etoiles')}/5 — clique de "
+                                   "nouvelles étoiles pour la changer, sinon elle est conservée.")
+                    else:
+                        st.caption("Aucune note en étoiles pour l'instant — clique des "
+                                   "étoiles si tu veux en ajouter une.")
+                    et_e = st.feedback("stars", key=f"et_edit_avis_{aid}")
+                    txt_e = st.text_area("Commentaire (optionnel)",
+                                         value=a.get("texte") or "",
+                                         key=f"txt_edit_avis_{aid}")
                     c1, c2 = st.columns(2)
                     if c1.form_submit_button("Enregistrer", type="primary"):
-                        if not (nom_ce or "").strip():
+                        txt_propre_e = (txt_e or "").strip()
+                        # Étoiles non retouchées (feedback revenu à None) → on garde
+                        # la valeur existante plutôt que de l'effacer.
+                        et_val = (et_e + 1) if et_e is not None else a.get("etoiles")
+                        if not (nom_e or "").strip():
                             st.error("Le nom est obligatoire.")
-                        elif not (txt_ce or "").strip():
-                            st.error("Le commentaire ne peut pas être vide.")
+                        elif et_val is None and not txt_propre_e:
+                            st.error("Choisis une note en étoiles et/ou écris un commentaire.")
                         else:
-                            st.session_state[f"edit_comm_{cid}"] = False
-                            _appliquer(_commentaire_modifier(cid, nom_ce.strip(), txt_ce.strip()),
-                                       "commentaires_data", "erreur_commentaires")
+                            st.session_state[f"edit_avis_{aid}"] = False
+                            _appliquer(_avis_modifier(aid, nom_e.strip(), et_val,
+                                                      txt_propre_e or None),
+                                       "avis_data", "erreur_avis")
                     if c2.form_submit_button("Annuler"):
-                        st.session_state[f"edit_comm_{cid}"] = False
+                        st.session_state[f"edit_avis_{aid}"] = False
                         st.rerun()
             else:
+                if a.get("etoiles"):
+                    etoiles_txt = "★" * int(a["etoiles"]) + "☆" * (5 - int(a["etoiles"]))
+                    st.markdown(f"<span style='color:#ffb454'>{etoiles_txt}</span>",
+                               unsafe_allow_html=True)
                 st.markdown(
-                    f"**{html_escape(c.get('nom', ''))}** "
-                    f"<span style='color:#9fb0d8;font-size:.8rem'>{_horodatage(c)}</span>",
+                    f"**{html_escape(a.get('nom', ''))}** "
+                    f"<span style='color:#9fb0d8;font-size:.8rem'>{_horodatage(a)}</span>",
                     unsafe_allow_html=True)
-                st.markdown(html_escape(c.get("texte", "")).replace("\n", "  \n"))
+                if (a.get("texte") or "").strip():
+                    st.markdown(html_escape(a.get("texte", "")).replace("\n", "  \n"))
                 b1, b2, b3, _ = st.columns([1.3, 1, 1, 4])
-                if b1.button("💬 Répondre", key=f"btn_rep_{cid}"):
-                    st.session_state[f"rep_comm_{cid}"] = not st.session_state.get(f"rep_comm_{cid}")
+                if b1.button("💬 Répondre", key=f"btn_rep_{aid}"):
+                    st.session_state[f"rep_avis_{aid}"] = not st.session_state.get(f"rep_avis_{aid}")
                     st.rerun()
-                if b2.button("✏️", key=f"btn_edit_comm_{cid}", help="Modifier"):
-                    st.session_state[f"edit_comm_{cid}"] = True
+                if b2.button("✏️", key=f"btn_edit_avis_{aid}", help="Modifier"):
+                    st.session_state[f"edit_avis_{aid}"] = True
                     st.rerun()
-                if b3.button("🗑", key=f"btn_sup_comm_{cid}", help="Supprimer"):
-                    _appliquer(_commentaire_supprimer(cid),
-                               "commentaires_data", "erreur_commentaires")
+                if b3.button("🗑", key=f"btn_sup_avis_{aid}", help="Supprimer"):
+                    _appliquer(_avis_supprimer(aid), "avis_data", "erreur_avis")
 
             # Réponses (un seul niveau), légèrement indentées.
-            for rep in c.get("reponses", []):
+            for rep in a.get("reponses", []):
                 repid = rep.get("id")
                 with st.container():
                     cg, cd = st.columns([0.4, 9.6])
@@ -2792,8 +2727,8 @@ def _contenu_notes_commentaires(recette):
                                         st.error("La réponse ne peut pas être vide.")
                                     else:
                                         st.session_state[f"edit_rep_{repid}"] = False
-                                        _appliquer(_reponse_modifier(cid, repid, nom_re.strip(), txt_re.strip()),
-                                                   "commentaires_data", "erreur_commentaires")
+                                        _appliquer(_reponse_modifier(aid, repid, nom_re.strip(), txt_re.strip()),
+                                                   "avis_data", "erreur_avis")
                                 if cc2.form_submit_button("Annuler"):
                                     st.session_state[f"edit_rep_{repid}"] = False
                                     st.rerun()
@@ -2808,24 +2743,24 @@ def _contenu_notes_commentaires(recette):
                                 st.session_state[f"edit_rep_{repid}"] = True
                                 st.rerun()
                             if r2.button("🗑", key=f"btn_sup_rep_{repid}", help="Supprimer"):
-                                _appliquer(_reponse_supprimer(cid, repid),
-                                           "commentaires_data", "erreur_commentaires")
+                                _appliquer(_reponse_supprimer(aid, repid),
+                                           "avis_data", "erreur_avis")
 
             # Formulaire de réponse (affiché à la demande via « Répondre »).
-            if st.session_state.get(f"rep_comm_{cid}"):
-                with st.form(key=f"form_rep_{cid}", clear_on_submit=True):
-                    nom_r = st.text_input("Ton nom *", key=f"nom_rep_{cid}",
+            if st.session_state.get(f"rep_avis_{aid}"):
+                with st.form(key=f"form_rep_{aid}", clear_on_submit=True):
+                    nom_r = st.text_input("Ton nom *", key=f"nom_rep_{aid}",
                                           placeholder="Obligatoire")
-                    txt_r = st.text_area("Ta réponse", key=f"txt_rep_{cid}")
+                    txt_r = st.text_area("Ta réponse", key=f"txt_rep_{aid}")
                     if st.form_submit_button("Répondre", type="primary"):
                         if not (nom_r or "").strip():
                             st.error("Le nom est obligatoire.")
                         elif not (txt_r or "").strip():
                             st.error("La réponse ne peut pas être vide.")
                         else:
-                            st.session_state[f"rep_comm_{cid}"] = False
-                            _appliquer(_reponse_ajouter(cid, nom_r.strip(), txt_r.strip()),
-                                       "commentaires_data", "erreur_commentaires")
+                            st.session_state[f"rep_avis_{aid}"] = False
+                            _appliquer(_reponse_ajouter(aid, nom_r.strip(), txt_r.strip()),
+                                       "avis_data", "erreur_avis")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -2906,7 +2841,7 @@ if vue == VUE_CUISINE:
     # Récapitulatif « sommaire » — rendu DANS la carte (classes .meta / .chip).
     # La NOTE moyenne (★) est la toute première puce : c'est ce que l'utilisateur
     # veut voir en premier en ouvrant une recette.
-    _moy, _nb = moyenne_notes(st.session_state.notes_data, recette.get("id"))
+    _moy, _nb = moyenne_notes(st.session_state.avis_data, recette.get("id"))
     if _nb:
         _pleines = int(round(_moy))
         _etoiles = "★" * _pleines + "☆" * (5 - _pleines)
