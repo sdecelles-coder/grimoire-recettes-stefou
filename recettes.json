@@ -2353,6 +2353,114 @@
         "Argentin"
       ],
       "id": 24
+    },
+    {
+      "titre": "Galettes à l'avoine (les meilleures)",
+      "sous_titre": "Collation économique et réconfortante",
+      "temps_prep": 20,
+      "temps_cuisson": 24,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 12,
+        "personnes": 12,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 12
+      },
+      "ingredients": [
+        {
+          "nom": "farine tout usage non blanchie",
+          "qte": 225.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "flocons d'avoine à cuisson rapide",
+          "qte": 150.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "bicarbonate de soude",
+          "qte": 0.5,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": 0.25,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "beurre non salé, ramolli",
+          "qte": 115.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "cassonade",
+          "qte": 265.0,
+          "unite": "g",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "huile de canola",
+          "qte": 60.0,
+          "unite": "ml",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "extrait de vanille",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "oeuf",
+          "qte": 1.0,
+          "unite": "unité",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Placer la grille au centre du four. Préchauffer le four à 190 °C (375 °F). Tapisser deux plaques de cuisson de tapis de silicone ou de papier parchemin.",
+          "section": ""
+        },
+        {
+          "texte": "Dans un bol, mélanger la farine, les flocons d'avoine, le bicarbonate de soude et le sel.",
+          "section": ""
+        },
+        {
+          "texte": "Dans un autre bol, crémer le beurre avec la cassonade, l'huile et la vanille au batteur électrique. Ajouter l'oeuf et fouetter jusqu'à ce que le mélange soit homogène. À basse vitesse ou à la cuillère de bois, incorporer les ingrédients secs.",
+          "section": ""
+        },
+        {
+          "texte": "À l'aide d'une cuillère à crème glacée d'environ 60 ml (¼ tasse), former des boules de pâte et les répartir sur les plaques en les espaçant. Presser les boules pour qu'elles aient 2 cm d'épaisseur.",
+          "section": ""
+        },
+        {
+          "texte": "Cuire au four, une plaque à la fois, 12 minutes ou jusqu'à ce que les galettes soient légèrement dorées. Laisser refroidir sur une grille. Servir tièdes ou froides.",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Galettes",
+        "Avoine",
+        "Collation"
+      ],
+      "id": 25
     }
   ],
   "tags": [
@@ -2429,6 +2537,10 @@
       "couleur": "#7d8cb5"
     },
     {
+      "nom": "Collation",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Comfort food",
       "couleur": "#7d8cb5"
     },
@@ -2479,6 +2591,10 @@
     {
       "nom": "Fêtes",
       "couleur": "#7d8cb5"
+    },
+    {
+      "nom": "Galettes",
+      "couleur": "#d6ddf4"
     },
     {
       "nom": "Grillades",
@@ -2645,5 +2761,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 25
+  "prochain_id": 26
 }
