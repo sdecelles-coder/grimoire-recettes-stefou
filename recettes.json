@@ -2461,6 +2461,114 @@
         "Collation"
       ],
       "id": 25
+    },
+    {
+      "titre": "Hauts de cuisses de poulet érable et soya",
+      "sous_titre": "À la poêle en moins de 15 minutes",
+      "temps_prep": 5,
+      "temps_cuisson": 10,
+      "base": {
+        "label": "Portions",
+        "unite": "portions",
+        "valeur": 3,
+        "personnes": 3,
+        "max_personnes": 20,
+        "multiples": false,
+        "pas_personnes": 3
+      },
+      "ingredients": [
+        {
+          "nom": "hauts de cuisses de poulet désossés et sans peau",
+          "qte": 5.0,
+          "unite": "unité",
+          "palier": 1,
+          "section": ""
+        },
+        {
+          "nom": "fécule de maïs",
+          "qte": 1.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "sauce soya ou tamari",
+          "qte": 0.25,
+          "unite": "tasse",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "sirop d'érable",
+          "qte": 2.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "gousses d'ail hachées",
+          "qte": 2.0,
+          "unite": "unité",
+          "palier": 1,
+          "section": ""
+        },
+        {
+          "nom": "gingembre frais râpé",
+          "qte": 1.0,
+          "unite": "c. à thé",
+          "palier": 0.25,
+          "section": ""
+        },
+        {
+          "nom": "huile végétale ou d'olive",
+          "qte": 1.0,
+          "unite": "c. à soupe",
+          "palier": 0.5,
+          "section": ""
+        },
+        {
+          "nom": "sel",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        },
+        {
+          "nom": "piments en flocons ou sriracha (facultatif)",
+          "qte": null,
+          "unite": "au goût",
+          "palier": null,
+          "section": ""
+        }
+      ],
+      "preparation": [
+        {
+          "texte": "Asséchez les hauts de cuisses avec un essuie-tout. Salez légèrement et saupoudrez-les de fécule de maïs pour les enrober uniformément.",
+          "section": ""
+        },
+        {
+          "texte": "Dans un petit bol, fouettez la sauce soya, le sirop d'érable, l'ail haché, le gingembre râpé et les flocons de piment si désiré.",
+          "section": ""
+        },
+        {
+          "texte": "Faites chauffer l'huile dans une grande poêle à feu moyen-vif. Déposez les hauts de cuisses et laissez-les cuire sans y toucher pendant 3 minutes pour obtenir une belle caramélisation.",
+          "section": ""
+        },
+        {
+          "texte": "Retournez le poulet, puis versez la sauce à l'érable et au soya directement dans la poêle.",
+          "section": ""
+        },
+        {
+          "texte": "Laissez mijoter encore 5 à 7 minutes en retournant les morceaux et en les enrobant de sauce, jusqu'à ce qu'elle ait épaissi et que le poulet soit bien cuit (température interne de 74 °C / 165 °F).",
+          "section": ""
+        }
+      ],
+      "tags": [
+        "Poulet",
+        "Érable",
+        "Rapide"
+      ],
+      "id": 26
     }
   ],
   "tags": [
@@ -2681,6 +2789,10 @@
       "couleur": "#d6ddf4"
     },
     {
+      "nom": "Rapide",
+      "couleur": "#d6ddf4"
+    },
+    {
       "nom": "Rhubarbe",
       "couleur": "#d6ddf4"
     },
@@ -2761,5 +2873,5 @@
       "couleur": "#7d8cb5"
     }
   ],
-  "prochain_id": 26
+  "prochain_id": 27
 }
